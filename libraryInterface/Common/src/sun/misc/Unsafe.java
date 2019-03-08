@@ -13,6 +13,7 @@
 package sun.misc;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 
 import org.jikesrvm.VM;
@@ -22,6 +23,7 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.scheduler.RVMThread;
@@ -138,6 +140,18 @@ public final class Unsafe {
 
   @Inline
   public long objectFieldOffset(Field field) {
+    RVMField vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
+    if (VM.VerifyAssertions) VM._assert(vmfield != null);
+    return vmfield.getOffset().toLong();
+  }
+
+  @Inline
+  public Object staticFieldBase(Field f) {
+    return Statics.getSlots();
+  }
+
+  @Inline
+  public long staticFieldOffset(Field field) {
     RVMField vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     if (VM.VerifyAssertions) VM._assert(vmfield != null);
     return vmfield.getOffset().toLong();
@@ -264,16 +278,6 @@ public final class Unsafe {
   }
 
   @Inline
-  public boolean getBoolean(Object obj, int offset) {
-    Offset off = Offset.fromIntSignExtend(offset);
-    if (NEEDS_BOOLEAN_GETFIELD_BARRIER) {
-      return booleanFieldRead(obj, off, 0);
-    } else {
-      return Magic.getByteAtOffset(obj, off) == 0;
-    }
-  }
-
-  @Inline
   public boolean getBoolean(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     if (NEEDS_BOOLEAN_GETFIELD_BARRIER) {
@@ -296,16 +300,6 @@ public final class Unsafe {
   @Inline
   public void putBoolean(long address, boolean x) {
     Address.fromLong(address).store(x) ;
-  }
-
-  @Inline
-  public byte getByte(Object obj, int offset) {
-    Offset off = Offset.fromIntSignExtend(offset);
-    if (NEEDS_BYTE_GETFIELD_BARRIER) {
-      return byteFieldRead(obj, off, 0);
-    } else {
-      return Magic.getByteAtOffset(obj, off);
-    }
   }
 
   @Inline
@@ -374,16 +368,6 @@ public final class Unsafe {
   }
 
   @Inline
-  public double getDouble(Object obj, int offset) {
-    Offset off = Offset.fromIntSignExtend(offset);
-    if (NEEDS_DOUBLE_GETFIELD_BARRIER) {
-      return doubleFieldRead(obj, off, 0);
-    } else {
-      return Magic.getDoubleAtOffset(obj, off);
-    }
-  }
-
-  @Inline
   public double getDouble(Object obj, long offset) {
     Offset off = Offset.fromLong(offset);
     if (NEEDS_DOUBLE_GETFIELD_BARRIER) {
@@ -411,16 +395,6 @@ public final class Unsafe {
   @Inline
   public float getFloat(long address) {
     return Address.fromLong(address).loadFloat();
-  }
-
-  @Inline
-  public float getFloat(Object obj, int offset) {
-    Offset off = Offset.fromIntSignExtend(offset);
-    if (NEEDS_FLOAT_GETFIELD_BARRIER) {
-      return floatFieldRead(obj, off, 0);
-    } else {
-      return Magic.getFloatAtOffset(obj, off);
-    }
   }
 
   @Inline
@@ -640,6 +614,218 @@ public final class Unsafe {
   @Inline
   public void fullFence() {
     Magic.fence();
+  }
+
+  // Deprecated methods that we're carrying around because of IcedTea 6
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it returns an int as "offset" and OpenJDK wants to use longs
+  public int fieldOffset(Field f) {
+    if (Modifier.isStatic(f.getModifiers())) {
+      return (int) staticFieldOffset(f);
+    } else {
+      return (int) objectFieldOffset(f);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public boolean getBoolean(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_BOOLEAN_GETFIELD_BARRIER) {
+      return booleanFieldRead(obj, off, 0);
+    } else {
+      return Magic.getByteAtOffset(obj, off) == 0;
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putBoolean(Object obj, int offset, boolean value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_BOOLEAN_PUTFIELD_BARRIER) {
+      booleanFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setBooleanAtOffset(obj, off, value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public byte getByte(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_BYTE_GETFIELD_BARRIER) {
+      return byteFieldRead(obj, off, 0);
+    } else {
+      return Magic.getByteAtOffset(obj, off);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putByte(Object obj, int offset, byte value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_BYTE_PUTFIELD_BARRIER) {
+      byteFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setByteAtOffset(obj, off, value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public char getChar(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_CHAR_PUTFIELD_BARRIER) {
+      return charFieldRead(obj, off, 0);
+    } else {
+      return Magic.getCharAtOffset(obj, off);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putChar(Object obj, int offset, char value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_CHAR_PUTFIELD_BARRIER) {
+      charFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setCharAtOffset(obj, off, value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public double getDouble(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_DOUBLE_GETFIELD_BARRIER) {
+      return doubleFieldRead(obj, off, 0);
+    } else {
+      return Magic.getDoubleAtOffset(obj, off);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putDouble(Object obj, int offset, double value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_DOUBLE_PUTFIELD_BARRIER) {
+      doubleFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setDoubleAtOffset(obj, off, value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public float getFloat(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_FLOAT_GETFIELD_BARRIER) {
+      return floatFieldRead(obj, off, 0);
+    } else {
+      return Magic.getFloatAtOffset(obj, off);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putFloat(Object obj, int offset, float value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_FLOAT_PUTFIELD_BARRIER) {
+      floatFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setFloatAtOffset(obj, off, value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public int getInt(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_INT_GETFIELD_BARRIER) {
+      return intFieldRead(obj, off, 0);
+    } else {
+      return Magic.getIntAtOffset(obj, off);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putInt(Object obj, int offset, int value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_INT_PUTFIELD_BARRIER) {
+      intFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setIntAtOffset(obj,off,value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public short getShort(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_SHORT_GETFIELD_BARRIER) {
+      return shortFieldRead(obj, off, 0);
+    } else {
+      return Magic.getShortAtOffset(obj, off);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putShort(Object obj, int offset, short value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_SHORT_PUTFIELD_BARRIER) {
+      shortFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setShortAtOffset(obj, off, value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public long getLong(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_LONG_GETFIELD_BARRIER) {
+      return longFieldRead(obj, off, 0);
+    } else {
+      return Magic.getLongAtOffset(obj, off);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putLong(Object obj, int offset, long value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_LONG_PUTFIELD_BARRIER) {
+      longFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setLongAtOffset(obj,off,value);
+    }
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public Object getObject(Object obj, int offset) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    Object result;
+    if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+      result = objectFieldRead(obj, off, 0);
+    } else {
+      result = Magic.getObjectAtOffset(obj, off);
+    }
+    return result;
+  }
+
+  @Inline
+  @Deprecated // deprecated in OpenJDK because it uses an int as "offset" and OpenJDK wants to use longs
+  public void putObject(Object obj, int offset, Object value) {
+    Offset off = Offset.fromIntSignExtend(offset);
+    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      objectFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setObjectAtOffset(obj,off,value);
+    }
   }
 
 }
