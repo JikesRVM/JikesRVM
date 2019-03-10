@@ -511,6 +511,9 @@ public class VM extends Properties {
       runClassInitializer("java.security.MessageDigest");
     }
     if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.io.ObjectStreamClass"); // needed because JNI needs to be executed to initialize the class
+    }
+    if (VM.BuildForOpenJDK) {
       runClassInitializer("java.util.BitSet"); // needed when using IBM SDK as host JVM
     }
     if (VM.BuildForGnuClasspath) {
