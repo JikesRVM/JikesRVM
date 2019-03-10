@@ -17,6 +17,7 @@ import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
@@ -112,6 +113,18 @@ public final class Unsafe {
         type.prepareForFirstUse();
       }
     }
+  }
+
+  @Inline
+  public Object allocateInstance(Class c) throws InstantiationException {
+    ensureClassInitialized(c);
+    RVMType t = JikesRVMSupport.getTypeForClass(c);
+    if (t.isClassType()) {
+      RVMClass rvmClass = t.asClass();
+      return RuntimeEntrypoints.resolvedNewScalar(rvmClass);
+    }
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
   }
 
   @Inline
