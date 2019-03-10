@@ -286,7 +286,11 @@ public class java_lang_Class<T> {
   @ReplaceMember
   private Field[] getDeclaredFields0(boolean publicOnly) {
     // TODO move out of this class
-    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    RVMType type = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (!type.isClassType()) {
+      return new Field[0];
+    }
+    RVMClass myType = type.asClass();
     RVMField[] declaredFields = myType.getDeclaredFields();
     List<Field> myFields = new ArrayList<Field>();
     for (RVMField field : declaredFields) {
@@ -307,7 +311,11 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Method[] getDeclaredMethods0(boolean publicOnly) {
-    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    RVMType type = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (!type.isClassType()) {
+      return new Method[0];
+    }
+    RVMClass myType = type.asClass();
     RVMMethod[] declaredMethods = myType.getDeclaredMethods();
     List<Method> myMethods = new ArrayList<Method>();
     for (RVMMethod m : declaredMethods) {
@@ -336,7 +344,11 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Constructor<T>[] getDeclaredConstructors0(boolean publicOnly) {
-    RVMClass myType = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this).asClass();
+    RVMType type = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
+    if (!type.isClassType()) {
+      return new Constructor[0];
+    }
+    RVMClass myType = type.asClass();
     RVMMethod[] constructorMethods = myType.getConstructorMethods();
     List<Constructor<T>> myConstructors = new ArrayList<Constructor<T>>();
     for (RVMMethod c : constructorMethods) {
