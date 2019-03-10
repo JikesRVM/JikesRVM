@@ -496,6 +496,16 @@ public final class Unsafe {
   }
 
   @Inline
+  public short getShort(Object obj, long offset) {
+    Offset off = Offset.fromLong(offset);
+    if (NEEDS_SHORT_GETFIELD_BARRIER) {
+      return shortFieldRead(obj, off, 0);
+    } else {
+      return Magic.getShortAtOffset(obj, off);
+    }
+  }
+
+  @Inline
   public void putShort(Object obj, long offset, short value) {
     Offset off = Offset.fromLong(offset);
     if (NEEDS_SHORT_PUTFIELD_BARRIER) {
