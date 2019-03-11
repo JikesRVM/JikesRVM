@@ -139,9 +139,8 @@ public class RVMClassLoader {
    * @param classpath path specification in standard "classpath" format
    */
   public static void setApplicationRepositories(String classpath) {
-    String actualClasspath = buildRealClasspath(classpath);
-    System.setProperty("java.class.path", actualClasspath);
-    stashApplicationRepositories(actualClasspath);
+    System.setProperty("java.class.path", classpath);
+    stashApplicationRepositories(classpath);
     if (DBG_APP_CL) {
       VM.sysWriteln("RVMClassLoader.setApplicationRepositories: applicationRepositories = ", applicationRepositories);
     }
@@ -202,6 +201,18 @@ public class RVMClassLoader {
     } else {
       agentRepositories = agentRepositories + File.pathSeparator + agentClasspath;
     }
+  }
+
+  /**
+   * Rebuilds the application repositories to include jars for Java agents.
+   * Called after command line arg parsing is done.
+   */
+  public static void rebuildApplicationRepositoriesWithAgents() {
+    if (agentRepositories == null) {
+      return;
+    }
+    String newApplicationRepositories = applicationRepositories + File.pathSeparator + agentRepositories;
+    setApplicationRepositories(newApplicationRepositories);
   }
 
   /** Are we getting the application CL?  Access is synchronized via the

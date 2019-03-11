@@ -43,11 +43,11 @@ public class RVMClassLoaderTest {
   }
 
   @Test
-  public void agentPathIsAutomaticallyAddedToApplicationRepositories() throws Exception {
+  public void applicationRepositoriesNeedToBeRebuiltToGetAgentPathAddedToApplicationRepositories() throws Exception {
     String applicationRepositories = RVMClassLoader.getApplicationRepositories();
     String agentPath = "agentPath";
     RVMClassLoader.addAgentRepositories(agentPath);
-    RVMClassLoader.setApplicationRepositories(applicationRepositories);
+    RVMClassLoader.rebuildApplicationRepositoriesWithAgents();
     String newApplicationRepositories = RVMClassLoader.getApplicationRepositories();
     assertThat(newApplicationRepositories, is(applicationRepositories + File.pathSeparator + agentPath));
   }
@@ -59,7 +59,7 @@ public class RVMClassLoaderTest {
     RVMClassLoader.addAgentRepositories(agentPath);
     String secondAgentPath = "theOtherAgent";
     RVMClassLoader.addAgentRepositories(secondAgentPath);
-    RVMClassLoader.setApplicationRepositories(applicationRepositories);
+    RVMClassLoader.rebuildApplicationRepositoriesWithAgents();
     String newApplicationRepositories = RVMClassLoader.getApplicationRepositories();
     assertThat(newApplicationRepositories, is(applicationRepositories + File.pathSeparator + agentPath + File.pathSeparator + secondAgentPath));
   }
