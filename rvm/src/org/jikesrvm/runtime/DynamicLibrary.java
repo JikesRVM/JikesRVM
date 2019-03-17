@@ -243,4 +243,13 @@ public final class DynamicLibrary {
     }
     return Address.zero();
   }
+
+  public static synchronized Address getHandleForLibrary(String libName) {
+    DynamicLibrary dl = dynamicLibraries.get(libName);
+    if (dl != null) {
+      return dl.libHandler;
+    } else {
+      return Address.zero();
+    }
+  }
 }

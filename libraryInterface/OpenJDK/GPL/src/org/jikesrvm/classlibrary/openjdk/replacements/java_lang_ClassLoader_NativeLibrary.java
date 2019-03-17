@@ -24,44 +24,39 @@
  */
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
-import java.security.ProtectionDomain;
-
-import org.jikesrvm.classlibrary.ClassLoaderSupport;
-import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.VM;
+import org.jikesrvm.runtime.DynamicLibrary;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
-@ReplaceClass(className = "java.lang.ClassLoader")
-public class java_lang_ClassLoader {
+@ReplaceClass(className = "java.lang.ClassLoader$NativeLibrary")
+public class java_lang_ClassLoader_NativeLibrary {
 
   @ReplaceMember
-  private  Class<?> findLoadedClass0(String name) {
-    return ClassLoaderSupport.findLoadedClass(thisAsClassLoader(), name);
-  }
+  long handle;
 
   @ReplaceMember
-  private Class<?> findBootstrapClass(String name) throws ClassNotFoundException {
-    if (name.startsWith("L") && name.endsWith(";")) {
-      name = name.substring(1, name.length() - 2);
+  void load(String name) {
+    int booleanOk = DynamicLibrary.load(name);
+    if (booleanOk != 1) {
+      String msg = "Failed to load native library " + name;
+      if (VM.safeToCreateStackTrace) {
+        throw new UnsatisfiedLinkError(msg);
+      } else {
+        VM.sysFail(msg);
+      }
     }
-    BootstrapClassLoader bootstrapCL = BootstrapClassLoader.getBootstrapClassLoader();
-    Class<?> loadedBootstrapClass = bootstrapCL.findLoadedBootstrapClass(name);
-    if (loadedBootstrapClass != null) {
-      return loadedBootstrapClass;
-    }
-    return bootstrapCL.findClass(name);
+    handle = DynamicLibrary.getHandleForLibrary(name).toLong();
   }
 
   @ReplaceMember
-  private Class defineClass1(String name, byte[] b, int off, int len,
-      ProtectionDomain pd, String source) {
-    // TODO do we need to do something with source? Seems to be the location property
-    // from CodeSource
-    return ClassLoaderSupport.defineClass(thisAsClassLoader(), name, b, off, len, pd);
+  long find(String name) {
+    return DynamicLibrary.resolveSymbol(name).toLong();
   }
 
-  private ClassLoader thisAsClassLoader() {
-    return (ClassLoader) (Object) this;
+  @ReplaceMember
+  void unload() {
+    // NYI for Jikes RVM: see DynamicLibrary.unload()
   }
 
 }

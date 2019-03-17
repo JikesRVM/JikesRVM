@@ -234,7 +234,7 @@ Ljava/util/zip/ZipEntry;
 [Ljava/util/HashMap$Entry;
 [Ljava/util/Hashtable$Entry;
 Ljava/lang/AbstractStringBuilder;
-#Ljava/lang/ClassLoader$NativeLibrary;
+Ljava/lang/ClassLoader$NativeLibrary;
 Ljava/lang/ref/ReferenceQueue;
 Ljava/lang/ref/ReferenceQueue$Lock;
 Ljava/lang/ref/ReferenceQueue$Null;
