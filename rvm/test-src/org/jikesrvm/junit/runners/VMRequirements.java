@@ -12,19 +12,10 @@
  */
 package org.jikesrvm.junit.runners;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.junit.BeforeClass;
 import org.junit.experimental.categories.Category;
-import org.junit.internal.runners.model.EachTestNotifier;
-import org.junit.internal.runners.statements.RunBefores;
-import org.junit.runner.Description;
-import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
-import org.junit.runners.model.Statement;
 
 /**
  * This is a custom JUnit runner that allows to determine the set of tests to be
@@ -75,44 +66,20 @@ public final class VMRequirements extends BlockJUnit4ClassRunner {
     }
   }
 
-  /**
-   * By default, JUnit always runs methods annotated with {@code @BeforeClass},
-   * even if all the tests in the test case are skipped. This is not desirable
-   * for Jikes RVM tests because test setup code might (have to) rely on Jikes
-   * RVM internals. This method skips execution of methods annotated with
-   * {@code @BeforeClass} if necessary.
-   */
-  @Override
-  protected Statement withBeforeClasses(Statement statement) {
-    List<FrameworkMethod> befores = getTestClass().getAnnotatedMethods(BeforeClass.class);
-    LinkedList<FrameworkMethod> newBefores = new LinkedList<FrameworkMethod>();
-    for (FrameworkMethod method : befores) {
-      if (methodIsNotSuitableForExecutionInCurrentVMEnvironment(method)) {
-        // skip the method
-      } else {
-        newBefores.addLast(method);
-      }
-    }
-    return new RunBefores(statement, newBefores, null);
-  }
-
   public VMRequirements(Class<?> klass) throws InitializationError {
     super(klass);
   }
 
   @Override
-  protected void runChild(FrameworkMethod method, RunNotifier notifier) {
-    Description description = describeChild(method);
-
+  protected boolean isIgnored(FrameworkMethod child) {
     boolean ignoreTest =
-        methodIsNotSuitableForExecutionInCurrentVMEnvironment(method);
+        methodIsNotSuitableForExecutionInCurrentVMEnvironment(child);
     if (ignoreTest) {
-      ignoreTest(method, notifier, description);
-      return;
+      return true;
     }
-
-    super.runChild(method, notifier);
+    return super.isIgnored(child);
   }
+
 
   private boolean methodIsNotSuitableForExecutionInCurrentVMEnvironment(
       FrameworkMethod method) {
@@ -132,11 +99,6 @@ public final class VMRequirements extends BlockJUnit4ClassRunner {
 
   public static boolean isRunningOnBuiltJikesRVM() {
     return RUNNING_ON_BUILT_JIKES_RVM;
-  }
-
-  private void ignoreTest(FrameworkMethod method, RunNotifier notifier, Description description) {
-    EachTestNotifier eachTestNotifier = new EachTestNotifier(notifier, description);
-    eachTestNotifier.fireTestIgnored();
   }
 
   private boolean annotatedWith(FrameworkMethod method, Class<?> category) {

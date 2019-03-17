@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
@@ -39,9 +38,7 @@ public class MethodVectorTest {
 
   @BeforeClass
   public static void createTypeReference() {
-    if (VM.runningVM) {
-      tRef = TypeReference.findOrCreate("LFoo;");
-    }
+    tRef = TypeReference.findOrCreate("LFoo;");
   }
 
   @Before

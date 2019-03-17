@@ -13,6 +13,7 @@
 package org.jikesrvm.classloader;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 
 import org.jikesrvm.Properties;
@@ -146,12 +147,72 @@ public class RVMClassLoader {
   }
 
   /**
+   * Overwrites the application repositories with the given classpath.
+   * <p>
+   * Only for tests.
+   *
+   * @param classpath the new classpath
+   */
+  static void overwriteApplicationRepositoriesForUnitTest(String classpath) {
+    applicationRepositories = classpath;
+  }
+
+  /**
+   * Overwrites the agent repositories with the given classpath.
+   * <p>
+   * Only for tests.
+   *
+   * @param classpath the new classpath
+   */
+  static void overwriteAgentPathForUnitTest(String classpath) {
+    agentRepositories = classpath;
+  }
+
+  private static String buildRealClasspath(String classpath) {
+    if (agentRepositories == null) {
+      return classpath;
+    }
+    return classpath + File.pathSeparator + agentRepositories;
+  }
+
+  /**
    * Get list of places currently being searched for application
    * classes and resources.
    * @return names of directories, .zip files, and .jar files
    */
   public static String getApplicationRepositories() {
     return applicationRepositories;
+  }
+
+  /**
+   * The classpath entries that are added implicitly by Java Agents for
+   * the jars that contain the agents.
+   */
+  private static String agentRepositories;
+
+  /**
+   * Adds repositories for a Java Agent.
+   *
+   * @param agentClasspath the classpath entry to add
+   */
+  public static void addAgentRepositories(String agentClasspath) {
+    if (agentRepositories == null) {
+      agentRepositories = agentClasspath;
+    } else {
+      agentRepositories = agentRepositories + File.pathSeparator + agentClasspath;
+    }
+  }
+
+  /**
+   * Rebuilds the application repositories to include jars for Java agents.
+   * Called after command line arg parsing is done.
+   */
+  public static void rebuildApplicationRepositoriesWithAgents() {
+    if (agentRepositories == null) {
+      return;
+    }
+    String newApplicationRepositories = applicationRepositories + File.pathSeparator + agentRepositories;
+    setApplicationRepositories(newApplicationRepositories);
   }
 
   /** Are we getting the application CL?  Access is synchronized via the

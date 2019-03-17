@@ -769,8 +769,7 @@ public class CommandLineArgs {
           } else {
             jarPath = arg;
           }
-          String newClassPath = RVMClassLoader.getApplicationRepositories() + File.pathSeparator + jarPath;
-          RVMClassLoader.setApplicationRepositories(newClassPath);
+          RVMClassLoader.addAgentRepositories(jarPath);
           break;
       }
     }

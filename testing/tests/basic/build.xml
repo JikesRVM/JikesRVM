@@ -55,6 +55,13 @@
         <attribute name="Premain-Class" value="test.org.jikesrvm.basic.util.IdentityClassFileTransformer"/>
       </manifest>
     </jar>
+    <jar file="${build.tests.dir}/TestAgent.jar"
+         basedir="${build.classes}"
+         includes="**/TestAgent.class">
+      <manifest>
+        <attribute name="Main-Class" value="test.org.jikesrvm.basic.core.instrument.TestAgent"/>
+      </manifest>
+    </jar>
   </target>
 
   <!-- **************************************************************************** -->
@@ -158,6 +165,7 @@
 
     <runCompareTest tag="TestAgent" class="test.org.jikesrvm.basic.core.instrument.TestAgent"
                     rvmArgs='-javaagent:${build.tests.dir}/AgentX.jar="Option1"'/>
+    <runCompareTest tag="TestAgent-WithJar" expectedfile="TestAgent-WithJar" args="-javaagent:${build.tests.dir}/IdentityAgent.jar -jar TestAgent.jar"/>
 
     <rvm tag="ImageSizes" class="test.org.jikesrvm.basic.stats.JikesImageSizes"
          args="${test.rvm.dir}/RVM.code.image ${test.rvm.dir}/RVM.data.image ${test.rvm.dir}/RVM.rmap.image"/>

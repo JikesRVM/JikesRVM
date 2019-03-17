@@ -615,6 +615,7 @@ public class VM extends Properties {
     }
 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
+    RVMClassLoader.rebuildApplicationRepositoriesWithAgents();
     RVMClassLoader.getApplicationClassLoader();
     RVMClassLoader.declareApplicationClassLoaderIsReady();
 
