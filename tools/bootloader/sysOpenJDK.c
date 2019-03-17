@@ -14,12 +14,12 @@
 #include "sys.h"
 
 #include <fcntl.h> // open
-#include <sys/types.h> // lseek
+#include <sys/types.h> // lseek, socket (on some unixes)
 #include <unistd.h> // lseek, read
 #include <errno.h> // errno
 #include <string.h> // strerror
 #include <sys/ioctl.h> // ioctl
-
+#include <sys/socket.h> // socket
 
 #include "jni.h"
 
@@ -419,4 +419,14 @@ JNIEXPORT jint JNICALL JVM_GetLastErrorString(char *buffer, int bufferLength) {
 
 JNIEXPORT jint JVM_ActiveProcessorCount() {
   return sysNumProcessors();
+}
+
+// socket library
+
+JNIEXPORT jint JNICALL JVM_InitializeSocketLibrary(void) {
+  return (jint) 0;
+}
+
+JNIEXPORT jint JNICALL JVM_Socket(jint domain, jint type, jint protocol) {
+  return socket((int) domain, (int) type, (int) protocol);
 }

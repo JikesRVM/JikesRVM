@@ -41,6 +41,8 @@ SUNWprivate_1.1 {
     JVM_SupportsCX8;
     JVM_GetLastErrorString;
     JVM_ActiveProcessorCount;
+    JVM_InitializeSocketLibrary;
+    JVM_Socket;
     /* For the rest, pretend that we implement them and patch out
        all calls to them via the replacement class mechanism or
        by overwriting the calling class */
