@@ -20,6 +20,7 @@ import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.JMXSupport;
@@ -320,6 +321,15 @@ public class VM extends Properties {
     Lock.boot();
 
     if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
+    if (VM.BuildForOpenJDK) {
+      // For OpenJDK 6, System.loadLibrary(..) ends up calling UnixFileSystem.getBooleanAttributes0(..)
+      // which is a native method. Therefore, ensure that the java library is already loaded before
+      // attempting to boot DynamicLibrary (which will trigger loading of a dynamic library).
+      String platformSpecificJikesRVMJNILibraryName = JavaLangSupport.mapLibraryName("jvm_jni");
+      DynamicLibrary.load(platformSpecificJikesRVMJNILibraryName);
+      String platformSpecificOpenJDKLibraryName = JavaLangSupport.mapLibraryName("java");
+      DynamicLibrary.load(platformSpecificOpenJDKLibraryName);
+    }
     DynamicLibrary.boot();
     if (VM.BuildForOpenJDK) {
       System.loadLibrary("jvm");
