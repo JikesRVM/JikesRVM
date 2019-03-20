@@ -329,6 +329,8 @@ public class VM extends Properties {
       DynamicLibrary.load(platformSpecificJikesRVMJNILibraryName);
       String platformSpecificOpenJDKLibraryName = JavaLangSupport.mapLibraryName("java");
       DynamicLibrary.load(platformSpecificOpenJDKLibraryName);
+      runClassInitializer("java.io.File"); // needed for loading dynamic libraries
+      runClassInitializer("java.io.UnixFileSystem");
     }
     DynamicLibrary.boot();
     if (VM.BuildForOpenJDK) {
@@ -377,11 +379,6 @@ public class VM extends Properties {
     }
 
     if (VM.BuildForOpenJDK) {
-      runClassInitializer("java.io.UnixFileSystem");
-      runClassInitializer("java.io.FileSystem");
-    }
-
-    if (VM.BuildForOpenJDK) {
       runClassInitializer("java.lang.ApplicationShutdownHooks");
       runClassInitializer("java.io.DeleteOnExitHook");
     }
@@ -413,10 +410,15 @@ public class VM extends Properties {
       RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
       RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
       Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
+      // re-run class initializers for classes that need properties
+      runClassInitializer("java.io.FileSystem");
     }
 
-    runClassInitializer("java.io.File"); // needed for when we initialize the
-    // system/application class loader.
+
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.io.File"); // needed for when we initialize the
+      // system/application class loader.
+    }
     runClassInitializer("java.lang.String");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.security.provider.DefaultPolicy");
