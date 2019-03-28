@@ -320,25 +320,6 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Booting Lock");
     Lock.boot();
 
-    if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
-    if (VM.BuildForOpenJDK) {
-      // For OpenJDK 6, System.loadLibrary(..) ends up calling UnixFileSystem.getBooleanAttributes0(..)
-      // which is a native method. Therefore, ensure that the java library is already loaded before
-      // attempting to boot DynamicLibrary (which will trigger loading of a dynamic library).
-      String platformSpecificJikesRVMJNILibraryName = JavaLangSupport.mapLibraryName("jvm_jni");
-      DynamicLibrary.load(platformSpecificJikesRVMJNILibraryName);
-      String platformSpecificOpenJDKLibraryName = JavaLangSupport.mapLibraryName("java");
-      DynamicLibrary.load(platformSpecificOpenJDKLibraryName);
-      runClassInitializer("java.io.File"); // needed for loading dynamic libraries
-      runClassInitializer("java.io.UnixFileSystem");
-    }
-    DynamicLibrary.boot();
-    if (VM.BuildForOpenJDK) {
-      System.loadLibrary("jvm");
-      System.loadLibrary("java");
-      System.loadLibrary("zip");
-    }
-
     if (VM.BuildForOpenJDK) {
       runClassInitializer("java.lang.Thread");
     }
@@ -360,6 +341,27 @@ public class VM extends Properties {
     RVMThread.getCurrentThread().setupBootJavaThread();
 
     RVMThread.boot();
+
+    if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
+    if (VM.BuildForOpenJDK) {
+      // For OpenJDK 6, System.loadLibrary(..) ends up calling UnixFileSystem.getBooleanAttributes0(..)
+      // which is a native method. Therefore, ensure that the java library is already loaded before
+      // attempting to boot DynamicLibrary (which will trigger loading of a dynamic library).
+      String platformSpecificJikesRVMJNILibraryName = JavaLangSupport.mapLibraryName("jvm_jni");
+      DynamicLibrary.load(platformSpecificJikesRVMJNILibraryName);
+      String platformSpecificOpenJDKLibraryName = JavaLangSupport.mapLibraryName("java");
+      DynamicLibrary.load(platformSpecificOpenJDKLibraryName);
+      runClassInitializer("java.io.File"); // needed for loading dynamic libraries
+      runClassInitializer("java.io.UnixFileSystem");
+    }
+    DynamicLibrary.boot();
+    if (VM.BuildForOpenJDK) {
+      System.loadLibrary("jvm");
+      System.loadLibrary("java");
+      System.loadLibrary("zip");
+    }
+
+
 
     if (VM.BuildForOpenJDK) {
       runClassInitializer("java.lang.Thread");
