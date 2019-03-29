@@ -291,6 +291,7 @@ Ljava/io/UnixFileSystem;
 Ljava/io/FileSystem;
 Ljava/io/ExpiringCache;
 Ljava/io/ExpiringCache$1;
+Ljava/io/ExpiringCache$Entry;
 Ljava/io/FileInputStream;
 Ljava/io/FileOutputStream;
 Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;
