@@ -20,6 +20,10 @@
   <import file="build/tasks.xml"/>
   <import file="build/checkstyle-plugins.xml"/>
 
+  <property name="helpers.dir" location="${build.dir}/build-helpers"/>
+  <property name="helpers.classes" location="${helpers.dir}/classes"/>
+  <property name="helpers.java.version" value="1.6"/>
+
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
 
   <!-- configuration data -->
@@ -485,6 +489,17 @@ Check to make sure all required properties are specified. This includes properti
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
+  <!-- *                    Build the build helpers                               * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="prepare-build-helpers">
+    <mkdir dir="${helpers.classes}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/build-helpers/src" destdir="${helpers.classes}" debug="true" classpath="${ant.jar}" source="${helpers.java.version}" target="${helpers.java.version}" includeantruntime="true" deprecation="yes"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
   <!-- *                    Building MMTk section of the build                    * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
@@ -563,7 +578,7 @@ Check to make sure all required properties are specified. This includes properti
     <sequential>
       <java classname="org.jikesrvm.tools.template.GenerateFromTemplate" failonerror="true">
         <classpath>
-          <pathelement location="${tasks.classes}"/>
+          <pathelement location="${helpers.classes}"/>
         </classpath>
         <args/>
       </java>
@@ -785,7 +800,7 @@ Check to make sure all required properties are specified. This includes properti
     <touch file="${generated.dir}/JBurg-uptodate"/>
   </target>
 	
-  <target name="gen-opt-ir-uptodate-check" depends="check-properties, prepare-ant-tasks, jburg-uptodate-check">
+  <target name="gen-opt-ir-uptodate-check" depends="prepare-build-helpers,check-properties, prepare-ant-tasks, jburg-uptodate-check">
     <uptodate-check filename="Opt-IR-uptodate" property="opt-ir-files" srcdir1="${build.ir.dir}" srcdir2="${build.burs.dir}"/>
 
     <!-- gen-opt-ir uses jburg, so gen-opt-ir can only be uptodate if jburg is also uptodate -->
@@ -798,7 +813,7 @@ Check to make sure all required properties are specified. This includes properti
    </target>
 
   <!-- build tool generated optimizing compiler IR -->
-  <target name="gen-opt-ir" depends="build-jburg" unless="opt-ir.uptodate">
+  <target name="gen-opt-ir" depends="prepare-build-helpers,build-jburg" unless="opt-ir.uptodate">
     <!-- generate rule lists for ppc 32 bit -->
     <concat destfile="${generated.dir}/PPC-32bit_RulesList.dat">
       <filelist dir="${build.burs.dir}/ppc" files="PPC_Common.rules,PPC_Alu32.rules,PPC_Mem32.rules"/>
@@ -893,7 +908,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- build options -->
-  <target name="gen-options" depends="check-properties" unless="options.uptodate">
+  <target name="gen-options" depends="prepare-build-helpers,check-properties" unless="options.uptodate">
     <mkdir dir="${generated.java}/org/jikesrvm/compilers/opt"/>
     <mkdir dir="${generated.java}/org/jikesrvm/adaptive/util"/>
     <path id="template.vm.booleanopts.dat">
@@ -972,7 +987,7 @@ Check to make sure all required properties are specified. This includes properti
     <uptodate-check filename="IA32-Assembler-uptodate" property="ia32-assembler" srcdir1="${ia32-assembler-opt.dir}" srcdir2="${build.ia32-assembler.dir}" srcdir3="${build.vmmagic-stub.classes}" />
   </target>	
 
-  <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub" unless="ia32-assembler.uptodate">
+  <target name="gen-ia32-assembler" depends="prepare-build-helpers,check-properties,compile-vmmagic-stub" unless="ia32-assembler.uptodate">
     <mkdir dir="${generated.java}/org/jikesrvm/compilers/common/assembler/ia32"/>
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
@@ -1490,7 +1505,7 @@ Check to make sure all required properties are specified. This includes properti
             <pathelement location="${openjdk.lib.dir}/rt.jar"/>
           </bootclasspath>
           <classpath>
-            <pathelement location="${tasks.classes}"/>
+            <pathelement location="${helpers.classes}"/>
             <pathelement location="${build.vmmagic-stub.classes}"/>
             <pathelement location="${build.classes}"/>
           </classpath>
@@ -1499,7 +1514,7 @@ Check to make sure all required properties are specified. This includes properti
           <compilerarg value="-processor"/>
           <compilerarg value="org.jikesrvm.tools.annotation_processing.ReplaceClassProcessor"/>
           <compilerarg value="-processorpath"/>
-          <compilerarg value="${tasks.classes}"/>
+          <compilerarg value="${helpers.classes}"/>
           <compilerarg value="-s"/>
           <compilerarg value="${build.base}/replacements/java"/>
         </javac>
@@ -1515,7 +1530,7 @@ Check to make sure all required properties are specified. This includes properti
            failonerror="true"
            includeantruntime="false">
       <classpath>
-        <pathelement location="${tasks.classes}"/>
+        <pathelement location="${helpers.classes}"/>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.classes}"/>
       </classpath>
@@ -1526,7 +1541,7 @@ Check to make sure all required properties are specified. This includes properti
       <compilerarg value="org.jikesrvm.tools.annotation_processing.SysCallProcessor"/>
  
       <compilerarg value="-processorpath"/>
-      <compilerarg value="${tasks.classes}"/>
+      <compilerarg value="${helpers.classes}"/>
       <compilerarg value="-s"/>
       <compilerarg value="${build.base}/syscall/java"/>
     </javac>

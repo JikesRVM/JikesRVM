@@ -21,6 +21,7 @@
   <classpathentry kind="src" path="libraryInterface/GNUClasspath/EPL/src"/>
   <classpathentry kind="src" path="libraryInterface/GNUClasspath/LGPL/src"/>
   <classpathentry kind="src" path="tools/bootImageWriter/src"/>
+  <classpathentry including="org/jikesrvm/tools/template/**" kind="src" path="tools/build-helpers/src"/>
   <classpathentry kind="src" path="common/vmmagic/src"/>
   <classpathentry kind="src" path="external/tuningforklib/src"/>
   <classpathentry kind="src" path="testing/tests/basic/src"/>
