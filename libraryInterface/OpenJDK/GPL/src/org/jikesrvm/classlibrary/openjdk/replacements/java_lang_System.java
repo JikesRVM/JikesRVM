@@ -54,6 +54,9 @@ public class java_lang_System {
     // OpenJDK specific properties
     String bootClassPath = props.getProperty("java.boot.class.path");
     props.setProperty("sun.boot.class.path", bootClassPath);
+    // sun.boot.library.path is mapped to sys_paths in java.lang.ClassLoader on OpenJDK 6
+    String libraryPath = props.getProperty("java.library.path");
+    props.setProperty("sun.boot.library.path", libraryPath);
 
     if (VM.BuildFor32Addr) {
       props.setProperty("sun.arch.data.model", "32");

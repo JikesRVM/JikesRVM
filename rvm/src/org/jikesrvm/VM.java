@@ -353,6 +353,12 @@ public class VM extends Properties {
       DynamicLibrary.load(platformSpecificOpenJDKLibraryName);
       runClassInitializer("java.io.File"); // needed for loading dynamic libraries
       runClassInitializer("java.io.UnixFileSystem");
+      // Initialize properties early, before complete java.lang.System initialization. Those will be
+      // overwritten later, when System is initialized.
+      System.setProperties(null);
+      // Wiped out values for usr_paths and sys_paths carried over from boot image writing
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.usr_paths_Field.getOffset(), null);
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.sys_paths_Field.getOffset(), null);
     }
     DynamicLibrary.boot();
     if (VM.BuildForOpenJDK) {

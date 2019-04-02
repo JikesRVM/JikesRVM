@@ -42,6 +42,11 @@ public class Entrypoints {
   // This is only necessary to work around OpenJDKs work around, see sun_reflect_Reflection
   // in the libraryInterface for details.
   public static final RVMMethod java_lang_reflect_Method_getCallerClass;
+  // Necessary to wipe out cached fields (TODO consider doing this in the BootImageWriter)
+  public static final RVMField usr_paths_Field =
+      getField(java.lang.ClassLoader.class, "usr_paths", String[].class);
+  public static final RVMField sys_paths_Field =
+      getField(java.lang.ClassLoader.class, "sys_paths", String[].class);
 
   public static final RVMMethod getClassFromStackFrame =
     getMethod(org.jikesrvm.classloader.RVMClass.class, "getClassFromStackFrame", "(I)Lorg/jikesrvm/classloader/RVMClass;");
