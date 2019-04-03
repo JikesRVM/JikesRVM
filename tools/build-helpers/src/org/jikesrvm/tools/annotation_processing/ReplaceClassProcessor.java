@@ -15,7 +15,9 @@ package org.jikesrvm.tools.annotation_processing;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -44,6 +46,7 @@ public class ReplaceClassProcessor extends AbstractProcessor {
   static final boolean DEBUG_PROCESSOR = false;
 
   private Set<String> classNames = new TreeSet<String>();
+  private Map<String, String> sourceNameToClassName = new TreeMap<String, String>();
 
   private ProcessingEnvironment processingEnv;
   private Messager messager;
@@ -112,7 +115,8 @@ public class ReplaceClassProcessor extends AbstractProcessor {
       fileWriter.addImports();
       fileWriter.addClassAnnotations(sourceElement);
       fileWriter.addClassName(sourceElement, unqualifiedName);
-      fileWriter.addMethodImplementation(classNames);
+      fileWriter.addMethodImplementationForGetNamesOfClassesWithReplacements(classNames);
+      fileWriter.addMethodImplementationForGetMapOfTargetClassToSourceClass(sourceNameToClassName);
       fileWriter.finishSourceFileForGeneratedImplementation();
 
     } catch (IOException e) {
@@ -137,20 +141,26 @@ public class ReplaceClassProcessor extends AbstractProcessor {
 
   private void processType(Element e) {
     if (e.getKind().isClass()) {
+      if (DEBUG_PROCESSOR) {
+        messager.printMessage(Kind.NOTE, "Processing class " + e.toString());
+      }
       ReplaceClassVisitor visitor = new ReplaceClassVisitor(messager);
       e.accept(visitor, null);
-      classNames.add(visitor.getClassName());
+      String targetClassName = visitor.getTargetClassName();
+      classNames.add(targetClassName);
+      String sourceName = visitor.getNameOfClassAccordingToSourceFile();
+      sourceNameToClassName.put(targetClassName, sourceName);
     }
   }
 
   @Override
   public synchronized void init(ProcessingEnvironment processingEnv) {
-    if (DEBUG_PROCESSOR) {
-      messager.printMessage(Kind.NOTE, "Initializing processor for @ReplaceClass");
-    }
     this.processingEnv = processingEnv;
     super.init(processingEnv);
     this.messager = processingEnv.getMessager();
+    if (DEBUG_PROCESSOR) {
+      messager.printMessage(Kind.NOTE, "Initializing processor for @ReplaceClass");
+    }
     this.fileWriter = new ReplaceClassGeneratedFileWriter(this.getClass().getCanonicalName(), messager, processingEnv.getFiler());
     replaceClassAnnotation = processingEnv.getElementUtils().getTypeElement(
         REPLACE_CLASS_ANNOTATION);

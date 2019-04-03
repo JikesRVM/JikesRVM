@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.classlibrary;
 
+import org.jikesrvm.util.HashMapRVM;
 import org.jikesrvm.util.HashSetRVM;
 
 /**
@@ -19,6 +20,8 @@ import org.jikesrvm.util.HashSetRVM;
  */
 public abstract class AbstractReplacementClasses {
 
-  public abstract HashSetRVM<String> getReplacementClassNames();
+  public abstract HashSetRVM<String> getNamesOfClassesWithReplacements();
+
+  public abstract HashMapRVM<String, String> getMapOfTargetClassToSourceClass();
 
 }

@@ -13,6 +13,8 @@
 package org.jikesrvm.tools.annotation_processing;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.processing.Filer;
@@ -40,6 +42,7 @@ class ReplaceClassGeneratedFileWriter extends AbstractGeneratedFileWriter {
 
   @Override
   protected void writeSpecificImports() throws IOException {
+    writeImport("org.jikesrvm.util.HashMapRVM");
     writeImport("org.jikesrvm.util.HashSetRVM");
   }
 
@@ -49,7 +52,7 @@ class ReplaceClassGeneratedFileWriter extends AbstractGeneratedFileWriter {
   }
 
 
-  public void addMethodImplementation(Set<String> classNames) throws IOException {
+  public void addMethodImplementationForGetNamesOfClassesWithReplacements(Set<String> classNames) throws IOException {
     StringBuilder firstLineOfMethod = new StringBuilder();
     addOverrideAnnotation();
 
@@ -57,7 +60,7 @@ class ReplaceClassGeneratedFileWriter extends AbstractGeneratedFileWriter {
 
     firstLineOfMethod.append("HashSetRVM<String>");
     firstLineOfMethod.append(" ");
-    firstLineOfMethod.append("getReplacementClassNames");
+    firstLineOfMethod.append("getNamesOfClassesWithReplacements");
     firstLineOfMethod.append("(");
     firstLineOfMethod.append(") {");
 
@@ -75,6 +78,33 @@ class ReplaceClassGeneratedFileWriter extends AbstractGeneratedFileWriter {
 
     writeEmptyLine();
 
+  }
+
+  public void addMethodImplementationForGetMapOfTargetClassToSourceClass(Map<String, String> sourceNameToClassName) throws IOException {
+    StringBuilder firstLineOfMethod = new StringBuilder();
+    addOverrideAnnotation();
+
+    firstLineOfMethod.append("public ");
+
+    firstLineOfMethod.append("HashMapRVM<String, String>");
+    firstLineOfMethod.append(" ");
+    firstLineOfMethod.append("getMapOfTargetClassToSourceClass");
+    firstLineOfMethod.append("(");
+    firstLineOfMethod.append(") {");
+
+    writeLine(firstLineOfMethod.toString());
+    increaseIndentation();
+
+    writeLine("HashMapRVM<String, String> targetClassToSourceClass = new HashMapRVM<String, String>();");
+    for (Entry<String, String> e : sourceNameToClassName.entrySet()) {
+      writeLine("targetClassToSourceClass.put(\"" + e.getKey() + "\"" + ", \"" + e.getValue() + "\");");
+    }
+    writeLine("return targetClassToSourceClass;");
+
+    decreaseIndentation();
+    writeLine("}");
+
+    writeEmptyLine();
   }
 
 }

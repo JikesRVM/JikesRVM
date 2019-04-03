@@ -36,6 +36,7 @@ class ReplaceClassVisitor extends SimpleElementVisitor6<Void, Void> {
 
   private final Messager messager;
   private String targetClassName;
+  private String nameOfClassAccordingToSourceFile;
 
   /**
    * Create a SysCallVisitor that will process <code>@SysCallTemplate</code>
@@ -74,6 +75,7 @@ class ReplaceClassVisitor extends SimpleElementVisitor6<Void, Void> {
     if (genImplAnnotation != null) {
       targetClassName = getAnnotationElementValue("className()",
           genImplAnnotation);
+      nameOfClassAccordingToSourceFile = e.toString();
 
       if (isEmptyOrNull(targetClassName)) {
         messager.printMessage(
@@ -127,8 +129,12 @@ class ReplaceClassVisitor extends SimpleElementVisitor6<Void, Void> {
         generatedClassName.trim().isEmpty();
   }
 
-  public String getClassName() {
+  public String getTargetClassName() {
     return targetClassName;
+  }
+
+  public String getNameOfClassAccordingToSourceFile() {
+    return nameOfClassAccordingToSourceFile;
   }
 
 

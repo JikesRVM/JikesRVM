@@ -28,6 +28,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.AbstractReplacementClasses;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.HashMapRVM;
 import org.jikesrvm.util.HashSetRVM;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
@@ -43,8 +44,8 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
     new ImmutableEntryHashMapRVM<String, RVMType>();
 
-  private final ImmutableEntryHashSetRVM<Atom> loadedReplacementClasses = new ImmutableEntryHashSetRVM<Atom>();
-  private final ImmutableEntryHashSetRVM<Atom> classesCheckedForReplacements = new ImmutableEntryHashSetRVM<Atom>();
+  private final ImmutableEntryHashSetRVM<String> loadedReplacementClasses = new ImmutableEntryHashSetRVM<String>();
+  private final ImmutableEntryHashSetRVM<String> classesCheckedForReplacements = new ImmutableEntryHashSetRVM<String>();
 
   private final ImmutableEntryHashMapRVM<String, String> packageSources = new ImmutableEntryHashMapRVM<String, String>();
 
@@ -106,6 +107,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
   private AbstractReplacementClasses replacementClasses;
   private HashSetRVM<String> remainingReplacementClassNames;
+  private HashMapRVM<String, String> mapOfTargetClassToSourceClass;
 
   /** Prevent other classes from constructing one. */
   private BootstrapClassLoader() {
@@ -123,7 +125,8 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     } catch (ClassNotFoundException e) {
       throw new Error("Throwable during construction of BootstrapClassLoader", e);
     }
-    remainingReplacementClassNames = replacementClasses.getReplacementClassNames();
+    remainingReplacementClassNames = replacementClasses.getNamesOfClassesWithReplacements();
+    mapOfTargetClassToSourceClass = replacementClasses.getMapOfTargetClassToSourceClass();
   }
 
   /* Interface */
@@ -208,11 +211,12 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     }
 
     Atom classNameAtom = null;
-    Atom replacementClassName = null;
+    String replacementClassName = null;
     try {
       // TODO Adopt better nomenclature for replacement classes
       classNameAtom = Atom.findOrCreateAsciiAtom(className);
       replacementClassName = toReplacementClassNameAtom(className);
+      if (VM.VerifyAssertions) VM._assert(replacementClassName != null);
       // TODO needs a method to convert class names to descriptors and vice versa. possibly in atom if it doesn't exist yet
       Atom replacementClassDescriptor = Atom.findOrCreateAsciiAtom("L" + replacementClassName.toString().replace('.', '/') + ";");
 
@@ -220,14 +224,14 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
       if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " is a replacement class itself and thus won't be checked for a replacement class: " + isReplacementClass);
       if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " is a bootstrap class descriptor? " + replacementClassDescriptor.isBootstrapClassDescriptor());
-      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(replacementClassName));
+      if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " has been checked for replacement? " + classesCheckedForReplacements.contains(className));
       if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " would have replacement class name: " + replacementClassName);
       if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: " + className + " would have replacement class descriptor: " + replacementClassDescriptor);
 
-      boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(classNameAtom);
+      boolean alreadyTriedToLoadReplacementClass = classesCheckedForReplacements.contains(className);
       // Check if there has been an attempt to load the replacement JDK class of this name
       if (!isReplacementClass && !alreadyTriedToLoadReplacementClass) {
-        classesCheckedForReplacements.add(classNameAtom);
+        classesCheckedForReplacements.add(className);
         if (VM.TraceClassLoading) VM.sysWriteln("ClassReplacement_VMClass: Checking for replacement class for " + className + " named " + replacementClassName);
 
         if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
@@ -258,8 +262,8 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     }
   }
 
-  public Atom toReplacementClassNameAtom(String className) {
-    return Atom.findOrCreateAsciiAtom(REPLACEMENT_CLASS_NAME_PREFIX + className.replace('.', '_'));
+  public String toReplacementClassNameAtom(String className) {
+    return mapOfTargetClassToSourceClass.get(className);
   }
 
   /**
