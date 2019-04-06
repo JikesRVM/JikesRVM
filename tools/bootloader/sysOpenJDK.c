@@ -430,3 +430,11 @@ JNIEXPORT jint JNICALL JVM_InitializeSocketLibrary(void) {
 JNIEXPORT jint JNICALL JVM_Socket(jint domain, jint type, jint protocol) {
   return socket((int) domain, (int) type, (int) protocol);
 }
+
+// dynamic libraries
+
+// called from check for IPv6 support in OpenJDK 6 in net_util_md.c
+JNIEXPORT void * JNICALL JVM_FindLibraryEntry(void *handle, const char *name) {
+  OPENJDK_DEBUG_PRINTF("JVM_FindLibraryEntry: %p %s\n", handle, name);
+  return sysDlsym((Address) handle, (char *) name);
+}

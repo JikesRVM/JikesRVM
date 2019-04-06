@@ -43,6 +43,7 @@ SUNWprivate_1.1 {
     JVM_ActiveProcessorCount;
     JVM_InitializeSocketLibrary;
     JVM_Socket;
+    JVM_FindLibraryEntry;
     /* For the rest, pretend that we implement them and patch out
        all calls to them via the replacement class mechanism or
        by overwriting the calling class */
