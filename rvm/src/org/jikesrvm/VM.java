@@ -580,6 +580,12 @@ public class VM extends Properties {
     BaselineCompiler.fullyBootedVM();
     TraceEngine.engine.fullyBootedVM();
 
+    if (VM.BuildForOpenJDK) {
+      // Re-initialize boot classpath
+      runClassInitializer("sun.misc.Launcher");
+      runClassInitializer("sun.misc.Launcher$BootClassPathHolder");
+    }
+
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.reflect.Proxy");

@@ -337,6 +337,9 @@ Ljava/io/Console$1$1;
 Ljava/lang/ApplicationShutdownHooks;
 Lsun/misc/OSEnvironment;
 Ljava/lang/System$2;
+# for boot classpath
+Lsun/misc/Launcher;
+Lsun/misc/Launcher$BootClassPathHolder;
 
 # Jikes RVM Helpers - potentially move code somewhere else later
 Ljava/lang/reflect/JikesRVMHelpers;
