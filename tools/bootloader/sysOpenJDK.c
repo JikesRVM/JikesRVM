@@ -387,7 +387,7 @@ JNIEXPORT jint JNICALL JVM_Close(jint fileDescriptor) {
 
 JNIEXPORT jint JNICALL JVM_Available(jint fd, jlong *pbytes) {
   OPENJDK_DEBUG_PRINTF("JVM_Available: %d %p\n", fd, (void *) pbytes);
-  int ret = ioctl((int) fd, FIONREAD, (void *) pbytes);
+  int ret = ioctl((int) fd, FIONREAD, (int *) pbytes);
   return (jint) ret;
 }
 
