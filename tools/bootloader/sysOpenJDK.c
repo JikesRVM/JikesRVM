@@ -401,9 +401,11 @@ JNIEXPORT jboolean JNICALL JVM_SupportsCX8() {
 // Error handling
 
 JNIEXPORT jint JNICALL JVM_GetLastErrorString(char *buffer, int bufferLength) {
-  // TODO Does this refer to native errors? If so, we need to save the last error
-  // number into thread-local storage and read it from there. This will require
-  // some changes to other sys* files.
+  // no error
+  if (errno == 0) {
+    return (jint) 0;
+  }
+
   const char * errorString = strerror(errno);
   int strLen = strlen(errorString);
   int copySize = strLen;
