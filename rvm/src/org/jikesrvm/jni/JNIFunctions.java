@@ -310,16 +310,28 @@ public class JNIFunctions {
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(throwableClassJREF);
-      // find the constructor that has a string as a parameter
-      Class<?>[] argClasses = new Class[1];
-      argClasses[0] = RVMType.JavaLangStringType.getClassForType();
-      Constructor<?> constMethod = cls.getConstructor(argClasses);
-      // prepare the parameter list for reflective invocation
-      Object[] argObjs = new Object[1];
-      argObjs[0] = JNIGenericHelpers.createStringFromC(exceptionNameAddress);
+      Throwable throwable = null;
+      if (exceptionNameAddress.isZero()) {
+        // no detail message
+        Class<?>[] parameterTypes = {};
+        Constructor<?> constMethod = cls.getConstructor(parameterTypes);
+        Object[] argObjs = {};
+        // invoke the constructor to obtain a new Throwable object
+        throwable = (Throwable) constMethod.newInstance(argObjs);
+      } else {
+        // find the constructor that has a string as a parameter
+        Class<?>[] argClasses = new Class[1];
+        argClasses[0] = RVMType.JavaLangStringType.getClassForType();
+        Constructor<?> constMethod = cls.getConstructor(argClasses);
+        // prepare the parameter list for reflective invocation
+        Object[] argObjs = new Object[1];
+        argObjs[0] = JNIGenericHelpers.createStringFromC(exceptionNameAddress);
 
-      // invoke the constructor to obtain a new Throwable object
-      env.recordException((Throwable) constMethod.newInstance(argObjs));
+        // invoke the constructor to obtain a new Throwable object
+        throwable = (Throwable) constMethod.newInstance(argObjs);
+      }
+      env.recordException(throwable);
+
       return 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
