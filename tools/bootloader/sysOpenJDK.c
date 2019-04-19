@@ -388,6 +388,10 @@ JNIEXPORT jint JNICALL JVM_Close(jint fileDescriptor) {
 JNIEXPORT jint JNICALL JVM_Available(jint fd, jlong *pbytes) {
   OPENJDK_DEBUG_PRINTF("JVM_Available: %d %p\n", fd, (void *) pbytes);
   int ret = ioctl((int) fd, FIONREAD, (int *) pbytes);
+  // anything non-negative is success according to API docs
+  if (ret >= 0) {
+    ret = 1;
+  }
   return (jint) ret;
 }
 
