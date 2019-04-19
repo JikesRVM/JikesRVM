@@ -20,6 +20,7 @@
 #include <string.h> // strerror
 #include <sys/ioctl.h> // ioctl
 #include <sys/socket.h> // socket
+#include <math.h> // isnan
 
 #include "jni.h"
 
@@ -443,4 +444,11 @@ JNIEXPORT jint JNICALL JVM_Socket(jint domain, jint type, jint protocol) {
 JNIEXPORT void * JNICALL JVM_FindLibraryEntry(void *handle, const char *name) {
   OPENJDK_DEBUG_PRINTF("JVM_FindLibraryEntry: %p %s\n", handle, name);
   return sysDlsym((Address) handle, (char *) name);
+}
+
+// serialization
+
+JNIEXPORT jboolean JNICALL JVM_IsNaN(jdouble d) {
+  OPENJDK_DEBUG_PRINTF("JVM_IsNaN: %f\n", (double) d);
+  return (jboolean) isnan((double) d);
 }
