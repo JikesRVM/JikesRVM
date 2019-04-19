@@ -15,6 +15,7 @@
 
 #include <fcntl.h> // open
 #include <sys/types.h> // lseek, socket (on some unixes)
+#include <sys/stat.h> // fstat
 #include <unistd.h> // lseek, read
 #include <errno.h> // errno
 #include <string.h> // strerror
@@ -388,11 +389,45 @@ JNIEXPORT jint JNICALL JVM_Close(jint fileDescriptor) {
 
 JNIEXPORT jint JNICALL JVM_Available(jint fd, jlong *pbytes) {
   OPENJDK_DEBUG_PRINTF("JVM_Available: %d %p\n", fd, (void *) pbytes);
-  int ret = ioctl((int) fd, FIONREAD, (int *) pbytes);
-  // anything non-negative is success according to API docs
-  if (ret >= 0) {
-    ret = 1;
+  int ret = 1;
+  struct stat buf;
+  int fStatRet = fstat(fd, &buf);
+  if (fStatRet < 0) {
+    return 0;
   }
+  mode_t mode = buf.st_mode;
+  // directories are an error case
+  if (S_ISDIR(mode)) {
+    return 0;
+  }
+
+  if (S_ISFIFO(mode) || S_ISSOCK(mode)) {
+    int ioctlRet = ioctl((int) fd, FIONREAD, (int *) pbytes);
+    // anything non-negative is success according to API docs
+    if (ioctlRet >= 0) {
+        return ret;
+    }
+    return 0;
+  }
+  // TODO what to do about S_ISREG, S_ISCHR, S_ISBLK, S_ISLNK?
+  // For now, use lseek64
+  off64_t offsetZero = 0;
+  off64_t currentOffset = lseek64(fd, offsetZero, SEEK_CUR);
+  if (currentOffset < 0) {
+    ERROR_PRINTF("JVM_Available: error determining current position of file with fd %d: %s\n", fd, strerror(errno));
+    return 0;
+  }
+  off64_t endOffset = lseek64(fd, offsetZero, SEEK_END);
+  if (endOffset < 0) {
+    ERROR_PRINTF("JVM_Available: error determining end position of file with fd %d: %s\n", fd, strerror(errno));
+    return 0;
+  }
+  off64_t oldOffset = lseek64(fd, currentOffset, SEEK_SET);
+  if (oldOffset < 0 || oldOffset != currentOffset) {
+    ERROR_PRINTF("JVM_Available: error resetting file position of file with fd %d: %s\n", fd, strerror(errno));
+    return 0;
+  }
+  *pbytes = (jlong) (endOffset - currentOffset);
   return (jint) ret;
 }
 
