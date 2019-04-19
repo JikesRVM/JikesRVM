@@ -617,6 +617,12 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of command line");
     String[] applicationArguments = CommandLineArgs.lateProcessCommandLineArguments();
 
+    if (VM.BuildForOpenJDK) {
+      // Reset values for usr_paths and sys_paths to pick up command line arguments
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.usr_paths_Field.getOffset(), null);
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.sys_paths_Field.getOffset(), null);
+    }
+
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
 
     if (VM.BuildForAdaptiveSystem) {
