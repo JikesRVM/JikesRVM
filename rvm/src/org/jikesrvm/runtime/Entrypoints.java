@@ -47,6 +47,11 @@ public class Entrypoints {
       getField(java.lang.ClassLoader.class, "usr_paths", String[].class);
   public static final RVMField sys_paths_Field =
       getField(java.lang.ClassLoader.class, "sys_paths", String[].class);
+  // Necessary to set application classloader for OpenJDK
+  public static final RVMField scl_Field =
+      getField(java.lang.ClassLoader.class, "scl", ClassLoader.class);
+  public static final RVMField sclSet_Field =
+      getField(java.lang.ClassLoader.class, "sclSet", boolean.class);
 
   public static final RVMMethod getClassFromStackFrame =
     getMethod(org.jikesrvm.classloader.RVMClass.class, "getClassFromStackFrame", "(I)Lorg/jikesrvm/classloader/RVMClass;");
