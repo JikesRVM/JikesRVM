@@ -1074,7 +1074,7 @@ public class BootImageWriter {
 
         // Resolve replacement classer later because we need to subject them to additional checks.
         Atom typeDescriptor = type.getDescriptor();
-        if (typeDescriptor.toString().startsWith("Lorg/jikesrvm/classlibrary/openjdk/replacements/")) {
+        if (VM.BuildForOpenJDK && typeDescriptor.toString().startsWith("Lorg/jikesrvm/classlibrary/openjdk/replacements/")) {
           if (verbosity.isAtLeast(DETAILED)) say("SKIPPING resolving " + type + " , will be done later");
           replacementClasses.add(type);
           continue;

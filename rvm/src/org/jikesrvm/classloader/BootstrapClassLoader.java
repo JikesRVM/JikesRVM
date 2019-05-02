@@ -112,21 +112,26 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   /** Prevent other classes from constructing one. */
   private BootstrapClassLoader() {
     super(null);
-    try {
-      this.replacementClasses =       (AbstractReplacementClasses)Class.forName("org.jikesrvm.classlibrary.ReplacementClasses").newInstance();
-    } catch (ExceptionInInitializerError e) {
-      throw new Error("Throwable during construction of BootstrapClassLoader", e);
-    } catch (SecurityException e) {
-      throw new Error("Throwable during construction of BootstrapClassLoader", e);
-    } catch (IllegalAccessException e) {
-      throw new Error("Throwable during construction of BootstrapClassLoader", e);
-    } catch (InstantiationException e) {
-      throw new Error("Throwable during construction of BootstrapClassLoader", e);
-    } catch (ClassNotFoundException e) {
-      throw new Error("Throwable during construction of BootstrapClassLoader", e);
+    if (VM.BuildForOpenJDK) {
+      try {
+        this.replacementClasses =       (AbstractReplacementClasses)Class.forName("org.jikesrvm.classlibrary.ReplacementClasses").newInstance();
+      } catch (ExceptionInInitializerError e) {
+        throw new Error("Throwable during construction of BootstrapClassLoader", e);
+      } catch (SecurityException e) {
+        throw new Error("Throwable during construction of BootstrapClassLoader", e);
+      } catch (IllegalAccessException e) {
+        throw new Error("Throwable during construction of BootstrapClassLoader", e);
+      } catch (InstantiationException e) {
+        throw new Error("Throwable during construction of BootstrapClassLoader", e);
+      } catch (ClassNotFoundException e) {
+        throw new Error("Throwable during construction of BootstrapClassLoader", e);
+      }
+      remainingReplacementClassNames = replacementClasses.getNamesOfClassesWithReplacements();
+      mapOfTargetClassToSourceClass = replacementClasses.getMapOfTargetClassToSourceClass();
+    } else {
+      remainingReplacementClassNames = new HashSetRVM<String>(1);
+      mapOfTargetClassToSourceClass = new HashMapRVM<String, String>(1);
     }
-    remainingReplacementClassNames = replacementClasses.getNamesOfClassesWithReplacements();
-    mapOfTargetClassToSourceClass = replacementClasses.getMapOfTargetClassToSourceClass();
   }
 
   /* Interface */

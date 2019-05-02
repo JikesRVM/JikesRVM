@@ -335,12 +335,16 @@ public class VM extends Properties {
       RVMThread.setThreadGroupForSystemThreads(systemThreadGroup);
       // We'll need the main group later for the first application thread.
       mainThreadGroup = new ThreadGroup(systemThreadGroup, "main");
-    }
-    // Early set-up for the boot thread is required for OpenJDK.
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
-    RVMThread.getCurrentThread().setupBootJavaThread();
 
+      // Early set-up for the boot thread is required for OpenJDK.
+      if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
+      RVMThread.getCurrentThread().setupBootJavaThread();
+    }
     RVMThread.boot();
+    if (!VM.BuildForOpenJDK) {
+      if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
+      RVMThread.getCurrentThread().setupBootJavaThread();
+    }
 
     if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
     if (VM.BuildForOpenJDK) {

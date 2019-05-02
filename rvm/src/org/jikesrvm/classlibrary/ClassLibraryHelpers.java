@@ -79,6 +79,11 @@ public class ClassLibraryHelpers {
   }
 
   public static RVMField[] modifyDeclaredFields(RVMField[] declaredFields, TypeReference typeRef) {
+    // all field modifications are OpenJDK-specific right now
+    if (!VM.BuildForOpenJDK) {
+      return declaredFields;
+    }
+
     if (typeRef == TypeReference.findOrCreate(java.lang.Thread.class)) {
       RVMField rvmThreadField = createField(typeRef, "Lorg/jikesrvm/scheduler/RVMThread;", "rvmThread");
       RVMField[] newDeclaredFields = new RVMField[declaredFields.length + 1];

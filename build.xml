@@ -1547,18 +1547,48 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
 
     <echo message="second compile (from ${generated.java})"/>
-    <javac destdir="${build.classes}"
+    <if>
+      <conditions>
+        <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
+      </conditions>
+      <sequential>
+        <echo message="second compile (from ${generated.java})"/>
+        <javac destdir="${build.classes}"
            debug="true"
            debugLevel="${debugLevel}"
            source="${rvm.java.version}"
            target="${rvm.java.version}"
            srcdir="${build.base}/syscall/java;${build.base}/replacements/java"
            includeantruntime="false">
-      <classpath>
-        <pathelement location="${build.vmmagic-stub.classes}"/>
-        <pathelement location="${build.classes}"/>
-      </classpath>
-    </javac>
+          <classpath>
+            <pathelement location="${build.vmmagic-stub.classes}"/>
+            <pathelement location="${build.classes}"/>
+          </classpath>
+        </javac>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <not>
+          <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
+        </not>
+      </conditions>
+      <sequential>
+        <echo message="second compile (from ${generated.java})"/>
+        <javac destdir="${build.classes}"
+           debug="true"
+           debugLevel="${debugLevel}"
+           source="${rvm.java.version}"
+           target="${rvm.java.version}"
+           srcdir="${build.base}/syscall/java"
+           includeantruntime="false">
+          <classpath>
+            <pathelement location="${build.vmmagic-stub.classes}"/>
+            <pathelement location="${build.classes}"/>
+          </classpath>
+        </javac>
+      </sequential>
+    </if>
   </target>
 
   <target name="compile-unit-tests" depends="compile">

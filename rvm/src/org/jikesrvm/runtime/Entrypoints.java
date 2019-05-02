@@ -43,15 +43,11 @@ public class Entrypoints {
   // in the libraryInterface for details.
   public static final RVMMethod java_lang_reflect_Method_getCallerClass;
   // Necessary to wipe out cached fields (TODO consider doing this in the BootImageWriter)
-  public static final RVMField usr_paths_Field =
-      getField(java.lang.ClassLoader.class, "usr_paths", String[].class);
-  public static final RVMField sys_paths_Field =
-      getField(java.lang.ClassLoader.class, "sys_paths", String[].class);
+  public static final RVMField usr_paths_Field;
+  public static final RVMField sys_paths_Field;
   // Necessary to set application classloader for OpenJDK
-  public static final RVMField scl_Field =
-      getField(java.lang.ClassLoader.class, "scl", ClassLoader.class);
-  public static final RVMField sclSet_Field =
-      getField(java.lang.ClassLoader.class, "sclSet", boolean.class);
+  public static final RVMField scl_Field;
+  public static final RVMField sclSet_Field;
 
   public static final RVMMethod getClassFromStackFrame =
     getMethod(org.jikesrvm.classloader.RVMClass.class, "getClassFromStackFrame", "(I)Lorg/jikesrvm/classloader/RVMClass;");
@@ -480,8 +476,16 @@ public class Entrypoints {
     if (VM.BuildForOpenJDK) {
       java_lang_reflect_Method_getCallerClass = getMethod(java.lang.reflect.Method.class, "getCallerClass",
           "()Ljava/lang/Class;");
+      usr_paths_Field = getField(java.lang.ClassLoader.class, "usr_paths", String[].class);
+      sys_paths_Field = getField(java.lang.ClassLoader.class, "sys_paths", String[].class);
+      scl_Field = getField(java.lang.ClassLoader.class, "scl", ClassLoader.class);
+      sclSet_Field = getField(java.lang.ClassLoader.class, "sclSet", boolean.class);
     } else {
       java_lang_reflect_Method_getCallerClass = null;
+      usr_paths_Field = null;
+      sys_paths_Field = null;
+      scl_Field = null;
+      sclSet_Field = null;
     }
   }
 
