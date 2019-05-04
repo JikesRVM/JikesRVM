@@ -29,7 +29,7 @@ EXTERNAL void* sysDlopen(char *libname)
   }
   while( (libHandler == 0 /*null*/) && (errno == EINTR) );
   if (libHandler == 0) {
-    TRACE_PRINTF("%s: error loading library %s: %s\n", Me,
+    ERROR_PRINTF("%s: error loading library %s: %s\n", Me,
                  libname, dlerror());
   }
 

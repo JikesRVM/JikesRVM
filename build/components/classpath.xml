@@ -197,9 +197,7 @@
           <or>
             <equals arg1="${target.os}" arg2="Solaris"/> 
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
-            <equals arg1="${target.name}" arg2="x86_64-linux"/>
             <equals arg1="${target.name}" arg2="x86_64_m32-linux"/>
-            <equals arg1="${target.name}" arg2="x86_64_m64-linux"/>
           </or>
         </not>
         <or>
@@ -252,7 +250,7 @@
       64 bit system the libraries are created appropriately -->
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
-      <env key="CFLAGS" value="${cp.cflags} -Wno-implicit-fallthrough"/>
+      <env key="CFLAGS" value="${cp.cflags} -Wno-implicit-fallthrough -Wno-deprecated-declarations"/>
       <arg value="--enable-jni"/>
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
