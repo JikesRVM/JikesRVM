@@ -38,7 +38,6 @@ import java.lang.annotation.Inherited;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -1856,8 +1855,6 @@ public final class RVMClass extends RVMType {
   //
   // TODO: Make this into a more general listener API
   //------------------------------------------------------------//
-  public static final ClassLoadingListener classLoadListener =
-      VM.BuildForOptCompiler ? new ClassLoadingDependencyManager() : null;
 
   /**
    * Given a method declared by this class, update all

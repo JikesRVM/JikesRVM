@@ -17,6 +17,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
@@ -135,6 +136,13 @@ public abstract class RVMType extends AnnotatedElement {
   public static final RVMClass IMTType;
   public static final RVMClass FunctionTableType;
   public static final RVMClass LinkageTripletTableType;
+  //------------------------------------------------------------//
+  // Support for speculative optimizations that may need to
+  // invalidate compiled code when new classes are loaded.
+  //
+  // TODO: Make this into a more general listener API
+  //------------------------------------------------------------//
+  public static final ClassLoadingListener classLoadListener;
 
   static {
     // Primitive types
@@ -173,6 +181,7 @@ public abstract class RVMType extends AnnotatedElement {
     // Java clases
     JavaLangObjectType = TypeReference.JavaLangObject.resolve().asClass();
     JavaLangObjectArrayType = TypeReference.JavaLangObjectArray.resolve().asArray();
+    classLoadListener = VM.BuildForOptCompiler ? new ClassLoadingDependencyManager() : null;
     JavaLangClassType = TypeReference.JavaLangClass.resolve().asClass();
     JavaLangThrowableType = TypeReference.JavaLangThrowable.resolve().asClass();
     JavaLangStringType = TypeReference.JavaLangString.resolve().asClass();
