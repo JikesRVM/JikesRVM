@@ -160,7 +160,7 @@ public final class Unsafe {
 
   @Inline
   public Object staticFieldBase(Field f) {
-    return Statics.getSlots();
+    return Statics.getSlots().toObjectReference().toObject();
   }
 
   @Inline
