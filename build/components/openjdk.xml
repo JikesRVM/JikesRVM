@@ -4,7 +4,6 @@
 
   <property name="openjdk.description" value="OpenJDK / IcedTea"/>
 
-  <!-- Note: IcedTea 6 is no longer buildable because it tries to download from java.net -->
   <property name="openjdk.version" value="6-1.13.13"/>
 
   <property name="icedtea.version" value="${openjdk.version}"/>
@@ -64,7 +63,7 @@
            that libraries are built correctly when using 32-bit on 64-bit systems. OpenJDK and IcedTea don't
            support that at all. We risk introducing build failures by passing through our options, so we refrain
            from doing that. -->
-<!--  Note that c++.exe and c++.args aren't defined in host properties at the moment, so they need to be introduced
+<!--  Note that c++.exe and c++.args aren't defined in host properties at the moment, so they would need to be introduced
       if options need to be passed through.
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
