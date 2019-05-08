@@ -1709,8 +1709,6 @@ Check to make sure all required properties are specified. This includes properti
     <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">       
       <include name="java/**"/>
       <include name="sun/**"/>
-      <!--no gnu now  <include name="gnu/**"/> -->
-      <!-- Xi Yang      <zipfileset src="${classpath.lib.dir}/classpath.jar"/> -->
       <zipfileset src="${openjdk.lib.dir}/rt.jar"/>
       <zipfileset src="${openjdk.lib.dir}/jsse.jar"/>
     </zip>
@@ -1718,7 +1716,6 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${build.classes}">
         <exclude name="java/**"/>
         <exclude name="sun/**"/>
-        <!-- no gnu now <exclude name="gnu/**"/> -->
       </fileset>
       <fileset dir="${build.vmmagic-stub.classes}">
         <include name="org/vmmagic/pragma/**"/>
