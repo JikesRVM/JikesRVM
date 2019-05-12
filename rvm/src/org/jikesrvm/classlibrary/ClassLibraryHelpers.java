@@ -24,7 +24,6 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 
-// TODO decide where to put this code before merging the OpenJDK branch
 public class ClassLibraryHelpers {
 
   /**

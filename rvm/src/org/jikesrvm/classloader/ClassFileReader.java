@@ -312,7 +312,6 @@ public class ClassFileReader {
         declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input, loggingStream);
       }
     }
-    // FIXME review the design for this before merging the OpenJDK branch
     declaredFields = ClassLibraryHelpers.modifyDeclaredFields(declaredFields, typeRef);
     return declaredFields;
   }
