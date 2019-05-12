@@ -53,7 +53,7 @@ import sun.reflect.ConstantPool;
 @ReplaceClass(className = "java.lang.Class")
 public class java_lang_Class<T> {
 
-  // TODO compare with GNU Classpath implementation and extract shared code when implementation is done
+  // TODO OPENJDK/ICEDTEA compare with GNU Classpath implementation and extract shared code when implementation is done
 
   @ReplaceMember
   private static void registerNatives() {
@@ -236,7 +236,7 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Class<?> getDeclaringClass0() {
-    // TODO share with GNU Classpath
+    // TODO OPENJDK/ICEDTEA share with GNU Classpath
     RVMType type = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
     if (!type.isClassType()) return null;
     TypeReference dc = type.asClass().getDeclaringClass();
@@ -285,7 +285,7 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private Field[] getDeclaredFields0(boolean publicOnly) {
-    // TODO move out of this class
+    // TODO OPENJDK/ICEDTEA move out of this class
     RVMType type = java.lang.JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
     if (!type.isClassType()) {
       return new Field[0];

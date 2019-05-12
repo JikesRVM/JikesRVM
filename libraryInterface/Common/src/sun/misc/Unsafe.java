@@ -199,13 +199,13 @@ public final class Unsafe {
     }
   }
 
-  // FIXME add atomic copying if size is aligned properly (i.e. 8 / 4 / 2 bytes).
+  // FIXME OPENJDK/ICEDTEA add atomic copying if size is aligned properly (i.e. 8 / 4 / 2 bytes).
   @Inline
   public void copyMemory(long srcAddress, long destAddress, long bytes) {
     Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), Offset.fromLong(bytes).toWord().toExtent());
   }
 
-  // FIXME add atomic copying if size is aligned properly (i.e. 8 / 4 / 2 bytes).
+  // FIXME OPENJDK/ICEDTEA add atomic copying if size is aligned properly (i.e. 8 / 4 / 2 bytes).
   @Inline
   public void copyMemory(Object srcBase, long srcOffset, Object dstBase, long dstOffset, long bytes) {
     Address effectiveSrcAddr = Magic.objectAsAddress(srcBase).plus(Offset.fromLong(srcOffset));

@@ -42,7 +42,7 @@ public class Entrypoints {
   // This is only necessary to work around OpenJDKs work around, see sun_reflect_Reflection
   // in the libraryInterface for details.
   public static final RVMMethod java_lang_reflect_Method_getCallerClass;
-  // Necessary to wipe out cached fields (TODO consider doing this in the BootImageWriter)
+  // Necessary to wipe out cached fields (TODO OPENJDK/ICEDTEA consider doing this in the BootImageWriter)
   public static final RVMField usr_paths_Field;
   public static final RVMField sys_paths_Field;
   // Necessary to set application classloader for OpenJDK

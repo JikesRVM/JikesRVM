@@ -206,9 +206,6 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     BaselineCompiler.initOptions();
 
-    // JNI Environment was moved to this place for OpenJDK.
-    // TODO document why it is necessary to initialize it this early.
-
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
     org.jikesrvm.jni.JNIEnvironment.boot();
@@ -402,7 +399,6 @@ public class VM extends Properties {
       runClassInitializer("java.io.Console");
       runClassInitializer("java.util.concurrent.atomic.AtomicInteger");
       runClassInitializer("java.io.FileDescriptor");
-      // TODO probably need to initialize more stuff for OpenJDK
       runClassInitializer("java.io.FileInputStream");
       runClassInitializer("java.io.FileOutputStream");
       //    runClassInitializer("java/lang/reflect/Modifier");

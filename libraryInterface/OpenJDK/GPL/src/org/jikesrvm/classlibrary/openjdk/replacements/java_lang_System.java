@@ -64,7 +64,7 @@ public class java_lang_System {
       props.setProperty("sun.arch.data.model", "64");
     }
 
-    // TODO add remaining properties when they're known
+    // TODO OPENJDK/ICEDTEA add remaining properties when they're known
 
     return props;
   }

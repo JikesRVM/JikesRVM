@@ -116,11 +116,11 @@ public class JikesRVMSupport {
 
   private static Class[] determineCheckedExceptionTypes(
       TypeReference[] exceptionTypeReferences) {
-    // TODO partly sharable with GNU Classpath
+    // TODO OPENJDK/ICEDTEA partly sharable with GNU Classpath
     if (exceptionTypeReferences == null) {
       return new Class[0];
     } else {
-      // FIXME move this into a shared helper or core VM and add test cases
+      // FIXME OPENJDK/ICEDTEA move this into a shared helper or core VM and add test cases
       Class<?>[] classes = JavaLangReflectSupport.typesToClasses(exceptionTypeReferences);
       return determineCheckedExceptionTypes(classes);
     }

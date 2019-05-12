@@ -77,8 +77,8 @@ public class java_security_AccessController {
     return context;
   }
 
-  // FIXME not sure if the semantics of this are correct
-  // TODO use entrypoints to set the values
+  // FIXME OPENJDK/ICEDTEA not sure if the semantics of this are correct
+  // TODO OPENJDK/ICEDTEA use entrypoints to set the values
   @ReplaceMember
   static AccessControlContext getInheritedAccessControlContext() {
     Thread thisThread = Thread.currentThread();
@@ -96,13 +96,13 @@ public class java_security_AccessController {
     return context;
   }
 
-  // TODO actually add restrictions
+  // TODO OPENJDK/ICEDTEA actually add restrictions
   @ReplaceMember
   public static <T> T doPrivileged(PrivilegedAction<T> action) {
     return action.run();
   }
 
-  // TODO actually add restrictions
+  // TODO OPENJDK/ICEDTEA actually add restrictions
   @ReplaceMember
   public static <T> T doPrivileged(PrivilegedExceptionAction<T> action) throws PrivilegedActionException {
     try {
@@ -112,13 +112,13 @@ public class java_security_AccessController {
     }
   }
 
-  // TODO actually add restrictions
+  // TODO OPENJDK/ICEDTEA actually add restrictions
   @ReplaceMember
   public static <T> T doPrivileged(PrivilegedAction<T> action, AccessControlContext context) {
     return action.run();
   }
 
-  // TODO actually add restrictions
+  // TODO OPENJDK/ICEDTEA actually add restrictions
   @ReplaceMember
   public static <T> T doPrivileged(PrivilegedExceptionAction<T> action, AccessControlContext context) throws PrivilegedActionException {
     try {

@@ -91,7 +91,7 @@ public class FieldValues {
         } else if (jdkObject == java.lang.Void.TYPE) {
           value = RVMType.VoidType;
         } else if (jdkObjectAsClass.getName().startsWith("com.sun.proxy")) {
-          // FIXME will probably lead to problems at runtime
+          // FIXME OPENJDK/ICEDTEA will probably lead to problems at runtime
           if (VM.VerifyAssertions) VM._assert(VM.BuildForOpenJDK);
           say("Doing nothing for proxy " + jdkObject + " for now");
         } else {

@@ -414,7 +414,7 @@ public final class JavaLangSupport {
     return true;                        // a valid class descriptor
   }
 
-  // TODO use this for GNU Classpath
+  // TODO OPENJDK/ICEDTEA use this for GNU Classpath
   @Pure
   public static boolean isInstanceOf(Class<?> c, Object o) {
     if (o == null) return false;

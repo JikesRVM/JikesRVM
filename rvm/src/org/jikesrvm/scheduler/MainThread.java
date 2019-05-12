@@ -73,7 +73,7 @@ public final class MainThread extends Thread {
       }
       if (VM.BuildForOpenJDK) {
         try {
-          // FIXME initializeInstrumentation isn't implemented yet.
+          // FIXME OPENJDK/ICEDTEA initializeInstrumentation isn't implemented yet.
           // OpenJDK 6 doesn't seem to provide any suitable hooks for implementation of instrumentation.
           // The instrumentation in OpenJDK is done via native code which doesn't seem to be called automatically.
           // That means we'd have to (re-)implement instrumentation ourselves.
@@ -82,7 +82,7 @@ public final class MainThread extends Thread {
           // JPLISAgent.h (openjdk/jdk/src/share/instrument)
           // sun.instrument.InstrumentationImpl (openjdk/jdk/src/share/classes/sun/instrument)
 
-          // FIXME We don't even attempt to load sun.instrument.InstrumentationImpl because that requires loading
+          // FIXME OPENJDK/ICEDTEA We don't even attempt to load sun.instrument.InstrumentationImpl because that requires loading
           // libinstrument.so which in turn requires loading libjli.so (for the Java launcher infrastructure)
           // which we currently don't provide.
 

@@ -39,7 +39,7 @@ public class sun_reflect_Reflection {
 
   @ReplaceMember
   public static Class<?> getCallerClass() {
-    // TODO this implementation is rather messy. If we have to adjust this again,
+    // TODO OPENJDK/ICEDTEA this implementation is rather messy. If we have to adjust this again,
     // we ought to write a better one, with a test case for all the cases.
 
     StackBrowser b = new StackBrowser();
