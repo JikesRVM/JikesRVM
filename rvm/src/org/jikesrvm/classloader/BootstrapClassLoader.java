@@ -189,7 +189,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    */
   @Override
   public Class<?> findClass(String className) throws ClassNotFoundException {
-    final boolean DBG = true;
+    final boolean DBG = false;
     if (!VM.runningVM) {
       return super.findClass(className);
     }
