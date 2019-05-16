@@ -31,8 +31,7 @@ import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.util.LinkedListRVM;
 import org.vmmagic.pragma.ReplaceClass;
@@ -78,22 +77,10 @@ public class java_security_AccessController {
   }
 
   // FIXME OPENJDK/ICEDTEA not sure if the semantics of this are correct
-  // TODO OPENJDK/ICEDTEA use entrypoints to set the values
   @ReplaceMember
   static AccessControlContext getInheritedAccessControlContext() {
     Thread thisThread = Thread.currentThread();
-    RVMType typeForClass = JikesRVMSupport.getTypeForClass(Thread.class);
-    RVMField[] instanceFields = typeForClass.getInstanceFields();
-    String targetName = "inheritedAccessControlContext";
-    RVMField inherited = null;
-    for (RVMField f : instanceFields) {
-      if (f.getName().toString().equals(targetName)) {
-        inherited = f;
-        break;
-      }
-    }
-    AccessControlContext context = (AccessControlContext) inherited.getObjectUnchecked(thisThread);
-    return context;
+    return (AccessControlContext) Entrypoints.inheritedAccessControlContext_Field.getObjectUnchecked(thisThread);
   }
 
   // TODO OPENJDK/ICEDTEA actually add restrictions
