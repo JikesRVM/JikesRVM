@@ -39,7 +39,7 @@ public class java_lang_reflect_Method {
 
   @ReplaceMember
   Method copy() {
-    // "copy" constructor
+    // "copy" method
     Method source = (Method) (Object) this;
     RVMMethod rvmMethod = java.lang.reflect.JikesRVMSupport.getMethodOf(source);
     Method newMethod = java.lang.reflect.JikesRVMSupport.createMethod(rvmMethod);
