@@ -37,13 +37,8 @@ import org.vmmagic.pragma.ReplaceMember;
 @ReplaceClass(className = "java.lang.System")
 public class java_lang_System {
 
-  static {
-    VM.sysWriteln("Static init called");
-  }
-
   @ReplaceMember
   public static void registerNatives() {
-    VM.sysWriteln("registerNativesCalled");
     // no natives
   }
 
