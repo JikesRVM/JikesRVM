@@ -12,31 +12,18 @@
  */
 package java.nio;
 
-//import org.apache.harmony.luni.platform.PlatformAddressFactory;
-
 import org.vmmagic.unboxed.Address;
 
 /**
  * Library support interface of Jikes RVM
  */
 public class JikesRVMSupport {
+
   public static Address getDirectBufferAddress(Buffer buffer) {
-    //       VM.sysWriteln("GetDirectBufferAddress is called");
     return Address.fromLong(((DirectByteBuffer)buffer).address());
-    //    throw new Error("TODO");
-/*
-      if (buffer instanceof DirectBuffer) {
-          return Address.fromLong(((DirectBuffer)buffer).getBaseAddress().toLong());
-      } else {
-          return Address.fromIntSignExtend(-1);
-      }
-*/
   }
 
   public static ByteBuffer newDirectByteBuffer(Address address, long capacity) {
-    //       VM.sysWriteln("NewDirectBytebuffer is called");
-      //    return new ReadWriteDirectByteBuffer(PlatformAddressFactory.on(address.toLong(), BYTES_IN_ADDRESS), (int)capacity, 0);
-    //      throw new Error("NewDirectByteBuffer");
     return new DirectByteBuffer(address.toLong(), (int)capacity);
   }
 }
