@@ -96,8 +96,7 @@
   <property name="dist.base" location="${dist.dir}/${build.name}"/>
 
   <!-- Set the class library to use -->
-  <!-- <property name="classlib.provider" value="GNU Classpath"/> -->
-  <property name="classlib.provider" value="OpenJDK"/>
+  <property name="classlib.provider" value="GNU Classpath"/>
   <condition property="harmony.classlib" value="true">
     <equals arg1="${classlib.provider}" arg2="Harmony"/>
   </condition>
