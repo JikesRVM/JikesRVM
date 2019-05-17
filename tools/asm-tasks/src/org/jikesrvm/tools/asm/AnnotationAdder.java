@@ -450,6 +450,7 @@ public final class AnnotationAdder {
         addToAdapt(Uninterruptible.class, Enum.class.getMethod("name", new Class[0]));
         addToAdapt(Uninterruptible.class, String.class.getMethod("length", new Class[0]));
         addToAdapt(Uninterruptible.class, "sun/misc/VM", "addFinalRefCount", "(I)V");
+        //OPENJDK/ICEDTEA Annotations for pure methods are missing
       }
     } catch (Exception e) {
       System.out.println("Exception " + e);
@@ -499,8 +500,6 @@ public final class AnnotationAdder {
    */
   public static void main(final String[] args) {
     Set<Class<?>> processedClasses = new HashSet<Class<?>>();
-
-    //OPENJDK/ICEDTEA This class needs to be updated to support the OpenJDK class library.
 
     classLibrary = args[0];
     RVMClassLoader.init(args[1]);
