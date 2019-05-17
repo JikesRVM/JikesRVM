@@ -21,7 +21,7 @@ import org.jikesrvm.classloader.RVMType;
  */
 public final class BootImageWorker implements Runnable {
 
-  public static final boolean verbose = true;
+  public static final boolean verbose = false;
   public static boolean instantiationFailed = false;
   private static final AtomicLong count = new AtomicLong();
   private final RVMType type;
