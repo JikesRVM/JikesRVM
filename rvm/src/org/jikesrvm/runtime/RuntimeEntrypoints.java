@@ -85,8 +85,7 @@ import org.vmmagic.unboxed.Word;
  */
 public class RuntimeEntrypoints {
 
-  //  private static final boolean traceAthrow = false;
-  private static final boolean traceAthrow = true;
+  private static final boolean traceAthrow = false;
   // Trap codes for communication with C trap handler.
   //
   public static final int TRAP_UNKNOWN = -1;
@@ -291,6 +290,7 @@ public class RuntimeEntrypoints {
    * See also: bytecode 0xbb ("new")
    */
   public static Object resolvedNewScalar(RVMClass cls) {
+
     int allocator = MemoryManager.pickAllocator(cls);
     int site = MemoryManager.getAllocationSite(false);
     int align = ObjectModel.getAlignment(cls);
@@ -320,6 +320,7 @@ public class RuntimeEntrypoints {
   @Entrypoint
   public static Object resolvedNewScalar(int size, TIB tib, boolean hasFinalizer, int allocator, int align,
                                          int offset, int site) throws OutOfMemoryError {
+
     // GC stress testing
     if (VM.ForceFrequentGC) checkAllocationCountDownToGC();
 
@@ -657,8 +658,8 @@ public class RuntimeEntrypoints {
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public static void athrow(Throwable exceptionObject) {
     if (traceAthrow) {
-      //      VM.sysWriteln("in athrow.");
-      //      RVMThread.dumpStack();
+      VM.sysWriteln("in athrow.");
+      RVMThread.dumpStack();
     }
     RVMThread myThread = RVMThread.getCurrentThread();
     AbstractRegisters exceptionRegisters = myThread.getExceptionRegisters();
