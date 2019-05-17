@@ -151,8 +151,6 @@ public class BootImageWriter {
    */
   private static RVMThread startupThread;
 
-    private static ArrayList Dummy;
-
   /**
    * How much talking while we work?
    */
@@ -686,12 +684,11 @@ public class BootImageWriter {
           objCookie = Statics.getSlotContentsAsInt(jtocOff);
         else
           objCookie = (int) Statics.getSlotContentsAsLong(jtocOff);
-
         // if (verbose.isAtLeast(ADDRESSES))
         // say("       jtoc[", String.valueOf(i), "] = ", String.valueOf(objCookie));
         Object jdkObject = BootImageMap.getObject(objCookie);
         if (jdkObject == null) {
-          System.out.println("Can not find objectid in BootImageMap " + jtocOff + " " + objCookie);
+          if (verbosity.isAtLeast(DETAILED)) say("Can not find objectid in BootImageMap " + jtocOff + " " + objCookie);
           continue;
         }
 
@@ -1195,7 +1192,6 @@ public class BootImageWriter {
       //
       if (verbosity.isAtLeast(SUMMARY)) say("field info gathering");
       if (profile) startTime = System.currentTimeMillis();
-
       HashSet<String> invalidEntrys = BootImageTypes.createBootImageTypeFields();
 
       if (profile) {
@@ -1454,8 +1450,8 @@ public class BootImageWriter {
       RVMType rvmType = BootImageTypes.getRvmTypeForHostType(jdkType);
       if (rvmType == null) {
         if (verbosity.isAtLeast(DETAILED)) traverseObject(jdkObject);
+        if (verbosity.isAtLeast(DETAILED)) say("Object Not Present " + jdkType.getName() + " for " + jdkObject.toString());
         if (verbosity.isAtLeast(DETAILED)) depth--;
-        System.out.println("Object Not Present " + jdkType.getName() + " for " + jdkObject.toString());
         return OBJECT_NOT_PRESENT; // object not part of bootimage
       }
 
