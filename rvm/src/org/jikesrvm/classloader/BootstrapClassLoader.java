@@ -35,18 +35,13 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  */
 public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
-
-
-  private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
-    new ImmutableEntryHashMapRVM<String, RVMType>();
-
-
-
-  private final ImmutableEntryHashMapRVM<String, String> packageSources = new ImmutableEntryHashMapRVM<String, String>();
-
-
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
+
+  private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
+      new ImmutableEntryHashMapRVM<String, RVMType>();
+
+  private final ImmutableEntryHashMapRVM<String, String> packageSources = new ImmutableEntryHashMapRVM<String, String>();
 
   private ClassReplacement replacement;
 
@@ -101,8 +96,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       }
     }
   }
-
-
 
   /** Prevent other classes from constructing one. */
   private BootstrapClassLoader() {
