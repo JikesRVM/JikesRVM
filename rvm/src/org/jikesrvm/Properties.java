@@ -63,6 +63,14 @@ public class Properties extends Options {
   public static boolean safeToAllocateJavaThread = false;
 
   /**
+   * Is it safe to create a stack trace now?  Set by VM.boot at the
+   * appropriate time. It is always safe to create a stack trace when
+   * the VM is {@link #fullyBooted}, regardless of the value of this
+   * flag.
+   */
+  public static boolean safeToCreateStackTrace = false;
+
+  /**
    * The following is set on by -X:verboseBoot= command line argument.
    * When true, it generates messages to the sysWrite stream summarizing
    * progress during the execution of VM.boot

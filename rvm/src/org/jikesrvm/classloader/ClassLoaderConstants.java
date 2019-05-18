@@ -79,6 +79,8 @@ public final class ClassLoaderConstants {
    * The modifiers that can appear in the return value of
    * {@link java.lang.Class#getModifiers()} according to
    * the Java API specification.
+   * <p>
+   * {@code ACC_SUPER} is omitted.
    */
   public static final short APPLICABLE_FOR_CLASS_GET_MODIFIERS =
       (ACC_PUBLIC |
@@ -87,7 +89,11 @@ public final class ClassLoaderConstants {
        ACC_STATIC |
        ACC_FINAL |
        ACC_INTERFACE |
-       ACC_ABSTRACT);
+       ACC_ABSTRACT |
+       ACC_SYNTHETIC |
+       ACC_ANNOTATION |
+       ACC_ENUM);
+
 
   /* Possible states of a class description. */
   /** nothing present yet */

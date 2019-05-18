@@ -26,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
@@ -34,11 +35,15 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  */
 public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
-  private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
-    new ImmutableEntryHashMapRVM<String, RVMType>();
-
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
+
+  private final ImmutableEntryHashMapRVM<String, RVMType> loaded =
+      new ImmutableEntryHashMapRVM<String, RVMType>();
+
+  private final ImmutableEntryHashMapRVM<String, String> packageSources = new ImmutableEntryHashMapRVM<String, String>();
+
+  private ClassReplacement replacement;
 
   /**
    * Set list of places to be searched for VM classes and resources.
@@ -75,14 +80,17 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     zipFileCache = new HashMap<String, ZipFile>();
     if (VM.BuildForGnuClasspath && VM.runningVM) {
       try {
-        /* Here, we have to replace the fields that aren't carried over from
-         * boot image writing time to run time.
-         * This would be the following, if the fields weren't final:
-         *
-         * bootstrapClassLoader.definedPackages    = new HashMap();
-         */
-        Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader,
-                                                                          new java.util.HashMap<String, Package>());
+        // FIXME should be a classlibrary specific hook
+        if (VM.BuildForGnuClasspath) {
+          /* Here, we have to replace the fields that aren't carried over from
+           * boot image writing time to run time.
+           * This would be the following, if the fields weren't final:
+           *
+           * bootstrapClassLoader.definedPackages    = new HashMap();
+           */
+          Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader,
+                                                                            new java.util.HashMap<String, Package>());
+        }
       } catch (Exception e) {
         VM.sysFail("Failed to setup bootstrap class loader");
       }
@@ -92,6 +100,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   /** Prevent other classes from constructing one. */
   private BootstrapClassLoader() {
     super(null);
+    replacement = new ClassReplacement(this);
   }
 
   /* Interface */
@@ -109,6 +118,11 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    * @throws NoClassDefFoundError when no definition of the class was found
    */
   synchronized RVMType loadVMClass(String className) throws NoClassDefFoundError {
+    RVMType loadedType = loaded.get(className);
+    if (loadedType != null) {
+      return loadedType;
+    }
+
     try {
       InputStream is = getResourceAsStream(className.replace('.', File.separatorChar) + ".class");
       if (is == null) throw new NoClassDefFoundError(className);
@@ -119,6 +133,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         // VM.sysWriteln("loadVMClass: trying to resolve className " + className);
         type = RVMClassLoader.defineClassInternal(className, dataInputStream, this);
         loaded.put(className, type);
+        if (VM.writingBootImage) replacement.attemptToLoadReplacementClassIfNeededForVmClass(className);
       } finally {
         try {
           // Make sure the input stream is closed.
@@ -144,6 +159,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length() - 2);
     }
+
     RVMType loadedType = loaded.get(className);
     Class<?> loadedClass;
     if (loadedType == null) {
@@ -190,7 +206,10 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
           className = className.substring(1, className.length() - 2);
         }
         InputStream is = getResourceAsStream(className.replace('.', File.separatorChar) + ".class");
-        if (is == null) throw new ClassNotFoundException(className);
+        if (is == null) {
+          if (VM.TraceClassLoading) VM.sysWriteln("Throwing ClassNotFoundException because inputstream was null for " + className);
+          throw new ClassNotFoundException(className);
+        }
         DataInputStream dataInputStream = new DataInputStream(is);
         Class<?> cls = null;
         try {
@@ -205,6 +224,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         }
         return cls;
       } catch (ClassNotFoundException e) {
+        if (VM.TraceClassLoading) VM.sysWriteln("Throwing plain ClassNotFoundException");
         throw e;
       } catch (Throwable e) {
         if (DBG) {
@@ -213,6 +233,80 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
         }
         // We didn't find the class, or it wasn't valid, etc.
         throw new ClassNotFoundException(className, e);
+      }
+    }
+  }
+
+  public Class<?> findLoadedBootstrapClass(String name) {
+    RVMType loadedType = loaded.get(name);
+    if (loadedType == null) {
+      return null;
+    }
+    return loadedType.getClassForType();
+  }
+
+  /**
+   * Gets the filename for a given package name
+   * @param packageName a name of the package in internal format, i.e. {@code org/apache/tools/ant/taskdefs/optional/junit/}
+   * rather than {@code org.apache.tools.ant.taskdefs.optional.junit}
+   * @return {@code null} if this package is not a "system package" (in OpenJDK terminology) and thus
+   *  not loaded by the bootstrap classloader
+   */
+  public synchronized String getFileNameForPackage(String packageName) {
+    if (packageSources.size() != 0) {
+      return packageSources.get(packageName);
+    }
+
+    fillInPackageSource();
+    return packageSources.get(packageName);
+  }
+
+  private void fillInPackageSource() {
+    StringTokenizer tok = new StringTokenizer(getBootstrapRepositories(), File.pathSeparator);
+
+    while (tok.hasMoreElements()) {
+      try {
+        String path = tok.nextToken();
+        if (path.endsWith(".jar") || path.endsWith(".zip")) {
+          ZipFile zf = zipFileCache.get(path);
+          if (zf == null) {
+            zf = new ZipFile(path);
+            zipFileCache.put(path, zf);
+          }
+          Enumeration<? extends ZipEntry> entries = zf.entries();
+          while (entries.hasMoreElements()) {
+            ZipEntry ze = entries.nextElement();
+            String name = ze.getName();
+            if (name.endsWith(".class")) {
+              String className = name;
+              int lastSlash = className.lastIndexOf('/');
+              if (lastSlash == -1) {
+                // e.g. for default package
+                continue;
+              }
+              String classesPackage = className.substring(0, lastSlash);
+              classesPackage = classesPackage.replace('/', '.');
+              if (packageSources.get(classesPackage) == null) {
+                packageSources.put(classesPackage, path);
+              } else {
+                String prexistingSource = packageSources.get(classesPackage);
+                if (!prexistingSource.equals(path)) {
+                  VM.sysFail("Wanted to write source " + path + " for classes' package " +
+                      classesPackage + " but was already set to " + prexistingSource);
+                }
+              }
+            }
+          }
+        }
+      } catch (IOException e) {
+        if (VM.fullyBooted) {
+          e.printStackTrace();
+          VM.sysFail("Couldn't determine system packages due to IOException");
+        } else {
+          RVMThread.dumpStack();
+          VM.sysFail("Couldn't determine system packages due to IOException");
+        }
+        VM.sysFail("Couldn't determine system packages");
       }
     }
   }
@@ -350,6 +444,10 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
           }
         }
       } catch (Exception e) {
+        if (VM.TraceClassLoading) {
+          VM.sysWriteln("Exception in getResourceInternal: ");
+          e.printStackTrace();
+        }
       }
     }
 

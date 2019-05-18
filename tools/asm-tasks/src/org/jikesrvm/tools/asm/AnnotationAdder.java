@@ -445,6 +445,13 @@ public final class AnnotationAdder {
           addToAdapt(Pure.class, String.class.getMethod("offsetByCodePoints", new Class[]{int.class, int.class}));
           addToAdapt(Pure.class, String.class.getMethod("length", new Class[0]));
       }
+      if (classLibrary.toLowerCase().equals("openjdk")) {
+        addToAdapt(Uninterruptible.class, Enum.class.getMethod("ordinal", new Class[0]));
+        addToAdapt(Uninterruptible.class, Enum.class.getMethod("name", new Class[0]));
+        addToAdapt(Uninterruptible.class, String.class.getMethod("length", new Class[0]));
+        addToAdapt(Uninterruptible.class, "sun/misc/VM", "addFinalRefCount", "(I)V");
+        //OPENJDK/ICEDTEA Annotations for pure methods are missing
+      }
     } catch (Exception e) {
       System.out.println("Exception " + e);
       throw new Error(e);

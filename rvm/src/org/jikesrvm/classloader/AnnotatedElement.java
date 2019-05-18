@@ -35,13 +35,17 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   private Annotation[] declaredAnnotations;
   /** Empty annotation array */
   private static final Annotation[] emptyAnnotationArray = new Annotation[0];
+  /** All annotation data, including raw bytes */
+  protected Annotations annotationsData;
 
   /**
    * Constructor used by all annotated elements
    *
-   * @param annotations array of runtime visible annotations
+   * @param encapsulatedAnnotations array of runtime visible annotations
    */
-  protected AnnotatedElement(RVMAnnotation[] annotations) {
+  protected AnnotatedElement(Annotations encapsulatedAnnotations) {
+    this.annotationsData = encapsulatedAnnotations;
+    RVMAnnotation[] annotations = encapsulatedAnnotations == null ? null : encapsulatedAnnotations.getAnnotations();
     if (annotations == null) {
       declaredAnnotationDatas = null;
       declaredAnnotations = emptyAnnotationArray;
@@ -148,6 +152,10 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
       if (annotationClass.isInstance(annotation)) return (T) annotation;
     }
     return null;
+  }
+
+  public final Annotations getAnnotationsData() {
+    return annotationsData;
   }
 
   /**

@@ -180,6 +180,16 @@ public class ObjectModel {
     return ARRAY_LENGTH_OFFSET;
   }
 
+  /**
+   * NB: this method exists only for documentation purposes.
+   *
+   * @return the offset of the first array element from the array's address
+   *  (in bytes). Always {@code 0} in the current object model.
+   */
+  public static Offset getArrayBaseOffset() {
+    return Offset.zero();
+  }
+
   public static TIB getTIB(ObjectReference ptr) {
     return getTIB(ptr.toObject());
   }

@@ -46,9 +46,10 @@ public final class MainThread extends Thread {
    * Create "main" thread.
    * @param args {@code args[0]}: name of class containing "main" method;
    *  {@code args[1..N]}: parameters to pass to "main" method
+   * @param threadGroup thread group for the main thread
    */
-  public MainThread(String[] args) {
-    super("MainThread");
+  public MainThread(String[] args, ThreadGroup threadGroup) {
+    super(threadGroup, "MainThread");
     setDaemon(false); // NB otherwise we inherit the boot threads daemon status
     this.agents = CommandLineArgs.getJavaAgentArgs();
     this.args = args;
@@ -62,12 +63,41 @@ public final class MainThread extends Thread {
       Instrumentation instrumenter = null;
       if (VM.BuildForGnuClasspath) {
         try {
+          if (VM.verboseBoot >= 1) VM.sysWriteln("Booting instrumentation for agents");
           instrumenter = (Instrumentation)Class.forName("gnu.java.lang.JikesRVMSupport")
             .getMethod("createInstrumentation").invoke(null);
           java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
         } catch (Exception e) {
+          if (VM.verboseBoot >= 1) VM.sysWriteln("Booting instrumentation for agents FAILED");
         }
       }
+      if (VM.BuildForOpenJDK) {
+        try {
+          // FIXME OPENJDK/ICEDTEA initializeInstrumentation isn't implemented yet.
+          // OpenJDK 6 doesn't seem to provide any suitable hooks for implementation of instrumentation.
+          // The instrumentation in OpenJDK is done via native code which doesn't seem to be called automatically.
+          // That means we'd have to (re-)implement instrumentation ourselves.
+          // Some relevant code in OpenJDK 6:
+          // JPLISAgent.c (openjdk/jdk/src/share/instrument)
+          // JPLISAgent.h (openjdk/jdk/src/share/instrument)
+          // sun.instrument.InstrumentationImpl (openjdk/jdk/src/share/classes/sun/instrument)
+
+          // FIXME OPENJDK/ICEDTEA We don't even attempt to load sun.instrument.InstrumentationImpl because that requires loading
+          // libinstrument.so which in turn requires loading libjli.so (for the Java launcher infrastructure)
+          // which we currently don't provide.
+
+//          if (VM.verboseBoot >= 1) VM.sysWriteln("Booting instrumentation for agents");
+//          Class<?> instrumentationClass = Class.forName("sun.instrument.InstrumentationImpl");
+//          Class[] constructorParameters = {long.class, boolean.class, boolean.class};
+//          Constructor<?> constructor = instrumentationClass.getDeclaredConstructor(constructorParameters);
+//          Object[] parameter = {Long.valueOf(0L), Boolean.FALSE, Boolean.FALSE};
+//          instrumenter = (Instrumentation)constructor.newInstance(parameter);
+//          java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
+        } catch (Exception e) {
+          if (VM.verboseBoot >= 1) VM.sysWriteln("Booting instrumentation for agents FAILED");
+        }
+      }
+
       for (String agent : agents) {
         /*
          * Parse agent string according to the form

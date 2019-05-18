@@ -99,6 +99,7 @@ Building Options:
      --comp-cache-dir Specify a cache location for component downloads
      --clear-cc       Clear out the component caches
      --harmony        Build with harmony (instead of classpath)
+     --openjdk        Build with OpenJDK libraries (instead of classpath)
      --answer-yes     Answer yes for all messages from the script that require confirmation. This option may be useful for headless builds.
      --timestamp-file Print contents of the timestamp file at the beginning and end of the build 
                         Note: Cross-building (i.e. different host and target is not supported by this option)
@@ -239,6 +240,7 @@ GetOptions(
   "m32" => \$m32,
   "m64" => \$m64,
   "harmony" => \$harmony,
+  "openjdk" => \$openjdk,
   "j|java-home=s" => \$javaHomeCmd,
   "ext-lib-dir=s" => \$extlibdir,
   "comp-cache-dir=s" => \$compcachedir,
@@ -792,6 +794,9 @@ if ($ok) {
     }
     if (defined $harmony) {
       $defs .= "-Dclasslib.provider=Harmony ";
+    }
+    if (defined $openjdk) {
+      $defs .= "-Dclasslib.provider=OpenJDK ";
     }
     if (defined $with_perfevent) {
       $defs .= "-Dconfig.include.perfevent=true ";

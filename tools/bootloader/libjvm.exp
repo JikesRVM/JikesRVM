@@ -24,3 +24,83 @@ JVM_0.1 {
     JNI_CreateJavaVM;
   local : *;
 };
+
+SUNWprivate_1.1 {
+  global :
+    /* The following are actually implemented right now */
+    JVM_GetInterfaceVersion;
+    JVM_RawMonitorDestroy;
+    JVM_RawMonitorEnter;
+    JVM_RawMonitorExit;
+    JVM_Open;
+    JVM_Lseek;
+    JVM_Read;
+    JVM_Write;
+    JVM_Close;
+    JVM_Available;
+    JVM_SupportsCX8;
+    JVM_GetLastErrorString;
+    JVM_ActiveProcessorCount;
+    JVM_InitializeSocketLibrary;
+    JVM_Socket;
+    JVM_FindLibraryEntry;
+    JVM_IsNaN;
+    /* For the rest, pretend that we implement them and patch out
+       all calls to them via the replacement class mechanism or
+       by overwriting the calling class */
+    JVM_GetClassName;
+    JVM_GetClassInterfaces;
+    JVM_GetClassLoader;
+    JVM_IsInterface;
+    JVM_GetClassSigners;
+    JVM_SetClassSigners;
+    JVM_IsArrayClass;
+    JVM_IsPrimitiveClass;
+    JVM_GetComponentType;
+    JVM_GetClassModifiers;
+    JVM_GetClassDeclaredFields;
+    JVM_GetClassDeclaredMethods;
+    JVM_GetClassDeclaredConstructors;
+    JVM_GetProtectionDomain;
+    JVM_SetProtectionDomain;
+    JVM_GetDeclaredClasses;
+    JVM_GetDeclaringClass;
+    JVM_GetClassSignature;
+    JVM_GetClassAnnotations;
+    JVM_GetClassConstantPool;
+    JVM_DesiredAssertionStatus;
+    JVM_GetEnclosingMethodInfo;
+    JVM_AssertionStatusDirectives;
+    JVM_CompileClass;
+    JVM_CompileClasses;
+    JVM_CompilerCommand;
+    JVM_EnableCompiler;
+    JVM_DisableCompiler;
+    JVM_IHashCode;
+    JVM_MonitorWait;
+    JVM_MonitorNotify;
+    JVM_MonitorNotifyAll;
+    JVM_Clone;
+    JVM_CurrentTimeMillis;
+    JVM_NanoTime;
+    JVM_ArrayCopy;
+    JVM_StartThread;
+    JVM_StopThread;
+    JVM_IsThreadAlive;
+    JVM_SuspendThread;
+    JVM_ResumeThread;
+    JVM_SetThreadPriority;
+    JVM_ResumeThread;
+    JVM_Yield;
+    JVM_Sleep;
+    JVM_CurrentThread;
+    JVM_CountStackFrames;
+    JVM_Interrupt;
+    JVM_IsInterrupted;
+    JVM_HoldsLock;
+    JVM_GetAllThreads;
+    JVM_DumpThreads;
+    JVM_RawMonitorCreate;
+    JVM_NativePath;
+
+} JVM_0.1;

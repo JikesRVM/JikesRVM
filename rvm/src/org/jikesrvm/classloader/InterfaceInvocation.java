@@ -86,7 +86,7 @@ public class InterfaceInvocation {
   public static ITable findITable(TIB tib, int id) throws IncompatibleClassChangeError {
     ITableArray iTables = tib.getITableArray();
     // Search for the right ITable
-    RVMType I = RVMClass.getInterface(id);
+    RVMType I = InterfaceInvocation.getInterface(id);
     if (iTables != null) {
       // check the cache at slot 0
       ITable iTable = iTables.get(0);
@@ -448,4 +448,30 @@ public class InterfaceInvocation {
       }
     }
   }
+
+  /*
+  * PART IV: Methods and data relating to interfaces. Those were moved from RVMClass.
+  */
+
+  private static int interfaceCount = 0;
+  private static RVMClass[] interfaces;
+
+  public static synchronized RVMClass getInterface(int id) {
+    return interfaces[id];
+  }
+
+  public static synchronized int nextInterfaceId(RVMClass interfaceClass) {
+    if (VM.VerifyAssertions) VM._assert(interfaceClass.isInterface());
+    int nextId = interfaceCount++;
+    if (interfaces == null) {
+      interfaces = new RVMClass[200];
+    } else if (nextId == interfaces.length) {
+      RVMClass[] tmp = new RVMClass[interfaces.length * 2];
+      System.arraycopy(interfaces, 0, tmp, 0, interfaces.length);
+      interfaces = tmp;
+    }
+    interfaces[nextId] = interfaceClass;
+    return nextId;
+  }
+
 }

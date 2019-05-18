@@ -160,14 +160,12 @@ public final class NormalMethod extends RVMMethod {
    * @param lvt the local variable table for this method
    * @param constantPool the constantPool for this method
    * @param sig generic type of this method.
-   * @param annotations array of runtime visible annotations
-   * @param parameterAnnotations array of runtime visible paramter annotations
-   * @param ad annotation default value for that appears in annotation classes
+   * @param methodAnnotations all method annotations
    */
   NormalMethod(TypeReference dc, MemberReference mr, short mo, TypeReference[] et, short lw, short ow,
                   byte[] bc, ExceptionHandlerMap eMap, int[] lm, LocalVariableTable lvt, int[] constantPool, Atom sig,
-                  RVMAnnotation[] annotations, RVMAnnotation[][] parameterAnnotations, Object ad) {
-    super(dc, mr, mo, et, sig, annotations, parameterAnnotations, ad);
+                  MethodAnnotations methodAnnotations) {
+    super(dc, mr, mo, et, sig, methodAnnotations);
     localWords = lw;
     operandWords = ow;
     bytecodes = bc;

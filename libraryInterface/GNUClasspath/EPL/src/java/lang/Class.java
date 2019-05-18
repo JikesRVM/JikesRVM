@@ -656,6 +656,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
+
   @Pure
   public boolean isEnum() {
     if (type.isClassType()) {

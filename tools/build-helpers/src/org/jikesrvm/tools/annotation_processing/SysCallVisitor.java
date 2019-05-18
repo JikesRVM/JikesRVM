@@ -43,7 +43,7 @@ class SysCallVisitor extends SimpleElementVisitor6<Void, Void> {
 
   private final Messager messager;
 
-  private GeneratedFileWriter generatedFileWriter;
+  private SysCallGeneratedFileWriter generatedFileWriter;
   private Elements elementUtils;
 
   /**
@@ -64,7 +64,7 @@ class SysCallVisitor extends SimpleElementVisitor6<Void, Void> {
       Elements elementUtils) {
     this.messager = messager;
     this.elementUtils = elementUtils;
-    this.generatedFileWriter = new GeneratedFileWriter(generatingClass, messager, filer);
+    this.generatedFileWriter = new SysCallGeneratedFileWriter(generatingClass, messager, filer);
   };
 
   /**

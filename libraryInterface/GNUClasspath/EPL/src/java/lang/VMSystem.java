@@ -18,7 +18,6 @@ import java.util.List;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.JavaLangSupport;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Time;
 
 /**
@@ -31,7 +30,7 @@ public final class VMSystem {
   }
 
   static int identityHashCode(Object o) {
-    return o == null ? 0 : ObjectModel.getObjectHashCode(o);
+    return JavaLangSupport.identityHashCode(o);
   }
 
   static boolean isWordsBigEndian() {

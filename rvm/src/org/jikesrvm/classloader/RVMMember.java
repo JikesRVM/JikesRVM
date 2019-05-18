@@ -63,10 +63,10 @@ public abstract class RVMMember extends AnnotatedElement {
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param signature generic type of this member
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
   protected RVMMember(TypeReference declaringClass, MemberReference memRef, short modifiers, Atom signature,
-                      RVMAnnotation[] annotations) {
+                      Annotations annotations) {
     super(annotations);
     this.declaringClass = declaringClass;
     this.memRef = memRef;

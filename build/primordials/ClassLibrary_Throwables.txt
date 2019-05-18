@@ -24,6 +24,7 @@ Ljava/lang/Error;
 Ljava/lang/IndexOutOfBoundsException;
 Ljava/lang/LinkageError;
 Ljava/lang/NullPointerException;
+Ljava/lang/OutOfMemoryError;
 Ljava/lang/RuntimeException;
 Ljava/lang/SecurityException;
 Ljava/lang/StackOverflowError;

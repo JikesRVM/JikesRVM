@@ -20,8 +20,8 @@ import java.util.Properties;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
-import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
@@ -29,6 +29,7 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Entrypoints;
@@ -137,6 +138,10 @@ public final class JavaLangSupport {
     } else {
       RuntimeEntrypoints.raiseArrayStoreException();
     }
+  }
+
+  public static int identityHashCode(Object obj) {
+    return obj == null ? 0 : ObjectModel.getObjectHashCode(obj);
   }
 
   /**
@@ -407,6 +412,14 @@ public final class JavaLangSupport {
       return false;     // ditto
     }
     return true;                        // a valid class descriptor
+  }
+
+  // TODO OPENJDK/ICEDTEA use this for GNU Classpath
+  @Pure
+  public static boolean isInstanceOf(Class<?> c, Object o) {
+    if (o == null) return false;
+    if (c.isPrimitive())  return false;
+    return c.isAssignableFrom(o.getClass());
   }
 
 }

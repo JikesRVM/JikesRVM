@@ -194,7 +194,6 @@ public final class RVMAnnotation {
             TypeReference.findOrCreate(classLoader,
                                        ConstantPool.getUtf(constantPool, typeNameIndex)).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
-
         //noinspection unchecked
         value = Enum.valueOf(enumType, ConstantPool.getUtf(constantPool, constNameIndex).toString());
         break;

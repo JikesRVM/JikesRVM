@@ -17,6 +17,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
@@ -135,6 +136,13 @@ public abstract class RVMType extends AnnotatedElement {
   public static final RVMClass IMTType;
   public static final RVMClass FunctionTableType;
   public static final RVMClass LinkageTripletTableType;
+  //------------------------------------------------------------//
+  // Support for speculative optimizations that may need to
+  // invalidate compiled code when new classes are loaded.
+  //
+  // TODO: Make this into a more general listener API
+  //------------------------------------------------------------//
+  public static final ClassLoadingListener classLoadListener;
 
   static {
     // Primitive types
@@ -173,6 +181,7 @@ public abstract class RVMType extends AnnotatedElement {
     // Java clases
     JavaLangObjectType = TypeReference.JavaLangObject.resolve().asClass();
     JavaLangObjectArrayType = TypeReference.JavaLangObjectArray.resolve().asArray();
+    classLoadListener = VM.BuildForOptCompiler ? new ClassLoadingDependencyManager() : null;
     JavaLangClassType = TypeReference.JavaLangClass.resolve().asClass();
     JavaLangThrowableType = TypeReference.JavaLangThrowable.resolve().asClass();
     JavaLangStringType = TypeReference.JavaLangString.resolve().asClass();
@@ -239,9 +248,9 @@ public abstract class RVMType extends AnnotatedElement {
    * @param typeRef The canonical type reference for this type.
    * @param classForType The java.lang.Class representation
    * @param dimension The dimensionality
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
-  protected RVMType(TypeReference typeRef, Class<?> classForType, int dimension, RVMAnnotation[] annotations) {
+  protected RVMType(TypeReference typeRef, Class<?> classForType, int dimension, Annotations annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = Statics.allocateReferenceSlot(false).toInt();
@@ -260,9 +269,9 @@ public abstract class RVMType extends AnnotatedElement {
    * Create an instance of a {@link RVMType}
    * @param typeRef The canonical type reference for this type.
    * @param dimension The dimensionality
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
-  protected RVMType(TypeReference typeRef, int dimension, RVMAnnotation[] annotations) {
+  protected RVMType(TypeReference typeRef, int dimension, Annotations annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = Statics.allocateReferenceSlot(false).toInt();
@@ -839,6 +848,7 @@ public abstract class RVMType extends AnnotatedElement {
    * @return non-static fields of this class/array type
    * (composed with supertypes, if any).
    */
+  @Uninterruptible
   public abstract RVMField[] getInstanceFields();
 
   public abstract RVMMethod[] getStaticMethods();

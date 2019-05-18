@@ -491,8 +491,7 @@ public abstract class CompiledMethod {
    *
    * @param instructionOffset of machine instruction from start of this method, in bytes
    * @return source line number
-   * (0 == no line info available, 1 == first line of source file, -2 == native method))
-   *
+   * (0 == no line info available, 1 == first line of source file, -2 == native method)
    */
   @Uninterruptible
   public int findLineNumberForInstruction(Offset instructionOffset) {

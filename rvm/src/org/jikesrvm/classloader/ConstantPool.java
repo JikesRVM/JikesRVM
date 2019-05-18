@@ -98,6 +98,48 @@ public final class ConstantPool {
     return type;
   }
 
+  static double getDoubleLiteral(int[] constantPool, int constantPoolIndex) {
+    if (VM.VerifyAssertions) {
+      VM._assert(getLiteralDescription(constantPool, constantPoolIndex) == CP_DOUBLE);
+    }
+    Offset offset = getLiteralOffset(constantPool, constantPoolIndex);
+    long rawValue = Statics.getSlotContentsAsLong(offset);
+    return Double.longBitsToDouble(rawValue);
+  }
+
+  static float getFloatLiteral(int[] constantPool, int constantPoolIndex) {
+    if (VM.VerifyAssertions) {
+      VM._assert(getLiteralDescription(constantPool, constantPoolIndex) == CP_FLOAT);
+    }
+    Offset offset = getLiteralOffset(constantPool, constantPoolIndex);
+    int rawValue = Statics.getSlotContentsAsInt(offset);
+    return Float.intBitsToFloat(rawValue);
+  }
+
+  static int getIntLiteral(int[] constantPool, int constantPoolIndex) {
+    if (VM.VerifyAssertions) {
+      VM._assert(getLiteralDescription(constantPool, constantPoolIndex) == CP_INT);
+    }
+    Offset offset = getLiteralOffset(constantPool, constantPoolIndex);
+    return Statics.getSlotContentsAsInt(offset);
+  }
+
+  static long getLongLiteral(int[] constantPool, int constantPoolIndex) {
+    if (VM.VerifyAssertions) {
+      VM._assert(getLiteralDescription(constantPool, constantPoolIndex) == CP_LONG);
+    }
+    Offset offset = getLiteralOffset(constantPool, constantPoolIndex);
+    return Statics.getSlotContentsAsLong(offset);
+  }
+
+  static String getStringLiteral(int[] constantPool, int constantPoolIndex) {
+    if (VM.VerifyAssertions) {
+      VM._assert(getLiteralDescription(constantPool, constantPoolIndex) == CP_STRING);
+    }
+    Offset offset = getLiteralOffset(constantPool, constantPoolIndex);
+    return (String) Statics.getSlotContentsAsObject(offset);
+  }
+
   @Uninterruptible
   static TypeReference getTypeRef(int[] constantPool, int constantPoolIndex) {
     if (constantPoolIndex != 0) {
@@ -121,6 +163,13 @@ public final class ConstantPool {
     int cpValue = constantPool[constantPoolIndex];
     if (VM.VerifyAssertions) VM._assert(ConstantPool.unpackCPType(cpValue) == CP_MEMBER);
     return (FieldReference) MemberReference.getMemberRef(ConstantPool.unpackUnsignedCPValue(cpValue));
+  }
+
+  @Uninterruptible
+  static MemberReference getMemberRef(int[] constantPool, int constantPoolIndex) {
+    int cpValue = constantPool[constantPoolIndex];
+    if (VM.VerifyAssertions) VM._assert(ConstantPool.unpackCPType(cpValue) == CP_MEMBER);
+    return MemberReference.getMemberRef(ConstantPool.unpackUnsignedCPValue(cpValue));
   }
 
   @Uninterruptible

@@ -76,6 +76,12 @@ public abstract class RVMMethod extends RVMMember {
   private static final ImmutableEntryHashMapRVM<RVMMethod, Annotation[][]> declaredParameterAnnotations =
     new ImmutableEntryHashMapRVM<RVMMethod, Annotation[][]>();
 
+  /** Reference to method designated to replace this one when compiled */
+  private RVMMethod replacementMethod = null;
+
+  /** All method annotations */
+  protected final MethodAnnotations methodAnnotations;
+
   /**
    * Construct a read method
    *
@@ -84,17 +90,15 @@ public abstract class RVMMethod extends RVMMember {
    * @param modifiers modifiers associated with this method.
    * @param exceptionTypes exceptions thrown by this method.
    * @param signature generic type of this method.
-   * @param annotations array of runtime visible annotations
-   * @param parameterAnnotations array of runtime visible parameter annotations
-   * @param annotationDefault value for this annotation that appears
+   * @param methodAnnotations all method annotations
    */
   protected RVMMethod(TypeReference declaringClass, MemberReference memRef, short modifiers,
-                      TypeReference[] exceptionTypes, Atom signature, RVMAnnotation[] annotations,
-                      RVMAnnotation[][] parameterAnnotations, Object annotationDefault) {
-    super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
+                      TypeReference[] exceptionTypes, Atom signature, MethodAnnotations methodAnnotations) {
+    super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, methodAnnotations);
+    this.methodAnnotations = methodAnnotations;
     if (parameterAnnotations != null) {
       synchronized (RVMMethod.parameterAnnotations) {
-        RVMMethod.parameterAnnotations.put(this, parameterAnnotations);
+        RVMMethod.parameterAnnotations.put(this, methodAnnotations.getParameterAnnotations());
       }
     }
     if (exceptionTypes != null) {
@@ -102,9 +106,10 @@ public abstract class RVMMethod extends RVMMember {
         RVMMethod.exceptionTypes.put(this, exceptionTypes);
       }
     }
-    if (annotationDefault != null) {
+    Object methodAnnotationDefaults = methodAnnotations.getAnnotationDefaults();
+    if (methodAnnotationDefaults != null) {
       synchronized (annotationDefaults) {
-        annotationDefaults.put(this, annotationDefault);
+        annotationDefaults.put(this, methodAnnotationDefaults);
       }
     }
   }
@@ -487,9 +492,17 @@ public abstract class RVMMethod extends RVMMember {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());
     if (isCompiled()) return;
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMMethod: (begin) compiling " + this);
+    if (VM.TraceClassLoading && VM.runningVM && VM.fullyBooted) VM.sysWriteln("RVMMethod: (begin) compiling " + this);
 
-    CompiledMethod cm = genCode();
+    CompiledMethod cm;
+
+    // Compile the replacement method if one has been set
+    if (replacementMethod != null) {
+      replacementMethod.compile();
+      cm = replacementMethod.getCurrentCompiledMethod();
+    } else {
+      cm = genCode();
+    }
 
     // Ensure that cm wasn't invalidated while it was being compiled.
     synchronized (cm) {
@@ -500,7 +513,7 @@ public abstract class RVMMethod extends RVMMember {
       }
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMMethod: (end)   compiling " + this);
+    if (VM.TraceClassLoading && VM.runningVM && VM.fullyBooted) VM.sysWriteln("RVMMethod: (end)   compiling " + this);
   }
 
   /**
@@ -509,6 +522,16 @@ public abstract class RVMMethod extends RVMMember {
    * @return an object representing the compiled method
    */
   protected abstract CompiledMethod genCode();
+
+  /**
+   * Set a replacement RVMMethod to be compiled in place of this one
+   */
+  protected void setReplacementMethod(RVMMethod m) {
+    replacementMethod = m;
+    // invalidate currently compiled method if target class has been instantiated already
+    if (getDeclaringClass().isInstantiated())
+      replaceCompiledMethod(null);
+  }
 
   //----------------------------------------------------------------//
   //                        Section 3.                              //
@@ -696,9 +719,7 @@ public abstract class RVMMethod extends RVMMember {
                                null,
                                new int[0],
                                null,
-                               null,
-                               null,
-                               null);
+                               MethodAnnotations.noMethodAnnotations());
   }
 
   /**
@@ -882,8 +903,6 @@ public abstract class RVMMethod extends RVMMember {
                                null,
                                constantPool,
                                null,
-                               null,
-                               null,
-                               null);
+                               MethodAnnotations.noMethodAnnotations());
   }
 }

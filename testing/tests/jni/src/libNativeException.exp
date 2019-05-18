@@ -7,6 +7,7 @@ NativeException_0.1 {
 	 Java_NativeException_testExceptionDescribe;
 	 Java_NativeException_testExceptionThrow;
 	 Java_NativeException_testExceptionThrowNew;
+	 Java_NativeException_testExceptionThrowNewWithoutDetailMessage;
 	 Java_NativeException_testFatalError;
   local : *;
 };

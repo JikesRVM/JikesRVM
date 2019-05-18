@@ -38,7 +38,6 @@ import java.lang.annotation.Inherited;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -54,6 +53,7 @@ import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
+import org.vmmagic.pragma.ReplaceMember;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -208,6 +208,9 @@ public final class RVMClass extends RVMType {
   /** Cached set of inherited and declared annotations. */
   private Annotation[] annotations;
 
+  /** Annotation support for OpenJDK */
+  private Annotations encapsulatedAnnotations;
+
   /** Set of objects that are cached here to ensure they are not collected by GC **/
   private Object[] objectCache;
 
@@ -360,6 +363,10 @@ public final class RVMClass extends RVMType {
    * i.e. the modifiers as present in the Java source file.
    * Those are distinct from the transformed modifiers that
    * the JVM uses internally (e.g. for access control).
+   * <p>
+   * Note that the JavaDoc mentions only some of the possible
+   * modifiers. In fact, we need almost all modifiers from the
+   * class file.
    *
    * @return the modifiers of "this" in the form required
    *  by {@link java.lang.Class#getModifiers()}
@@ -539,6 +546,10 @@ public final class RVMClass extends RVMType {
     return annotations;
   }
 
+  public byte[] getRawAnnotations() {
+    return encapsulatedAnnotations.getRawAnnotations();
+  }
+
   /**
    * Find description of a field of this class.
    * @param fieldName field name - something like "foo"
@@ -640,6 +651,11 @@ public final class RVMClass extends RVMType {
   // Items are fetched by specifying their "constant pool index".
   //
 
+  // required for OpenJDK
+  public int getConstantPoolSize() {
+    return constantPool.length;
+  }
+
   /**
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" JTOC).
@@ -653,6 +669,26 @@ public final class RVMClass extends RVMType {
 
   public byte getLiteralDescription(int constantPoolIndex) {
     return ConstantPool.getLiteralDescription(constantPool, constantPoolIndex);
+  }
+
+  public double getDoubleLiteral(int constantPoolIndex) {
+    return ConstantPool.getDoubleLiteral(constantPool, constantPoolIndex);
+  }
+
+  public float getFloatLiteral(int constantPoolIndex) {
+    return ConstantPool.getFloatLiteral(constantPool, constantPoolIndex);
+  }
+
+  public int getIntLiteral(int constantPoolIndex) {
+    return ConstantPool.getIntLiteral(constantPool, constantPoolIndex);
+  }
+
+  public long getLongLiteral(int constantPoolIndex) {
+    return ConstantPool.getLongLiteral(constantPool, constantPoolIndex);
+  }
+
+  public String getStringLiteral(int constantPoolIndex) {
+    return ConstantPool.getStringLiteral(constantPool, constantPoolIndex);
   }
 
   @Uninterruptible
@@ -671,7 +707,12 @@ public final class RVMClass extends RVMType {
   }
 
   @Uninterruptible
-  Atom getUtf(int constantPoolIndex) {
+  public MemberReference getMemberRef(int constantPoolIndex) {
+    return ConstantPool.getMemberRef(constantPool, constantPoolIndex);
+  }
+
+  @Uninterruptible
+  public Atom getUtf(int constantPoolIndex) {
     return ConstantPool.getUtf(constantPool, constantPoolIndex);
   }
 
@@ -738,6 +779,7 @@ public final class RVMClass extends RVMType {
    * @return non-static fields of this class (composed with supertypes, if any).
    * Values in these fields are distinct for each class instance.
    */
+  @Uninterruptible
   @Override
   @Pure
   public RVMField[] getInstanceFields() {
@@ -803,7 +845,7 @@ public final class RVMClass extends RVMType {
         for (int j = 0; j < 32; j++) {
           if ((mask & (1 << j)) != 0) {
             int id = 32 * i + j;
-            ans[idx++] = RVMClass.getInterface(id);
+            ans[idx++] = InterfaceInvocation.getInterface(id);
           }
         }
       }
@@ -1005,14 +1047,15 @@ public final class RVMClass extends RVMType {
    * @param sourceName source file name
    * @param classInitializerMethod handle to class initializer method
    * @param signature the generic type name for this class
-   * @param annotations array of runtime visible annotations
+   * @param annotations runtime visible annotations
    */
   RVMClass(TypeReference typeRef, int[] constantPool, short modifiers, short originalModifiers, RVMClass superClass,
            RVMClass[] declaredInterfaces, RVMField[] declaredFields, RVMMethod[] declaredMethods,
            TypeReference[] declaredClasses, TypeReference declaringClass, TypeReference enclosingClass,
            MethodReference enclosingMethod, Atom sourceName, RVMMethod classInitializerMethod,
-           Atom signature, RVMAnnotation[] annotations) {
+           Atom signature, Annotations annotations) {
     super(typeRef, 0, annotations);
+    encapsulatedAnnotations = annotations;
     if (VM.VerifyAssertions) VM._assert(!getTypeRef().isUnboxedType());
     if (VM.VerifyAssertions && null != superClass) VM._assert(!superClass.getTypeRef().isUnboxedType());
 
@@ -1051,7 +1094,7 @@ public final class RVMClass extends RVMType {
 
     Callbacks.notifyClassLoaded(this);
 
-    if (VM.TraceClassLoading && VM.runningVM) {
+    if (VM.TraceClassLoading) {
       VM.sysWriteln("RVMClass: (end)   load file " + typeRef.getName());
     }
     if (VM.verboseClassLoading) VM.sysWriteln("[Loaded " + toString() + "]");
@@ -1067,7 +1110,7 @@ public final class RVMClass extends RVMType {
   @Override
   public synchronized void resolve() {
     if (isResolved()) return;
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) resolve " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (begin) resolve " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
     // Resolve superclass and super interfaces
@@ -1213,9 +1256,7 @@ public final class RVMClass extends RVMType {
                                                             (short) (ACC_ABSTRACT | ACC_PUBLIC),
                                                             iMeth.getExceptionTypes(),
                                                             null,
-                                                            null,
-                                                            null,
-                                                            null));
+                                                            MethodAnnotations.noMethodAnnotations()));
           }
         }
       }
@@ -1335,6 +1376,11 @@ public final class RVMClass extends RVMType {
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
     doesImplement = DynamicTypeCheck.buildDoesImplement(this);
 
+    if (isAnnotationDeclared(TypeReference.ReplaceClass)) {
+      if (VM.verboseClassLoading) VM.sysWriteln("Replace: " + this.typeRef.name + " (" + this.typeRef.classloader + ") is @ReplaceClass annotated");
+      replaceFieldsAndStaticMethods();
+    }
+
     // can't move this beyond "finalize" code block as findVirtualMethod
     // assumes state >= RESOLVED, no allocation occurs until
     // state >= CLASS_INITIALIZING
@@ -1359,7 +1405,122 @@ public final class RVMClass extends RVMType {
       }
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   resolve " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (end)   resolve " + this);
+  }
+
+  /**
+   * Replace the static methods and fields by resetting the offset.
+   * Replace the virtual methods by resetting CodeArray address in TIB.
+   */
+  private void replaceMember(TypeReference targetClassRef, RVMClass targetClass, RVMMember member) {
+    final ReplaceMember annotation = member.getAnnotation(org.vmmagic.pragma.ReplaceMember.class);
+    final Atom targetMemberName;
+
+    if (VM.verboseClassLoading)
+      VM.sysWriteln("Replace: processing replacememt member " + member.getName());
+
+    if (annotation != null && annotation.value().length() > 0)
+      targetMemberName = Atom.findOrCreateAsciiAtom(annotation.value());
+    else
+      targetMemberName = member.getName();
+
+    Atom targetDescriptor = member.getDescriptor();
+    if (annotation != null && annotation.descriptor().length() > 0) {
+      targetDescriptor = Atom.findOrCreateAsciiAtom(annotation.descriptor());
+    }
+
+    final RVMMember targetMember = MemberReference.findOrCreate(targetClassRef, targetMemberName, targetDescriptor).peekResolvedMember();
+
+    if (VM.verboseClassLoading)
+      VM.sysWriteln("Replace: " + "replacing member " + targetMemberName + " of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+
+    if (member instanceof RVMField) {
+      member.setOffset(targetMember.getOffset());
+    } else if (member instanceof RVMMethod) {
+      RVMMethod targetMethod = (RVMMethod)targetMember;
+      RVMMethod thisMethod = (RVMMethod)member;
+
+      targetMethod.setReplacementMethod(thisMethod);
+    }
+  }
+
+  /**
+   * Replacing the targeting class's fields and static methods with this class's.
+   */
+  private void replaceFieldsAndStaticMethods() {
+    replaceClass(false);
+  }
+
+  /**
+   * Replacing the targeting class's virtual methods with this class's.
+   */
+  private void replaceVirtualMethods() {
+    replaceClass(true);
+  }
+
+  /**
+   * Replace methods and fields of the targeting class when generating bootimage.
+   * @param handleVirtualMethods - replace virtual methods if it is true, replace fields and static methods if it is false.
+   */
+  private void replaceClass(boolean handleVirtualMethods) {
+    String targetClassName = getAnnotation(org.vmmagic.pragma.ReplaceClass.class).className();
+    String descriptor = "L" + targetClassName.replace('.', '/') + ";";
+    if (VM.verboseClassLoading) VM.sysWriteln("Created descriptor " + descriptor + " from className " + targetClassName);
+
+    TypeReference targetClassRef = TypeReference.findOrCreate(this.typeRef.classloader, Atom.findOrCreateAsciiAtom(descriptor));
+    RVMClass targetClass = targetClassRef.resolve().asClass();
+
+    if (!handleVirtualMethods) {
+      if (VM.verboseClassLoading)
+        VM.sysWriteln("Replace: replacing fields and static methods of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+      //resolve target class before reset the offset for fields and static methods
+      targetClass.resolve();
+      if (classInitializerMethod != null) {
+        if (VM.verboseClassLoading) {
+          VM.sysWriteln("Replace: replacing class initializer of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+        }
+        targetClass.classInitializerMethod = classInitializerMethod;
+      }
+
+      for (RVMField f : staticFields) {
+        if (!f.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, f);
+      }
+
+      for (RVMField f : instanceFields) {
+        if (!f.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, f);
+      }
+
+      for (RVMMethod m : staticMethods) {
+        if (!m.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, m);
+      }
+    } else {
+      if (VM.verboseClassLoading)
+        VM.sysWriteln("Replace: replacing virtual methods of class " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+      targetClass.instantiate();
+
+      for (RVMMethod m : virtualMethods) {
+        if (!m.isAnnotationDeclared(TypeReference.ReplaceMember))
+          continue;
+        replaceMember(targetClassRef, targetClass, m);
+      }
+      if (VM.verboseClassLoading) {
+        VM.sysWriteln("Replace: scanning class initializer <clinit> of " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+        RVMMethod clinitToBeRun = targetClass.getClassInitializerMethod();
+        if (clinitToBeRun != null) {
+          VM.sysWriteln("Replace: class initializer <clinit> has the compiled method of " + clinitToBeRun.getCurrentCompiledMethod());
+          VM.sysWriteln("Replace: running class initializer <clinit> of " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+        } else {
+          VM.sysWriteln("Replace: no class initializer <clinit> present for " + targetClass.getDescriptor() + "(" + targetClass.getClassLoader() + ")");
+        }
+      }
+      targetClass.initialize();
+    }
   }
 
   /**
@@ -1443,7 +1604,7 @@ public final class RVMClass extends RVMType {
       return;
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) instantiate " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (begin) instantiate " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
 
     // instantiate superclass
@@ -1461,6 +1622,9 @@ public final class RVMClass extends RVMType {
         declaredInterface.instantiate();
       }
     }
+
+    if (isAnnotationDeclared(TypeReference.ReplaceClass))
+      replaceVirtualMethods();
 
     if (!isInterface()) {
       // Create the internal lazy method invoker trampoline
@@ -1508,7 +1672,7 @@ public final class RVMClass extends RVMType {
       Callbacks.notifyClassInitialized(this);
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   instantiate " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (end)   instantiate " + this);
   }
 
   /**
@@ -1557,7 +1721,7 @@ public final class RVMClass extends RVMType {
       throw new NoClassDefFoundError(this + " (initialization failure)");
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) initialize " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (begin) initialize " + this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_INSTANTIATED);
     state = CLASS_INITIALIZING;
     if (VM.verboseClassLoading) VM.sysWriteln("[Initializing " + this + "]");
@@ -1570,7 +1734,7 @@ public final class RVMClass extends RVMType {
 
     // run <clinit>
     //
-    if (classInitializerMethod != null) {
+    if (classInitializerMethod != null && !isAnnotationDeclared(TypeReference.ReplaceClass)) {
       CompiledMethod cm = classInitializerMethod.getCurrentCompiledMethod();
       while (cm == null) {
         classInitializerMethod.compile();
@@ -1609,7 +1773,7 @@ public final class RVMClass extends RVMType {
     markFinalFieldsAsLiterals();
 
     if (VM.verboseClassLoading) VM.sysWriteln("[Initialized " + this + "]");
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (end)   initialize " + this);
+    if (VM.TraceClassLoading) VM.sysWriteln("RVMClass: (end)   initialize " + this);
   }
 
   /**
@@ -1691,8 +1855,6 @@ public final class RVMClass extends RVMType {
   //
   // TODO: Make this into a more general listener API
   //------------------------------------------------------------//
-  public static final ClassLoadingListener classLoadListener =
-      VM.BuildForOptCompiler ? new ClassLoadingDependencyManager() : null;
 
   /**
    * Given a method declared by this class, update all
@@ -1777,9 +1939,6 @@ public final class RVMClass extends RVMType {
   // Additional fields and methods for Interfaces               //
   //------------------------------------------------------------//
 
-  private static final Object interfaceCountLock = new Object();
-  private static int interfaceCount = 0;
-  private static RVMClass[] interfaces;
   private int interfaceId = -1;
   RVMMethod[] noIMTConflictMap; // used by InterfaceInvocation to support resetTIB
 
@@ -1805,29 +1964,9 @@ public final class RVMClass extends RVMType {
     return 1 << (getInterfaceId() & 31);
   }
 
-  public static RVMClass getInterface(int id) {
-    return interfaces[id];
-  }
-
   private synchronized void assignInterfaceId() {
     if (interfaceId == -1) {
-      if (interfaceCountLock != null && interfaces != null) {
-        synchronized (interfaceCountLock) {
-          interfaceId = interfaceCount++;
-          if (interfaceId == interfaces.length) {
-            RVMClass[] tmp = new RVMClass[interfaces.length * 2];
-            System.arraycopy(interfaces, 0, tmp, 0, interfaces.length);
-            interfaces = tmp;
-          }
-          interfaces[interfaceId] = this;
-        }
-      } else {
-        interfaceId = interfaceCount++;
-        if (interfaces == null) {
-          interfaces = new RVMClass[200];
-        }
-        interfaces[interfaceId] = this;
-      }
+      interfaceId = InterfaceInvocation.nextInterfaceId(this);
     }
   }
 

@@ -156,6 +156,19 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionThrowNew
 
 /*
  * Class:     NativeException
+ * Method:    testExceptionThrowNew
+ * Signature: (Ljava/lang/Class;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionThrowNewWithoutDetailMessage
+(JNIEnv *env, jclass cls, jclass eclass) {
+
+  (*env) -> ThrowNew(env, eclass, NULL);
+  return JNI_FALSE;
+
+}
+
+/*
+ * Class:     NativeException
  * Method:    testFatalError
  * Signature: ([I)Z
  */

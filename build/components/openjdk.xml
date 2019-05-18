@@ -1,0 +1,88 @@
+<project name="openjdk" default="build" basedir=".">
+
+  <import file="base.xml"/>
+
+  <property name="openjdk.description" value="OpenJDK / IcedTea"/>
+
+  <property name="openjdk.version" value="6-1.13.13"/>
+
+  <property name="icedtea.version" value="${openjdk.version}"/>
+
+  <property name="icedtea.base.url" value="http://icedtea.classpath.org/download/source/"/>
+  <!-- .tar.xz is also provided by upstream -->
+  <property name="icedtea.archive.type" value=".tar.gz"/>
+  <property name="icedtea.version.start" value="icedtea${icedtea.version}"/>
+  <property name="icedtea.archive" value="${icedtea.version.start}${icedtea.archive.type}"/>
+
+  <property name="openjdk.tarball.archive" value="openjdk-6-src-b41-04_jan_2017.tar.xz"/>
+  <property name="openjdk.tarball.url" value="https://openjdk-sources.osci.io/openjdk6/${openjdk.tarball.archive}"/>
+
+  <property name="icedtea.component.dir" location="${components.dir}/icedtea"/>
+  <property name="icedtea.package.dir" value="${icedtea.component.dir}/${icedtea.version}"/>
+  <property name="icedtea.dir" value="${icedtea.package.dir}/${icedtea.version.start}"/>
+  <property name="icedtea.jre.location" value="${icedtea.dir}/icedtea-build/openjdk.build/j2sdk-server-image/jre"/>
+
+  <property name="openjdk.tarball.dest" value="${icedtea.package.dir}/${openjdk.tarball.archive}"/>
+
+  <target name="download-icedtea-from-web">
+    <echo message="Downloading IcedTea sources"/>
+    <test-file name="tar.exe" location="${host.file}"/>
+    <mkdir dir="${icedtea.package.dir}"/>
+    <cachedGet key="${icedtea.archive}"
+         src="${icedtea.base.url}${icedtea.archive}"
+         dest="${icedtea.package.dir}/${icedtea.archive}"/>
+    <cachedGet key="${openjdk.tarball.archive}"
+         src="${openjdk.tarball.url}"
+         dest="${openjdk.tarball.dest}"/>
+    <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untarchmod task for same but it was annoying -->
+    <exec executable="${tar.exe}" failonerror="true" dir="${icedtea.package.dir}">
+      <arg value="xzf"/>
+      <arg value="${icedtea.archive}"/>
+    </exec>
+  </target>
+
+  <target name="fetch" depends="download-icedtea-from-web">
+  </target>
+
+  <target name="patch" depends="fetch">
+    <echo message="Patching IcedTea sources"/>
+    <echo message="(nothing to do for current version)"/>
+  </target>
+
+  <target name="build" depends="patch">
+    <echo message="Building IcedTea libraries"/>
+    <test-file name="make.exe" location="${host.file}"/>
+
+    <echo>Executing autogen.sh</echo>
+    <exec executable="${icedtea.dir}/autogen.sh" failonerror="true" dir="${icedtea.dir}"/>
+
+    <echo>Executing configure</echo>
+    <mkdir dir="${icedtea.dir}/icedtea-build"/>
+    <exec executable="${icedtea.dir}/configure" failonerror="true" dir="${icedtea.dir}/icedtea-build">
+      <!-- Don't pass through the options that we use. For GNU Classpath, we only use this to make sure
+           that libraries are built correctly when using 32-bit on 64-bit systems. OpenJDK and IcedTea don't
+           support that at all. We risk introducing build failures by passing through our options, so we refrain
+           from doing that. -->
+<!--  Note that c++.exe and c++.args aren't defined in host properties at the moment, so they would need to be introduced
+      if options need to be passed through.
+      <env key="CXX" value="${c++.exe} ${c++.args}"/>
+      <env key="CC" value="${c.exe} ${c.args}"/>
+-->
+      <arg value="--with-openjdk-src-zip=${openjdk.tarball.dest}"/>
+    </exec>
+
+    <echo>Executing make</echo>
+    <exec executable="${make.exe}" failonerror="true" dir="${icedtea.dir}/icedtea-build">
+    </exec>
+
+    <echo>Setting up for use as class library</echo>
+    <writeComponentConstants dir="${icedtea.jre.location}/lib"/>
+    <setComponentsConfig key="${target.name}.openjdk.lib.dir" value="${icedtea.jre.location}/lib"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <echo message="Ensure IcedTea libraries"/>
+    <ensureUptodate name="openjdk" dir="${icedtea.jre.location}/lib"/>
+  </target>
+
+</project>

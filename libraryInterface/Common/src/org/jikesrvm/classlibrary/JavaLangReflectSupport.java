@@ -125,7 +125,7 @@ public final class JavaLangReflectSupport {
    * @throws NegativeArraySizeException if any dimensions is negative
    * @throws OutOfMemoryError if memory allocation fails
    */
-  static Object createArray(Class<?> cls, int[] dimensions)
+  public static Object createArray(Class<?> cls, int[] dimensions)
     throws OutOfMemoryError, NegativeArraySizeException {
 
     if (dimensions.length == 0 || cls == Void.TYPE) {

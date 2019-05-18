@@ -19,6 +19,8 @@ import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSFAIL;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
 import org.jikesrvm.architecture.StackFrameLayout;
+import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.JMXSupport;
@@ -39,6 +41,7 @@ import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.runtime.Time;
@@ -148,6 +151,7 @@ public class VM extends Properties {
     // has placed a pointer to the current RVMThread in a special
     // register.
     if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
+
     if (VM.BuildForIA32) {
       org.jikesrvm.ia32.ThreadLocalState.boot();
     } else {
@@ -202,6 +206,13 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     BaselineCompiler.initOptions();
 
+    // Create JNI Environment for boot thread.
+    // After this point the boot thread can invoke native methods.
+    org.jikesrvm.jni.JNIEnvironment.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
+    RVMThread.getCurrentThread().initializeJNIEnv();
+    if (verboseBoot >= 1) VM.sysWriteln("JNI initialized for boot thread");
+
     // Fetch arguments from program command line.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Fetching command-line arguments");
@@ -219,6 +230,7 @@ public class VM extends Properties {
     //
     if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
     MemoryManager.postBoot();
+    if (verboseBoot >= 1) VM.sysWriteln("Done: Collector processing rest of boot options");
 
     // Initialize class loader.
     //
@@ -249,10 +261,24 @@ public class VM extends Properties {
     }
 
     runClassInitializer("java.lang.Runtime");
-    runClassInitializer("java.lang.System");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.System");
+    }
     runClassInitializer("sun.misc.Unsafe");
 
     runClassInitializer("java.lang.Character");
+
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.CharacterDataLatin1");
+      runClassInitializer("java.lang.CharacterData00");
+      runClassInitializer("java.lang.CharacterData01");
+      runClassInitializer("java.lang.CharacterData02");
+      runClassInitializer("java.lang.CharacterData0E");
+      runClassInitializer("java.lang.CharacterDataPrivateUse");
+      runClassInitializer("java.lang.CharacterDataUndefined");
+      runClassInitializer("java.lang.Throwable");
+    }
+
     runClassInitializer("org.jikesrvm.classloader.TypeReferenceVector");
     runClassInitializer("org.jikesrvm.classloader.MethodVector");
     runClassInitializer("org.jikesrvm.classloader.FieldVector");
@@ -291,44 +317,131 @@ public class VM extends Properties {
     if (verboseBoot >= 1) VM.sysWriteln("Booting Lock");
     Lock.boot();
 
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Thread");
+    }
+
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
-    //
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
+
+    ThreadGroup mainThreadGroup = null;
+    if (VM.BuildForOpenJDK) {
+      // Create initial thread group. This has to be done before creating other threads.
+      ThreadGroup systemThreadGroup = ClassLibraryHelpers.allocateObjectForClassAndRunNoArgConstructor(ThreadGroup.class);
+      RVMThread.setThreadGroupForSystemThreads(systemThreadGroup);
+      // We'll need the main group later for the first application thread.
+      mainThreadGroup = new ThreadGroup(systemThreadGroup, "main");
+
+      // Early set-up for the boot thread is required for OpenJDK.
+      if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
+      RVMThread.getCurrentThread().setupBootJavaThread();
+    }
     RVMThread.boot();
+    if (!VM.BuildForOpenJDK) {
+      if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
+      RVMThread.getCurrentThread().setupBootJavaThread();
+    }
+
     if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
+    if (VM.BuildForOpenJDK) {
+      // For OpenJDK 6, System.loadLibrary(..) ends up calling UnixFileSystem.getBooleanAttributes0(..)
+      // which is a native method. Therefore, ensure that the java library is already loaded before
+      // attempting to boot DynamicLibrary (which will trigger loading of a dynamic library).
+      String platformSpecificJikesRVMJNILibraryName = JavaLangSupport.mapLibraryName("jvm_jni");
+      DynamicLibrary.load(platformSpecificJikesRVMJNILibraryName);
+      String platformSpecificOpenJDKLibraryName = JavaLangSupport.mapLibraryName("java");
+      DynamicLibrary.load(platformSpecificOpenJDKLibraryName);
+      runClassInitializer("java.io.File"); // needed for loading dynamic libraries
+      runClassInitializer("java.io.UnixFileSystem");
+      // Initialize properties early, before complete java.lang.System initialization. Those will be
+      // overwritten later, when System is initialized.
+      System.setProperties(null);
+      // Wiped out values for usr_paths and sys_paths carried over from boot image writing
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.usr_paths_Field.getOffset(), null);
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.sys_paths_Field.getOffset(), null);
+    }
     DynamicLibrary.boot();
+    if (VM.BuildForOpenJDK) {
+      System.loadLibrary("jvm");
+      System.loadLibrary("java");
+      System.loadLibrary("zip");
+    }
+
+
+
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Thread");
+      runClassInitializer("java.lang.Class$Atomic");
+    }
 
     if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
     MemoryManager.enableCollection();
-
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
-    RVMThread.getCurrentThread().setupBootJavaThread();
-
-    // Create JNI Environment for boot thread.
-    // After this point the boot thread can invoke native methods.
-    org.jikesrvm.jni.JNIEnvironment.boot();
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
-    RVMThread.getCurrentThread().initializeJNIEnv();
-    if (verboseBoot >= 1) VM.sysWriteln("JNI initialized for boot thread");
+    if (VM.BuildForOpenJDK) {
+      VM.safeToCreateStackTrace = true;
+    }
 
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyluni");
       System.loadLibrary("hythr");
       System.loadLibrary("hyniochar");
     }
-    runClassInitializer("java.io.File"); // needed for when we initialize the
-    // system/application class loader.
+
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.ApplicationShutdownHooks");
+      runClassInitializer("java.io.DeleteOnExitHook");
+    }
+
+    // properties are needed for java.io.File which calls the constructor of UnixFileSystem
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("sun.misc.Version");
+      runClassInitializer("sun.misc.VM");
+      runClassInitializer("java.io.Console");
+      runClassInitializer("java.util.concurrent.atomic.AtomicInteger");
+      runClassInitializer("java.io.FileDescriptor");
+      runClassInitializer("java.io.FileInputStream");
+      runClassInitializer("java.io.FileOutputStream");
+      //    runClassInitializer("java/lang/reflect/Modifier");
+      runClassInitializer("sun.reflect.Reflection");
+      runClassInitializer("java.lang.reflect.Proxy");
+      runClassInitializer("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
+      runClassInitializer("java.io.BufferedInputStream");
+      runClassInitializer("java.nio.DirectByteBuffer");
+      runClassInitializer("java.nio.Bits");
+      runClassInitializer("sun.nio.cs.StreamEncoder");
+      runClassInitializer("java.nio.charset.Charset");
+      runClassInitializer("java.lang.Shutdown");
+      if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
+      // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
+      FileSystem.initializeStandardStreamsForOpenJDK();
+      if (verboseBoot >= 1) VM.sysWriteln("invoking initializeSystemClass() for java.lang.System from OpenJDK");
+      RVMClass systemClass = JikesRVMSupport.getTypeForClass(System.class).asClass();
+      RVMMethod initializeSystemClassMethod = systemClass.findDeclaredMethod(Atom.findOrCreateUnicodeAtom("initializeSystemClass"));
+      Reflection.invoke(initializeSystemClassMethod, null, null, null, true);
+      // re-run class initializers for classes that need properties
+      runClassInitializer("java.io.FileSystem");
+    }
+
+
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.io.File"); // needed for when we initialize the
+      // system/application class loader.
+    }
     runClassInitializer("java.lang.String");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     }
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
+
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
-    if (VM.BuildForGnuClasspath) {
+    if (VM.BuildForGnuClasspath || VM.BuildForOpenJDK) {
       runClassInitializer("java.net.URLClassLoader");
     }
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("sun.misc.URLClassPath");
+    }
+
     /* Used if we start up Jikes RVM with the -jar argument; that argument
      * means that we need a working -jar before we can return an
      * Application Class Loader. */
@@ -336,10 +449,14 @@ public class VM extends Properties {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
       runClassInitializer("java.lang.ClassLoader$StaticData");
+      runClassInitializer("java.lang.Class$StaticData");
     }
-    runClassInitializer("java.lang.Class$StaticData");
 
-    runClassInitializer("java.nio.charset.Charset");
+    if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
+      // OpenJDK runs it later
+      runClassInitializer("java.nio.charset.Charset");
+    }
+
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.nio.charset.CharsetEncoder");
     }
@@ -348,16 +465,27 @@ public class VM extends Properties {
       runClassInitializer("org.apache.harmony.niochar.CharsetProviderImpl");
     }
 
-    runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    }
     System.setProperty("line.separator", "\n");
-    runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
-    runClassInitializer("java.util.Locale");
-    runClassInitializer("java.util.ResourceBundle");
-    runClassInitializer("java.util.zip.CRC32");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
+    }
+    if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
+      runClassInitializer("java.util.Locale");
+      runClassInitializer("java.util.ResourceBundle");
+      runClassInitializer("java.util.zip.CRC32");
+    }
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.util.zip.ZipEntry");
+    }
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyarchive");
     }
     runClassInitializer("java.util.zip.Inflater");
+
+
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.util.zip.DeflaterHuffman");
       runClassInitializer("java.util.zip.InflaterDynHeader");
@@ -374,8 +502,10 @@ public class VM extends Properties {
       runClassInitializer("gnu.java.nio.VMChannel");
       runClassInitializer("gnu.java.nio.FileChannelImpl");
     }
-    runClassInitializer("java.io.FileDescriptor");
-    runClassInitializer("java.io.FilePermission");
+    if (VM.BuildForGnuClasspath) {
+      runClassInitializer("java.io.FileDescriptor");
+      runClassInitializer("java.io.FilePermission");
+    }
     runClassInitializer("java.util.jar.JarFile");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.util.zip.ZipFile$PartialInputStream");
@@ -400,22 +530,42 @@ public class VM extends Properties {
       runClassInitializer("java.io.ObjectInputStream");
       runClassInitializer("java.security.MessageDigest");
     }
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.io.ObjectStreamClass"); // needed because JNI needs to be executed to initialize the class
+    }
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.util.BitSet"); // needed when using IBM SDK as host JVM
+    }
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.VMDouble");
     }
-    runClassInitializer("java.util.PropertyPermission");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.util.PropertyPermission");
+    }
     runClassInitializer("org.jikesrvm.classloader.RVMAnnotation");
-    runClassInitializer("java.lang.annotation.RetentionPolicy");
-    runClassInitializer("java.lang.annotation.ElementType");
-    runClassInitializer("java.lang.Thread$State");
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.annotation.RetentionPolicy");
+      runClassInitializer("java.lang.annotation.ElementType");
+    }
+    if (!VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Thread$State");
+    }
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.VMClassLoader");
     }
 
-    if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
-    // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
-    FileSystem.initializeStandardStreams();
+    // Class initializers needed for dynamic classloading at runtime
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("java.lang.Package");
+    }
+
+    if (!VM.BuildForOpenJDK) {
+      if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
+      // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
+      FileSystem.initializeStandardStreamsForGnuClasspath();
+    }
+
 
     ///////////////////////////////////////////////////////////////
     // The VM is now fully booted.                               //
@@ -430,6 +580,12 @@ public class VM extends Properties {
     BaselineCompiler.fullyBootedVM();
     TraceEngine.engine.fullyBootedVM();
 
+    if (VM.BuildForOpenJDK) {
+      // Re-initialize boot classpath
+      runClassInitializer("sun.misc.Launcher");
+      runClassInitializer("sun.misc.Launcher$BootClassPathHolder");
+    }
+
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.reflect.Proxy");
@@ -443,7 +599,7 @@ public class VM extends Properties {
       Entrypoints.luni4.setObjectValueUnchecked(null, null);
       Entrypoints.luni5.setObjectValueUnchecked(null, null);
       Entrypoints.luni6.setObjectValueUnchecked(null, null);
-      //runClassInitializer("java.lang.String$ConsolePrintStream");
+      runClassInitializer("java.lang.String$ConsolePrintStream");
       runClassInitializer("org.apache.harmony.luni.util.Msg");
       runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
       runClassInitializer("org.apache.harmony.luni.internal.nls.Messages");
@@ -460,6 +616,12 @@ public class VM extends Properties {
     // Process remainder of the VM's command line arguments.
     if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of command line");
     String[] applicationArguments = CommandLineArgs.lateProcessCommandLineArguments();
+
+    if (VM.BuildForOpenJDK) {
+      // Reset values for usr_paths and sys_paths to pick up command line arguments
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.usr_paths_Field.getOffset(), null);
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.sys_paths_Field.getOffset(), null);
+    }
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
 
@@ -500,6 +662,13 @@ public class VM extends Properties {
     // tree yet.
     // java.security.JikesRVMSupport.fullyBootedVM();
 
+    if (VM.BuildForOpenJDK) {
+      ClassLoader appCl = RVMClassLoader.getApplicationClassLoader();
+      Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.scl_Field.getOffset(), appCl);
+      Magic.setBooleanAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.sclSet_Field.getOffset(), true);
+      if (VM.VerifyAssertions) VM._assert(ClassLoader.getSystemClassLoader() == appCl);
+    }
+
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.ClassLoader$StaticData");
     }
@@ -522,7 +691,7 @@ public class VM extends Properties {
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
-    mainThread = new MainThread(applicationArguments);
+    mainThread = new MainThread(applicationArguments, mainThreadGroup);
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
@@ -566,6 +735,14 @@ public class VM extends Properties {
     TypeReference tRef =
         TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     RVMClass cls = (RVMClass) tRef.peekType();
+    if (cls.isEnum() && VM.BuildForOpenJDK) {
+      sysWrite("Not attempting to run class initializer for ");
+      sysWrite(className);
+      sysWriteln(" because it's not advisable to run because it's an enum for OpenJDK." +
+          " Running the class initializer would break" +
+          " the enumConstantsDirectory in the associated class object.");
+      VM.sysFail("Attempted to run class initializer for enum " + className);
+    }
     if (null == cls) {
       sysWrite("Failed to run class initializer for ");
       sysWrite(className);

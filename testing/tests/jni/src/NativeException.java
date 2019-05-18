@@ -25,6 +25,7 @@ class NativeException {
   static native boolean testExceptionDescribe(int[] sourceArray);
   static native boolean testExceptionThrow(Throwable e);
   static native boolean testExceptionThrowNew(Class eclass);
+  static native boolean testExceptionThrowNewWithoutDetailMessage(Class eclass);
   static native boolean testFatalError(boolean allTestPass, int[] sourceArray);
 
   NativeException() {
@@ -124,6 +125,23 @@ class NativeException {
       returnFlag = true;
     }
     checkTest(0, returnFlag, "ExceptionThrowNew");
+
+    /****************************************************
+     * give the native code an exception class to throw
+     * but pass no detail message in the native code
+     */
+    try {
+      Class ecls = Class.forName("java.lang.Exception");
+      returnFlag = testExceptionThrowNewWithoutDetailMessage(ecls);
+      returnFlag = false;  // shouldn't be here
+    } catch (ClassNotFoundException e1) {
+      returnFlag = false;  // shouldn't be here
+    } catch (Exception e) {
+      printVerbose("Caught exception:  got " + e.toString());
+      returnFlag = true;
+    }
+    checkTest(0, returnFlag, "ExceptionThrowNewWithoutDetailMessage");
+
 
 
     /****************************************************

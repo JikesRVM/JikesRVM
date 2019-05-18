@@ -12,6 +12,14 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
+import static java.lang.reflect.Modifier.ABSTRACT;
+import static java.lang.reflect.Modifier.FINAL;
+import static java.lang.reflect.Modifier.NATIVE;
+import static java.lang.reflect.Modifier.PRIVATE;
+import static java.lang.reflect.Modifier.PROTECTED;
+import static java.lang.reflect.Modifier.PUBLIC;
+import static java.lang.reflect.Modifier.STATIC;
+import static java.lang.reflect.Modifier.SYNCHRONIZED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_ALLOCATED;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterConstants.OBJECT_NOT_PRESENT;
 import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.fail;
@@ -19,11 +27,13 @@ import static org.jikesrvm.tools.bootImageWriter.BootImageWriterMessages.say;
 import static org.jikesrvm.tools.bootImageWriter.Verbosity.ADDRESSES;
 import static org.jikesrvm.tools.bootImageWriter.Verbosity.DETAILED;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.BitSet;
 import java.util.HashSet;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
@@ -55,6 +65,7 @@ public class FieldValues {
 
     // Class library independent objects
     if (jdkObject instanceof java.lang.Class)   {
+      Class<?> jdkObjectAsClass = (Class<?>) jdkObject;
       Object value = null;
       String fieldName = null;
       boolean fieldIsFinal = false;
@@ -79,6 +90,10 @@ public class FieldValues {
           value = RVMType.ShortType;
         } else if (jdkObject == java.lang.Void.TYPE) {
           value = RVMType.VoidType;
+        } else if (jdkObjectAsClass.getName().startsWith("com.sun.proxy")) {
+          // FIXME OPENJDK/ICEDTEA will probably lead to problems at runtime
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForOpenJDK);
+          say("Doing nothing for proxy " + jdkObject + " for now");
         } else {
           value = TypeReference.findOrCreate((Class<?>)jdkObject).peekType();
           if (value == null) {
@@ -377,6 +392,8 @@ public class FieldValues {
         // Unknown field
         return false;
       }
+    } else if (BootImageWriter.classLibrary() == "openjdk") {
+      return false;
     } else {
       throw new Error("Unknown class library: \"" + BootImageWriter.classLibrary() + "\"");
     }
@@ -605,6 +622,37 @@ public class FieldValues {
       } else {
         return false;
       }
+    } else if (BootImageWriter.classLibrary() == "openjdk") {
+      if (jdkType.equals(java.lang.Class.class) && rvmFieldName.equals("EMPTY_ANNOTATIONS_ARRAY")) {
+        Annotation[] emptyAnnotationsArray = new Annotation[0];
+        Statics.setSlotContents(rvmFieldOffset, emptyAnnotationsArray);
+        return true;
+      } else if (rvmFieldName.equals("EMPTY_ANNOTATION_ARRAY") && (jdkType.equals(java.lang.reflect.Field.class) ||
+          jdkType.equals(java.lang.reflect.Method.class) || jdkType.equals(java.lang.reflect.Constructor.class))) {
+        Annotation[] emptyAnnotationsArray = new Annotation[0];
+        Statics.setSlotContents(rvmFieldOffset, emptyAnnotationsArray);
+        return true;
+      } else if (rvmFieldName.equals("LANGUAGE_MODIFIERS") && jdkType.equals(java.lang.reflect.Constructor.class)) {
+        int constructorModifiers = PRIVATE | PROTECTED | PUBLIC;;
+        Statics.setSlotContents(rvmFieldOffset, constructorModifiers);
+        return true;
+      } else if (rvmFieldName.equals("LANGUAGE_MODIFIERS") && jdkType.equals(java.lang.reflect.Method.class)) {
+        int methodModifiers = PRIVATE | PROTECTED | PUBLIC | SYNCHRONIZED | NATIVE | ABSTRACT | FINAL | STATIC;
+        Statics.setSlotContents(rvmFieldOffset, methodModifiers);
+        return true;
+      }
+      if (rvmFieldName.equals("JDK_PACKAGE_PREFIX") && rvmFieldType == TypeReference.JavaLangString) {
+        String packagePrefix = "sun.net.www.protocol";
+        Statics.setSlotContents(rvmFieldOffset, packagePrefix);
+        return true;
+      } else if (rvmFieldName.equals("extendedProviderLock") && rvmFieldType == TypeReference.JavaLangObject) {
+        Object lock = new Object();
+        Statics.setSlotContents(rvmFieldOffset, lock);
+        return true;
+      } else {
+        System.out.println("Unknow field in " + rvmFieldName + " " + rvmFieldType + " " + rvmFieldOffset);
+        return false;
+      }
     } else {
       throw new Error("Unknown class library: \"" + BootImageWriter.classLibrary() + "\"");
     }
@@ -615,6 +663,13 @@ public class FieldValues {
       TypeReference rvmFieldType, Address rvmFieldAddress, String rvmFieldName,
       Field jdkFieldAcc, boolean untracedField) throws IllegalAccessException,
       Error {
+
+    if (jdkObject instanceof java.util.HashMap && "table".equals(rvmFieldName)) {
+      if (VM.VerifyAssertions) VM._assert("openjdk".equals(BootImageWriter.classLibrary()));
+      OpenJDKDifferences.rebuildHashMapForOpenJDK6(jdkObject, jdkType, rvmFieldAddress,
+          rvmFieldName);
+    }
+
     boolean valueCopied = FieldValues.setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
         rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
         untracedField);
@@ -798,6 +853,7 @@ public class FieldValues {
     }
 
     if (! Modifier.isStatic(jdkFieldAcc.getModifiers())) {
+      System.out.println("Modifier is not static " + jdkType.getName() + " " + rvmFieldName);
       if (BootImageWriter.verbosity().isAtLeast(DETAILED)) BootImageWriter.traceContext().push(rvmFieldType.toString(),
                                           jdkType.getName(), rvmFieldName);
       if (BootImageWriter.verbosity().isAtLeast(DETAILED)) BootImageWriter.traceContext().traceFieldNotStaticInHostJdk();
@@ -811,6 +867,7 @@ public class FieldValues {
     }
 
     if (!BootImageWriter.equalTypes(jdkFieldAcc.getType().getName(), rvmFieldType)) {
+      System.out.println("Not same field between RVM and jdk " + jdkType.getName() + " " + rvmFieldName);
       if (BootImageWriter.verbosity().isAtLeast(DETAILED)) BootImageWriter.traceContext().push(rvmFieldType.toString(),
                                           jdkType.getName(), rvmFieldName);
       if (BootImageWriter.verbosity().isAtLeast(DETAILED)) BootImageWriter.traceContext().traceFieldDifferentTypeInHostJdk();
@@ -866,7 +923,7 @@ public class FieldValues {
       // field is reference type
       final Object o = jdkFieldAcc.get(null);
       if (BootImageWriter.verbosity().isAtLeast(ADDRESSES))
-        say("       setting with ", Services.addressAsHexString(Magic.objectAsAddress(o)));
+        say("setting with " + "  " + jdkType.getName() + " " + rvmField.toString() + " " + rvmFieldOffset + " " + Services.addressAsHexString(Magic.objectAsAddress(o)));
       Statics.setSlotContents(rvmFieldOffset, o);
     }
     return true;
@@ -928,6 +985,7 @@ public class FieldValues {
     }
     Statics.setSlotContents(rvmFieldOffset, 0);
     BootImageTypes.logMissingFieldWithoutType(rvmField, BootImageWriter.STATIC_FIELD);
+    System.out.println("We don't understand jdkType " + rvmFieldType.toString() + " " + rvmFieldName);
     if (!VM.runningTool)
       BootImageWriter.bootImage().countNulledReference();
     invalidEntrys.add(rvmField.getDeclaringClass().toString());

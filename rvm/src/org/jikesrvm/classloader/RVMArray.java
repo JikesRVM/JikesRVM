@@ -263,6 +263,7 @@ public final class RVMArray extends RVMType {
   /**
    * Non-static fields of this array type.
    */
+  @Uninterruptible
   @Override
   @Pure
   public RVMField[] getInstanceFields() {

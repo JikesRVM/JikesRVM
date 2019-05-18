@@ -237,9 +237,9 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysMonitorDestroy(Word monitor);
   @SysCallTemplate
-  public abstract void sysMonitorEnter(Word monitor);
+  public abstract int sysMonitorEnter(Word monitor);
   @SysCallTemplate
-  public abstract void sysMonitorExit(Word monitor);
+  public abstract int sysMonitorExit(Word monitor);
   @SysCallTemplate
   public abstract void sysMonitorTimedWaitAbsolute(Word monitor, long whenWakeupNanos);
   @SysCallTemplate

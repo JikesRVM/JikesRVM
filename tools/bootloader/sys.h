@@ -296,8 +296,8 @@ EXTERNAL void sysArgumentPassingSeveralFloatsAndSeveralInts(float firstFloat, fl
 EXTERNAL void sysInitialize();
 EXTERNAL Word sysMonitorCreate();
 EXTERNAL void sysMonitorDestroy(Word);
-EXTERNAL void sysMonitorEnter(Word);
-EXTERNAL void sysMonitorExit(Word);
+EXTERNAL int sysMonitorEnter(Word);
+EXTERNAL int sysMonitorExit(Word);
 EXTERNAL void sysMonitorTimedWait(Word, long long);
 EXTERNAL void sysMonitorWait(Word);
 EXTERNAL void sysMonitorBroadcast(Word);
