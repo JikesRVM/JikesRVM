@@ -195,6 +195,7 @@ my $x87;
 my $m32;
 my $m64;
 my $harmony;
+my $openjdk;
 my $javaHomeCmd;
 my $clearcc;
 my $timestampfile;
