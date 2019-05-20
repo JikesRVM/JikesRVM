@@ -68,18 +68,7 @@ Extent determinePageSize();
 #define BOOTIMAGE_CODE_FILE_INDEX     SYSLOGFILE_INDEX + 1
 #define BOOTIMAGE_DATA_FILE_INDEX     BOOTIMAGE_CODE_FILE_INDEX + 1
 #define BOOTIMAGE_RMAP_FILE_INDEX     BOOTIMAGE_DATA_FILE_INDEX + 1
-#define INDEX                      BOOTIMAGE_RMAP_FILE_INDEX + 1
-#define GC_INDEX                      INDEX + 1
-#define AOS_INDEX                     GC_INDEX + 1
-#define IRC_INDEX                     AOS_INDEX + 1
-#define RECOMP_INDEX                  IRC_INDEX + 1
-#define BASE_INDEX                    RECOMP_INDEX + 1
-#define OPT_INDEX                     BASE_INDEX + 1
-#define VMCLASSES_INDEX               OPT_INDEX + 1
-#define BOOTCLASSPATH_P_INDEX         VMCLASSES_INDEX + 1
-#define BOOTCLASSPATH_A_INDEX         BOOTCLASSPATH_P_INDEX + 1
-#define PROCESSORS_INDEX              BOOTCLASSPATH_A_INDEX + 1
-#define VERBOSE_SIGNAL_HANDLING       PROCESSORS_INDEX + 1
+#define VERBOSE_SIGNAL_HANDLING       BOOTIMAGE_RMAP_FILE_INDEX + 1
 
 #define numNonstandardArgs      VERBOSE_SIGNAL_HANDLING + 1
 
@@ -93,17 +82,6 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
   "-X:ic=",
   "-X:id=",
   "-X:ir=",
-  "-X:vm",
-  "-X:gc",
-  "-X:aos",
-  "-X:irc",
-  "-X:recomp",
-  "-X:base",
-  "-X:opt",
-  "-X:vmClasses=",
-  "-Xbootclasspath/p:",
-  "-Xbootclasspath/a:",
-  "-X:availableProcessors=",
   "-X:verboseSignalHandling",
 };
 
@@ -423,44 +401,16 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
       continue;
     }
 
-    //
-    // All VM directives that are not handled here but in VM.java
-    // must be identified.
-    //
-
-    // All VM directives that take one token
-    if (STRNEQUAL(token, "-D", 2)
-        || STRNEQUAL(token, nonStandardArgs[INDEX], 5)
-        || STRNEQUAL(token, nonStandardArgs[GC_INDEX], 5)
-        || STRNEQUAL(token, nonStandardArgs[AOS_INDEX],6)
-        || STRNEQUAL(token, nonStandardArgs[IRC_INDEX], 6)
-        || STRNEQUAL(token, nonStandardArgs[RECOMP_INDEX], 9)
-        || STRNEQUAL(token, nonStandardArgs[BASE_INDEX],7)
-        || STRNEQUAL(token, nonStandardArgs[OPT_INDEX], 6)
-        || STREQUAL(token, "-verbose")
-        || STREQUAL(token, "-verbose:class")
-        || STREQUAL(token, "-verbose:gc")
-        || STREQUAL(token, "-verbose:jni")
-        || STRNEQUAL(token, "-javaagent:", 11)
-        || STRNEQUAL(token, nonStandardArgs[VMCLASSES_INDEX], 13)
-        || STRNEQUAL(token, nonStandardArgs[BOOTCLASSPATH_P_INDEX], 18)
-        || STRNEQUAL(token, nonStandardArgs[BOOTCLASSPATH_A_INDEX], 18)
-        || STRNEQUAL(token, nonStandardArgs[PROCESSORS_INDEX], 14))
-    {
-      CLAs[n_JCLAs++]=token;
-      continue;
-    }
     // All VM directives that take two tokens
-    if (STREQUAL(token, "-cp") || STREQUAL(token, "-classpath")) {
+    if (STREQUAL(token, "-cp") || STREQUAL(token, "-classpath") || STREQUAL(token, "-jar")) {
       CLAs[n_JCLAs++]=token;
       token=CLAs[++i];
       CLAs[n_JCLAs++]=token;
       continue;
     }
-
-    CLAs[n_JCLAs++]=token;
-    ++startApplicationOptions; // found one that we do not recognize;
+    // found one that are invalid or that should be handled later in java land
     // start to copy them all blindly
+    CLAs[n_JCLAs++]=token;
   } // for ()
 
   /* and set the count */
