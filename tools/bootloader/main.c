@@ -406,6 +406,8 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
       CLAs[n_JCLAs++]=token;
       token=CLAs[++i];
       CLAs[n_JCLAs++]=token;
+      if (STREQUAL(CLAs[n_JCLAs - 2], "-jar")) 
+        startApplicationOptions++;
       continue;
     }
     // found one that are invalid or that should be handled later in java land
