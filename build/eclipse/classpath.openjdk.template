@@ -21,12 +21,13 @@
   <classpathentry kind="src" path="libraryInterface/OpenJDK/EPL/src"/>
   <classpathentry kind="src" path="libraryInterface/OpenJDK/GPL/src"/>
   <classpathentry kind="src" path="tools/bootImageWriter/src"/>
-  <classpathentry kind="src" path="tools/build-helpers/src"/>
+  <classpathentry including="org/jikesrvm/tools/template/**" kind="src" path="tools/build-helpers/src"/>
   <classpathentry kind="src" path="common/vmmagic/src"/>
   <classpathentry kind="src" path="external/tuningforklib/src"/>
   <classpathentry kind="src" path="testing/tests/basic/src"/>
   <classpathentry kind="src" path="testing/tests/gctest/src"/>
   <classpathentry kind="src" path="testing/tests/gctracingtest/src"/>
+  <classpathentry kind="src" path="testing/tests/manual/src"/>
 
   <!-- Entries with exclusion -->
   <classpathentry excluding="tNativeThreads.java|NativeThreadsWorker.java|StackResize.java" kind="src" path="testing/tests/jni/src"/>
