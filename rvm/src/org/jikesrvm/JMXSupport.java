@@ -35,8 +35,6 @@ public class JMXSupport {
     name.append(" bit Jikes RVM using ");
     if (VM.BuildForGnuClasspath) {
       name.append("GNU Classpath");
-    } else if (VM.BuildForHarmony) {
-      name.append("Apache Harmony");
     }
     if (VM.BuildForIA32) {
       name.append(" on IA32");

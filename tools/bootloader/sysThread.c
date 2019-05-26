@@ -725,23 +725,13 @@ EXTERNAL int sysMonitorEnter(Word _monitor)
 EXTERNAL int sysMonitorExit(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorExit %p\n", Me, (void*)_monitor);
-#ifdef RVM_FOR_HARMONY
-  return hythread_monitor_exit((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   return pthread_mutex_unlock(&monitor->mutex);
-#endif
 }
 
 EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 {
   TRACE_PRINTF("%s: sysMonitorTimedWaitAbsolute\n", Me);
-#ifdef RVM_FOR_HARMONY
-  // syscall wait is absolute, but harmony monitor wait is relative.
-  whenWakeupNanos -= sysNanoTime();
-  if (whenWakeupNanos <= 0) return;
-  hythread_monitor_wait_timed((hythread_monitor_t)_monitor, (I_64)(whenWakeupNanos / 1000000LL), (IDATA)(whenWakeupNanos % 1000000LL));
-#else
   struct timespec ts = {0};
   ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
   ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
@@ -757,29 +747,20 @@ EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNan
                sysNanoTime(),whenWakeupNanos,rc);
   fflush(NULL);
 #endif
-#endif
 }
 
 EXTERNAL void sysMonitorWait(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorWait\n", Me);
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_wait((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   pthread_cond_wait(&monitor->cond, &monitor->mutex);
-#endif
 }
 
 EXTERNAL void sysMonitorBroadcast(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorBroadcast\n", Me);
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_notify_all((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   pthread_cond_broadcast(&monitor->cond);
-#endif
 }
 
 EXTERNAL void sysThreadTerminate()
@@ -787,9 +768,6 @@ EXTERNAL void sysThreadTerminate()
   TRACE_PRINTF("%s: sysThreadTerminate\n", Me);
 #ifdef RVM_FOR_POWERPC
   asm("sync");
-#endif
-#ifdef RVM_FOR_HARMONY
-  hythread_detach(NULL);
 #endif
   Address tr = (Address) GET_THREAD_LOCAL(trKey);
   *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;

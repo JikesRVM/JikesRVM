@@ -311,9 +311,6 @@ public class VM extends Properties {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.security.VMAccessController");
     }
-    if (VM.BuildForHarmony) {
-      runClassInitializer("java.security.AccessController");
-    }
     if (verboseBoot >= 1) VM.sysWriteln("Booting Lock");
     Lock.boot();
 
@@ -381,12 +378,6 @@ public class VM extends Properties {
       VM.safeToCreateStackTrace = true;
     }
 
-    if (VM.BuildForHarmony) {
-      System.loadLibrary("hyluni");
-      System.loadLibrary("hythr");
-      System.loadLibrary("hyniochar");
-    }
-
     if (VM.BuildForOpenJDK) {
       runClassInitializer("java.lang.ApplicationShutdownHooks");
       runClassInitializer("java.io.DeleteOnExitHook");
@@ -452,7 +443,7 @@ public class VM extends Properties {
       runClassInitializer("java.lang.Class$StaticData");
     }
 
-    if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
+    if (VM.BuildForGnuClasspath) {
       // OpenJDK runs it later
       runClassInitializer("java.nio.charset.Charset");
     }
@@ -461,9 +452,6 @@ public class VM extends Properties {
       runClassInitializer("java.nio.charset.CharsetEncoder");
     }
     runClassInitializer("java.nio.charset.CoderResult");
-    if (VM.BuildForHarmony) {
-      runClassInitializer("org.apache.harmony.niochar.CharsetProviderImpl");
-    }
 
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
@@ -472,16 +460,13 @@ public class VM extends Properties {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
     }
-    if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
+    if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.util.Locale");
       runClassInitializer("java.util.ResourceBundle");
       runClassInitializer("java.util.zip.CRC32");
     }
     if (VM.BuildForOpenJDK) {
       runClassInitializer("java.util.zip.ZipEntry");
-    }
-    if (VM.BuildForHarmony) {
-      System.loadLibrary("hyarchive");
     }
     runClassInitializer("java.util.zip.Inflater");
 
@@ -511,25 +496,6 @@ public class VM extends Properties {
       runClassInitializer("java.util.zip.ZipFile$PartialInputStream");
     }
     runClassInitializer("java.util.zip.ZipFile");
-    if (VM.BuildForHarmony) {
-      runClassInitializer("java.util.Hashtable");
-      runClassInitializer("java.util.jar.Manifest");
-      runClassInitializer("java.util.jar.Attributes$Name");
-      runClassInitializer("java.util.BitSet");
-      runClassInitializer("java.util.regex.Matcher");
-      runClassInitializer("java.util.regex.Pattern");
-      runClassInitializer("org.apache.harmony.luni.internal.net.www.protocol.jar.JarURLConnection");
-      runClassInitializer("org.apache.harmony.luni.platform.OSMemory");
-      runClassInitializer("org.apache.harmony.luni.platform.Platform");
-      runClassInitializer("org.apache.harmony.luni.platform.AbstractMemorySpy");
-      runClassInitializer("org.apache.harmony.luni.platform.PlatformAddress");
-      runClassInitializer("org.apache.harmony.nio.internal.FileChannelImpl");
-      runClassInitializer("com.ibm.icu.util.ULocale");
-      runClassInitializer("java.io.ObjectStreamClass");
-      runClassInitializer("java.io.ObjectStreamClass$OSCThreadLocalCache");
-      runClassInitializer("java.io.ObjectInputStream");
-      runClassInitializer("java.security.MessageDigest");
-    }
     if (VM.BuildForOpenJDK) {
       runClassInitializer("java.io.ObjectStreamClass"); // needed because JNI needs to be executed to initialize the class
     }
@@ -592,21 +558,6 @@ public class VM extends Properties {
       runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
     }
     runClassInitializer("java.util.logging.Logger");
-    if (VM.BuildForHarmony) {
-      Entrypoints.luni1.setObjectValueUnchecked(null, null);
-      Entrypoints.luni2.setObjectValueUnchecked(null, null);
-      Entrypoints.luni3.setObjectValueUnchecked(null, null);
-      Entrypoints.luni4.setObjectValueUnchecked(null, null);
-      Entrypoints.luni5.setObjectValueUnchecked(null, null);
-      Entrypoints.luni6.setObjectValueUnchecked(null, null);
-      runClassInitializer("java.lang.String$ConsolePrintStream");
-      runClassInitializer("org.apache.harmony.luni.util.Msg");
-      runClassInitializer("org.apache.harmony.archive.internal.nls.Messages");
-      runClassInitializer("org.apache.harmony.luni.internal.nls.Messages");
-      runClassInitializer("org.apache.harmony.nio.internal.nls.Messages");
-      runClassInitializer("org.apache.harmony.niochar.internal.nls.Messages");
-      runClassInitializer("java.util.logging.LogManager");
-    }
 
     // Initialize compiler that compiles dynamically loaded classes.
     //

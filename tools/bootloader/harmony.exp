@@ -1,7 +1,0 @@
-VMI_0.1 {
-  global :
-    VMI_GetVMIFromJavaVM;
-    VMI_GetVMIFromJNIEnv;
-    VMI_Initialize;
-  local : *;
-};

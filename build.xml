@@ -97,9 +97,6 @@
 
   <!-- Set the class library to use -->
   <property name="classlib.provider" value="GNU Classpath"/>
-  <condition property="harmony.classlib" value="true">
-    <equals arg1="${classlib.provider}" arg2="Harmony"/>
-  </condition>
 
   <condition property="openjdk.classlib" value="true">
     <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
@@ -182,10 +179,9 @@
   </target>
 
   <target name="check-classlibrary-properties">
-    <fail message="Cannot have both Harmony, OpenJDK, and Classpath class libraries">
+    <fail message="Cannot have both OpenJDK and Classpath class libraries">
       <condition>
 	<and>
-          <isset property="harmony.classlib"/>
           <isset property="classpath.classlib"/>
           <isset property="openjdk.classlib"/>
 	</and>
@@ -195,7 +191,6 @@
       <condition>
 	<not>
           <or>
-            <equals arg1="${classlib.provider}" arg2="Harmony"/>
             <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
             <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
           </or>
@@ -206,7 +201,6 @@
       <condition>
 	<not>
           <or>
-            <isset property="harmony.classlib"/>
             <isset property="classpath.classlib"/>
             <isset property="openjdk.classlib"/>
           </or>
@@ -223,14 +217,6 @@
     <property name="build.extra.rt.jars" value=""/>
     <test-file name="c++.exe" location="${host.file}"/>
     <test-property name="c++.args" location="${host.file}"/>
-  </target>
-
-  <target name="check-harmony-properties" depends="check-components-properties,check-classlibrary-properties" if="harmony.classlib">
-    <propertycopy name="harmony.lib.dir" from="${target.name}.harmony.lib.dir"/>
-    <test-file name="harmony.lib.dir" location="${components.file}"/>
-    <property file="${harmony.lib.dir}/constants.properties"/>
-    <property name="config.portable-native-sync" value="false"/> <!-- has no meaning for Harmony -->
-    <property name="build.extra.rt.jars" value=":${harmony.lib.dir}/yoko-rmi-impl.jar:${harmony.lib.dir}/instrument.jar:${harmony.lib.dir}/beans.jar:${harmony.lib.dir}/xml-apis.jar:${harmony.lib.dir}/mx4j.jar:${harmony.lib.dir}/nio.jar:${harmony.lib.dir}/xalan.jar:${harmony.lib.dir}/resolver.jar:${harmony.lib.dir}/logging.jar:${harmony.lib.dir}/bcprov.jar:${harmony.lib.dir}/security.jar:${harmony.lib.dir}/sql.jar:${harmony.lib.dir}/print.jar:${harmony.lib.dir}/mx4j-remote.jar:${harmony.lib.dir}/concurrent.jar:${harmony.lib.dir}/luni-kernel-stubs.jar:${harmony.lib.dir}/misc.jar:${harmony.lib.dir}/accessibility.jar:${harmony.lib.dir}/crypto.jar:${harmony.lib.dir}/yoko.jar:${harmony.lib.dir}/rmi.jar:${harmony.lib.dir}/security-kernel-stubs.jar:${harmony.lib.dir}/x-net.jar:${harmony.lib.dir}/icu4j-charsets-4_0.jar:${harmony.lib.dir}/imageio.jar:${harmony.lib.dir}/nio_char.jar:${harmony.lib.dir}/lang-management.jar:${harmony.lib.dir}/regex.jar:${harmony.lib.dir}/applet.jar:${harmony.lib.dir}/prefs.jar:${harmony.lib.dir}/annotation.jar:${harmony.lib.dir}/math.jar:${harmony.lib.dir}/luni.jar:${harmony.lib.dir}/archive.jar:${harmony.lib.dir}/awt.jar:${harmony.lib.dir}/nio_char-src.jar:${harmony.lib.dir}/xercesImpl.jar:${harmony.lib.dir}/yoko-rmi-spec.jar:${harmony.lib.dir}/swing.jar:${harmony.lib.dir}/auth.jar:${harmony.lib.dir}/yoko-core.jar:${harmony.lib.dir}/text.jar:${harmony.lib.dir}/jndi.jar:${harmony.lib.dir}/suncompat.jar:${harmony.lib.dir}/sound.jar:${harmony.lib.dir}/icu4j-4_0.jar:${harmony.lib.dir}/bcel-5.2.jar"/>
   </target>
 
   <target name="check-openjdk-properties" depends="check-components-properties,check-classlibrary-properties" if="openjdk.classlib">
@@ -301,14 +287,6 @@
       </conditions>
       <sequential>
         <ant antfile="build/components/classpath.xml" target="ensure"/>
-      </sequential>
-    </if>
-    <if>
-      <conditions>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </conditions>
-      <sequential>
-        <ant antfile="build/components/harmony.xml" target="ensure"/>
       </sequential>
     </if>
     <if>
@@ -409,7 +387,7 @@ Check to make sure all required properties are specified. This includes properti
  * component properties for classpath, gcspy etc.
   -->
   <target name="check-properties"
-          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-harmony-properties,check-openjdk-properties,check-gcspy-properties,check-mmtk-properties"
+          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-openjdk-properties,check-gcspy-properties,check-mmtk-properties"
           description="Check that all required properties are specified.">
 
     <!-- setup properties for start of build. -->
@@ -454,10 +432,6 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <condition property="os.filter" value="-DRVM_FOR_SOLARIS=1">
       <equals arg1="${target.os}" arg2="Solaris"/>
-    </condition>
-
-    <condition property="classlib.filter" value="-DRVM_FOR_HARMONY=1">
-      <equals arg1="${classlib.provider}" arg2="Harmony"/>
     </condition>
 
     <condition property="classlib.filter" value="-DRVM_FOR_GNU_CLASSPATH=1">
@@ -1113,9 +1087,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
     </condition>
-    <condition property="pp_RVM_WITH_HARMONY" value="true" else="false">
-      <equals arg1="${classlib.provider}" arg2="Harmony"/>
-    </condition>
     <condition property="pp_RVM_WITH_GNU_CLASSPATH" value="true" else="false">
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
@@ -1150,7 +1121,6 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITH_GCTRACE_" value="${pp_RVM_WITH_GCTRACE}"/>
         <filter token="_RVM_WITH_ALIGNMENT_CHECKING_" value ="${config.alignment-checking}"/>
         <filter token="_PORTABLE_NATIVE_SYNC_" value="${config.portable-native-sync}"/>
-        <filter token="_RVM_WITH_HARMONY_" value="${pp_RVM_WITH_HARMONY}"/>
         <filter token="_RVM_WITH_GNU_CLASSPATH_" value="${pp_RVM_WITH_GNU_CLASSPATH}"/>
         <filter token="_RVM_WITH_OPENJDK_" value="${pp_RVM_WITH_OPENJDK}"/>
       </filterset>
@@ -1334,15 +1304,6 @@ Check to make sure all required properties are specified. This includes properti
         <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/GNUClasspath/PD/src"/>
       </sequential>
     </if>
-    <if>
-      <conditions>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </conditions>
-      <sequential>
-        <property name="classlib.library-interface.cpl.java" location="libraryInterface/Harmony/EPL/src"/>
-        <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/Harmony/ASF/src"/>
-      </sequential>
-    </if>
 
     <if>
       <conditions>
@@ -1401,51 +1362,6 @@ Check to make sure all required properties are specified. This includes properti
           <include name="sun/**/*.java"/>
           <include name="java/**/*.java"/>
           <include name="org/jikesrvm/classlibrary/**/*.java"/>
-          <include name="${arch-helper-class}"/>
-          <include name="com/ibm/tuningfork/**/*.java"/>
-          <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
-          <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
-          <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
-          <exclude name="org/jikesrvm/tools/header_gen.GenerateInterfaceDeclarations.java"/>
-        </javac>
-      </sequential>
-    </if>
-    <if>
-      <conditions>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </conditions>
-      <sequential>       
-        <javac destdir="${build.classes}"
-               debug="true"
-               fork="true"
-               memoryMaximumSize="500M"
-               debugLevel="${debugLevel}"
-               source="${rvm.java.version}"
-               target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               includeantruntime="false">
-          <bootclasspath>
-            <pathelement location="${harmony.lib.dir}/luni-kernel-stubs.jar"/>
-            <pathelement location="${harmony.lib.dir}/luni.jar"/>
-            <pathelement location="${harmony.lib.dir}/annotation.jar"/>
-            <pathelement location="${harmony.lib.dir}/archive.jar"/>
-            <pathelement location="${harmony.lib.dir}/instrument.jar"/>
-            <pathelement location="${harmony.lib.dir}/logging.jar"/>
-            <pathelement location="${harmony.lib.dir}/nio.jar"/>
-            <pathelement location="${harmony.lib.dir}/nio_char.jar"/>
-            <pathelement location="${harmony.lib.dir}/regex.jar"/>
-            <pathelement location="${harmony.lib.dir}/security-kernel-stubs.jar"/>
-            <pathelement location="${harmony.lib.dir}/security.jar"/>
-          </bootclasspath>
-          <classpath>
-            <pathelement location="${build.vmmagic-stub.classes}"/>
-          </classpath>
-          <include name="Dummy.java"/>
-          <include name="OptDummy.java"/>
-          <include name="org/apache/**/*.java"/>
-          <include name="sun/**/*.java"/>
-          <include name="java/**/*.java"/>
           <include name="${arch-helper-class}"/>
           <include name="com/ibm/tuningfork/**/*.java"/>
           <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
@@ -1683,29 +1599,10 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="package" depends="bootstrap-unit-tests,compile-vmmagic,package-classpath,package-harmony,package-openjdk"/>
-
-  <target name="package-harmony" if="harmony.classlib">
-    <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">
-      <include name="java/**"/>
-      <include name="sun/**"/>
-    </zip>
-    <jar destfile="${build.vm.jar}" update="true" compress="false">
-      <fileset dir="${build.classes}">
-        <exclude name="java/**"/>
-        <exclude name="sun/**"/>
-      </fileset>
-      <fileset dir="${build.vmmagic-stub.classes}">
-        <include name="org/vmmagic/pragma/**"/>
-        <include name="org/vmmagic/*"/>
-      </fileset>
-      <fileset dir="${build.vmmagic.classes}"/>
-      <fileset dir="${build.options.classes}"/>
-    </jar>
-  </target>
+  <target name="package" depends="bootstrap-unit-tests,compile-vmmagic,package-classpath,package-openjdk"/>
 
   <target name="package-openjdk" if="openjdk.classlib">
-    <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">       
+    <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">
       <include name="java/**"/>
       <include name="sun/**"/>
       <zipfileset src="${openjdk.lib.dir}/rt.jar"/>
@@ -1848,19 +1745,6 @@ Check to make sure all required properties are specified. This includes properti
 
     <if>
       <conditions>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </conditions>
-      <sequential>
-        <concat destfile="${build.base}/Primordials.txt">
-          <filelist dir="${build.base}" files="ClassesForImage.txt"/>
-          <filelist dir="${primordials.dir}"
-                    files="ClassLibrary_Throwables.txt,Harmony.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
-        </concat>
-      </sequential>
-    </if>
-
-    <if>
-      <conditions>
 	<equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
@@ -1897,10 +1781,6 @@ Check to make sure all required properties are specified. This includes properti
 
     <condition property="endian_opt" value="-littleEndian" else="">
       <equals arg1="${target.endianness}" arg2="little"/>
-    </condition>
-
-    <condition property="bootimage.classlib" value="Harmony">
-      <equals arg1="${classlib.provider}" arg2="Harmony"/>
     </condition>
 
     <condition property="bootimage.classlib" value="Classpath">
@@ -2067,20 +1947,7 @@ const char *rvm_target_configuration = "${target.file}";
       <equals arg1="${config.include.gcspy}" arg2="true"/>
     </condition>
 
-    <condition property="classlib.includes" value="-I${harmony.include.dir}" else="">
-      <equals arg1="${classlib.provider}" arg2="Harmony"/>
-    </condition>
-
-    <condition property="classlib.libraries"
-               value="${lib.specifier}pthread ${lib.specifier}dl">
-      <not>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </not>
-    </condition>
-    <condition property="classlib.libraries"
-               value="${libpath.specifier}${harmony.lib.dir} ${lib.specifier}hyarchive${target.lib-ext} ${lib.specifier}hyprt${target.lib-ext} ${lib.specifier}hythr${target.lib-ext} ${lib.specifier}hyzlib${target.lib-ext}">
-      <equals arg1="${classlib.provider}" arg2="Harmony"/>
-    </condition>
+    <property name="classlib.libraries" value="${lib.specifier}pthread ${lib.specifier}dl"/>
 
     <condition property="bootloader.libraries" value="${lib.specifier}rt${target.lib-ext}" else="">
        <equals arg1="${target.os}" arg2="Linux"/>
@@ -2098,7 +1965,7 @@ const char *rvm_target_configuration = "${target.file}";
     </condition>
 
     <property name="rvm.includes"
-              value="-I${bl.dir} -I${bl.dir}/jni -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
+              value="-I${bl.dir} -I${bl.dir}/jni -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes}"/>
 
     <property name="rvm.defines" value="-D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE ${filter} "/>
 
@@ -2197,40 +2064,9 @@ const char *rvm_target_configuration = "${target.file}";
       </ObjectFiles>
     </CreateLibrary>
 
-    <!-- create vmi shared library (if building for Harmony)-->
-    <if>
-      <conditions>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </conditions>
-      <sequential>
-        <echo message="Creating vmi${target.lib-ext} and vmi${target.dll-ext}"/>
-        <CompileCtoObj cfile="${bl.dir}/harmony.c"
-                       objfile="${build.base}/${target.obj-prefix}harmony${target.obj-ext}"
-                       cargs="${rvm.c.args}"/>
-        <CompileCtoObj cfile="libraryInterface/Harmony/ASF/native/vmls.c"
-                       objfile="${build.base}/${target.obj-prefix}vmls${target.obj-ext}"
-                       cargs="${rvm.c.args}"/>
-        <CreateLibrary outdir="${build.base}" dllname="vmi" srcdir="${bl.dir}">
-          <ObjectFiles>
-            <arg value="${build.base}/${target.obj-prefix}harmony${target.obj-ext}"/>
-            <arg value="${build.base}/${target.obj-prefix}vmls${target.obj-ext}"/>
-          </ObjectFiles>
-        </CreateLibrary>
-        <CreateDLL outdir="${build.base}" dllname="vmi" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext}">
-          <ObjectFiles>
-            <arg value="${build.base}/${target.obj-prefix}harmony${target.obj-ext}"/>
-            <arg value="${build.base}/${target.obj-prefix}vmls${target.obj-ext}"/>
-          </ObjectFiles>
-        </CreateDLL>
-      </sequential>
-    </if>
-
     <!-- create JVM shared library -->
     <echo message="Creating jvm${target.dll-ext}"/>
-    <condition property="jvm.vmi.lib.filter" value="${lib.specifier}vmi${target.lib-ext}" else="">
-      <equals arg1="${classlib.provider}" arg2="Harmony"/>
-    </condition>
-    <CreateDLL outdir="${build.base}" dllname="jvm" srcdir="${bl.dir}" lib="${jvm.vmi.lib.filter}">
+    <CreateDLL outdir="${build.base}" dllname="jvm" srcdir="${bl.dir}">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}jvm${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysAlignmentCheck${target.obj-ext}"/>
@@ -2258,7 +2094,7 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/jni/org_jikesrvm_runtime_DynamicLibrary.c"
                    objfile="${build.base}/${target.obj-prefix}org_jikesrvm_runtime_DynamicLibrary${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CreateDLL outdir="${build.base}" dllname="jvm_jni" srcdir="${bl.dir}/jni" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter}"
+    <CreateDLL outdir="${build.base}" dllname="jvm_jni" srcdir="${bl.dir}/jni" lib="${lib.specifier}jvm${target.lib-ext}"
                suffix="${target.jni-suffix}">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}org_jikesrvm_runtime_DynamicLibrary${target.obj-ext}"/>
@@ -2270,7 +2106,7 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/main.c"
                    objfile="${build.base}/${target.obj-prefix}main${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter}">
+    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext}">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
       </ObjectFiles>
@@ -2301,7 +2137,7 @@ const char *rvm_target_configuration = "${target.file}";
   <!-- **************************************************************************** -->
 
   <!-- Setup image directory on host side -->
-  <target name="init-image-dir-on-host" depends="init-image-dir-on-host-classpath,init-image-dir-on-host-harmony,init-image-dir-on-host-openjdk"/>
+  <target name="init-image-dir-on-host" depends="init-image-dir-on-host-classpath,init-image-dir-on-host-openjdk"/>
 
   <target name="init-image-dir-on-host-classpath" depends="build-bootimage" if="classpath.classlib">
     <mkdir dir="${dist.base}"/>
@@ -2317,64 +2153,6 @@ const char *rvm_target_configuration = "${target.file}";
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
-    <mkdir dir="${dist.base}/include"/>
-    <copy todir="${dist.base}/include">
-      <fileset dir="${build.native}">
-        <include name="*.h"/>
-      </fileset>
-    </copy>
-    <echo file="${dist.base}/constants.properties"><![CDATA[# Build time constants used when building image.
-config.name=${config.name}
-config.runtime.compiler=${config.runtime.compiler}
-config.bootimage.compiler=${config.bootimage.compiler}
-config.mmtk.plan=${config.mmtk.plan}
-config.include.aos=${config.include.aos}
-config.include.perfevent=${config.include.perfevent}
-config.include.gcspy=${config.include.gcspy}
-config.include.gcspy-client=${config.include.gcspy-client}
-config.assertions=${config.assertions}
-config.default-heapsize.initial=${config.default-heapsize.initial}
-config.default-heapsize.maximum=${config.default-heapsize.maximum}
-config.bootimage.compiler.args=${config.bootimage.compiler.args}
-config.stress-gc-interval=${config.stress-gc-interval}
-config.alignment-checking=${config.alignment-checking}
-target.name=${target.name}
-target.arch=${target.arch}
-target.os=${target.os}
-target.address.size=${target.address.size}
-target.heap-layout=${target.heap-layout}
-target.bootimage.code.address=${target.bootimage.code.address}
-target.bootimage.data.address=${target.bootimage.data.address}
-target.bootimage.rmap.address=${target.bootimage.rmap.address}
-target.max-mappable.address=${target.max-mappable.address}
-target.arch.sse2=${target.arch.sse2}
-target.dll-ext=${target.dll-ext}
-target.dll-prefix=${target.dll-prefix}
-target.jni-suffix=${target.jni-suffix}
-]]></echo>
-  </target>
-
-  <target name="init-image-dir-on-host-harmony" depends="build-bootimage" if="harmony.classlib">
-    <mkdir dir="${dist.base}"/>
-    <copy todir="${dist.base}">
-      <fileset dir="${build.base}">
-        <include name="RVM.*.image"/>
-        <include name="RVM.map"/>
-        <include name="BootImageWriterOutput.txt"/>
-      </fileset>
-    </copy>
-    <copy file="${bl.dir}/rvm.harmony" tofile="${dist.base}/rvm">
-    </copy>
-    <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
-    <copy file="${build.rt.jar}" todir="${dist.base}"/>
-    <copy file="${build.vm.jar}" todir="${dist.base}"/>
-    <mkdir dir="${dist.base}/lib"/>
-    <copy todir="${dist.base}/lib">
-      <fileset dir="${harmony.lib.dir}">
-        <include name="*.jar"/>
-        <exclude name="*-src.jar"/>
-      </fileset>
-    </copy>
     <mkdir dir="${dist.base}/include"/>
     <copy todir="${dist.base}/include">
       <fileset dir="${build.native}">
@@ -2552,41 +2330,6 @@ target.jni-suffix=${target.jni-suffix}
         </chmod>
       </sequential>
     </if>
-    <if>
-      <conditions>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </conditions>
-      <sequential>
-        <mkdir dir="${dist.base}/lib"/>
-        <copy todir="${dist.base}/lib">
-          <fileset dir="${harmony.lib.dir}">
-            <include name="*${target.jni-suffix}"/>
-            <include name="*.properties"/>
-            <exclude name="*vmi${target.jni-suffix}"/>
-          </fileset>
-          <fileset dir="${build.base}">
-            <include name="*${target.dll-ext}"/>
-            <include name="*${target.jni-suffix}"/>
-            <include name="*${target.debug-suffix}"/>
-          </fileset>
-        </copy>
-        <copy todir="${dist.base}">
-          <fileset dir="${build.base}">
-            <include name="JikesRVM${target.exe-ext}"/>
-            <include name="JikesRVM-symbols.o"/>
-          </fileset>
-        </copy>
-        <chmod perm="ugo+rx">
-          <fileset dir="${dist.base}/lib">
-            <include name="*${target.dll-ext}"/>
-            <include name="*${target.jni-suffix}"/>
-          </fileset>
-          <fileset dir="${dist.base}">
-            <include name="JikesRVM${target.exe-ext}"/>
-          </fileset>
-        </chmod>
-      </sequential>
-    </if>
     <chmod perm="ugo+rx">
       <fileset dir="${dist.base}">
         <include name="*${target.dll-ext}"/>
@@ -2741,7 +2484,6 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="common/options" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
       <fileset dir="libraryInterface/GNUClasspath/EPL" includes="**/*.java"/>
-      <fileset dir="libraryInterface/Harmony/EPL" includes="**/*.java"/>
       <fileset dir="libraryInterface/OpenJDK/EPL" includes="**/*.java"/>
       <fileset dir="tools" includes="**/src/**/*.java"/>
     </checkstyle>
@@ -3021,20 +2763,6 @@ target.jni-suffix=${target.jni-suffix}
         <copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar" />
         <copy-testing-jars-for-eclipse-project/>
         <property name="classpath.template.name" value="classpath.template" />
-      </sequential>
-    </if>
-    <if>
-      <conditions>
-        <equals arg1="${classlib.provider}" arg2="Harmony"/>
-      </conditions>
-      <sequential>
-        <copy toDir="eclipse" verbose="true">
-          <fileset dir="${harmony.lib.dir}">
-            <include name="**/*.jar" />
-          </fileset>
-        </copy>
-        <copy-testing-jars-for-eclipse-project/>
-        <property name="classpath.template.name" value="classpath.harmony.template" />
       </sequential>
     </if>
     <if>

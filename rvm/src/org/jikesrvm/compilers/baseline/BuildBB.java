@@ -432,7 +432,7 @@ final class BuildBB {
     }
 
     // can not support jsrs with unboxed types at the moment
-    if (VM.VerifyAssertions && !VM.BuildForHarmony) VM._assert(VM.runningVM || numJsrs == 0 || !hasMagic);
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM || numJsrs == 0 || !hasMagic);
   }
 
   /********************************/

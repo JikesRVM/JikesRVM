@@ -391,14 +391,8 @@ public final class AnnotationAdder {
       addToAdapt(Pure.class, Long.class.getMethod("valueOf", new Class[]{String.class}));
       addToAdapt(Pure.class, Long.class.getMethod("valueOf", new Class[]{String.class, int.class}));
 
-      // Enum
-      if (classLibrary.toLowerCase().equals("harmony")) {
-        addToAdapt(Uninterruptible.class, Enum.class.getMethod("ordinal", new Class[0]));
-        addToAdapt(Uninterruptible.class, Enum.class.getMethod("name", new Class[0]));
-      }
-
       // String
-      if (!classLibrary.toLowerCase().equals("harmony")) {
+      if (classLibrary.toLowerCase().equals("gnu classpath")) {
           addToAdapt(Pure.class, String.class.getMethod("charAt", new Class[]{int.class}));
           addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[]{String.class}));
           addToAdapt(Pure.class, String.class.getMethod("getBytes", new Class[0]));
@@ -494,7 +488,7 @@ public final class AnnotationAdder {
 
   /**
    * Main entry point
-   * @param args args[0] is the class library (harmony or gnu classpath)
+   * @param args args[0] is the class library (openjdk or gnu classpath)
    *             args[1] is the classpath to use to read classes,
    *             args[2] is the destination directory
    */

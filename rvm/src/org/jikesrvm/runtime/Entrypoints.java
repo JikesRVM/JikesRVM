@@ -604,29 +604,4 @@ public class Entrypoints {
         nm == raiseIllegalAccessError;
   }
 
-  public static final RVMField luni1;
-  public static final RVMField luni2;
-  public static final RVMField luni3;
-  public static final RVMField luni4;
-  public static final RVMField luni5;
-  public static final RVMField luni6;
-
-  // Initialize Harmony classlibrary specific fields
-  static {
-    if (VM.BuildForHarmony) {
-      luni1 = getField("Lorg/apache/harmony/luni/util/Msg;", "bundle", java.util.ResourceBundle.class);
-      luni2 = getField("Lorg/apache/harmony/archive/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
-      luni3 = getField("Lorg/apache/harmony/luni/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
-      luni4 = getField("Lorg/apache/harmony/nio/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
-      luni5 = getField("Lorg/apache/harmony/niochar/internal/nls/Messages;", "bundle", java.util.ResourceBundle.class);
-      luni6 = getField(java.util.logging.LogManager.class, "manager", java.util.logging.LogManager.class);
-    } else {
-      luni1 = null;
-      luni2 = null;
-      luni3 = null;
-      luni4 = null;
-      luni5 = null;
-      luni6 = null;
-    }
-  }
 }
