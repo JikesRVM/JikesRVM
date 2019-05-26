@@ -1,0 +1,116 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="basic" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="1000" else="400">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
+
+  <property name="test.max.heapsize" value="150"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}/src"/>
+
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+
+  <property name="test.class.path" value="${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" source="1.6" target="1.6" includeantruntime="false">
+      <!-- need extra classpath for vmmagic -->
+      <classpath>
+        <pathelement path="${test.rvm.dir}/jksvm.jar"/>
+        <pathelement path="${test.rvm.dir}/rvmrt.jar"/>
+      </classpath>
+      <compilerarg value="-Xlint:deprecation"/>
+    </javac>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <startResults/>
+
+    <!-- These are just simple smoke tests. For now, we're content with checking that the options are accepted
+         by the VM, i.e. the VM doesn't exit because of wrong options -->
+
+    <!-- Equivalence classes for arguments (bootloader view):
+     1) VM arguments
+     1a) VM args that aren't passed to Java and are immediately processed (e.g. -showversion).
+     1b) VM args that are passed to Java and processed later. Those need to be identified in main.c, search for
+     "All VM directives that are not handled here but in VM.java"
+     2) application arguments
+    -->
+
+    <!-- Note that these tests currently use the normal rvm invocation macro which adds some options of its own -->
+
+    <successMessageTest tag="NoArgs" rvmArgs="" class="PrintCommandLineArgs" args=""/>
+    <successMessageTest tag="WithShowVersion" rvmArgs="-showversion" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="ClientOptionIsIgnored" rvmArgs="-client" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="ServerOptionIsIgnored" rvmArgs="-server" class="PrintCommandLineArgs"/>
+
+    <property name="cmdLine.otherArg" value="-Xmx100M"/>
+    <property name="cmdLine.assertionArg" value="org.jikesrvm.foo"/>
+
+    <successMessageTest tag="OtherArgAndEa" rvmArgs="${cmdLine.otherArg} -ea" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndEnableAssertions" rvmArgs="${cmdLine.otherArg} -enableassertions" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndEsa" rvmArgs="${cmdLine.otherArg} -esa" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndEnableSystemAssertions" rvmArgs="${cmdLine.otherArg} -enablesystemassertions" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDa" rvmArgs="${cmdLine.otherArg} -da" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDisableAssertions" rvmArgs="${cmdLine.otherArg} -disableassertions" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDsa" rvmArgs="${cmdLine.otherArg} -dsa" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDisableSystemAssertions" rvmArgs="${cmdLine.otherArg} -disablesystemassertions" class="PrintCommandLineArgs"/>
+
+    <successMessageTest tag="OtherArgAndEaWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -ea:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndEnableAssertionsWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -enableassertions:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndEsaWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -esa:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndEnableSystemAssertionsWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -enablesystemassertions:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDaWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -da:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDisableAssertionsWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -disableassertions:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDsaWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -dsa:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="OtherArgAndDisableSystemAssertionsWithSpecifiedPackagesAndClasses" rvmArgs="${cmdLine.otherArg} -disablesystemassertions:${cmdLine.assertionArg}" class="PrintCommandLineArgs"/>
+
+    <successMessageTest tag="EaAndOtherArg" rvmArgs="-ea ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="EnableAssertionsAndOtherArg" rvmArgs="-enableassertions ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="EsaAndOtherArg" rvmArgs="-esa ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="EnableSystemAssertionsAndOtherArg" rvmArgs="-enablesystemassertions ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DaAndOtherArg" rvmArgs="-da ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DisableAssertionsAndOtherArg" rvmArgs="-disableassertions ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DsaAndOtherArg" rvmArgs="-dsa ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DisableSystemAssertionsAndOtherArg" rvmArgs="-disablesystemassertions ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+
+    <successMessageTest tag="EaWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-ea:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="EnableAssertionsWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-enableassertions:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="EsaWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-esa:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="EnableSystemAssertionsWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-enablesystemassertions:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DaWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-da:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DisableAssertionsWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-disableassertions:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DsaWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-dsa:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+    <successMessageTest tag="DisableSystemAssertionsWithSpecifiedPackagesAndClassesAndOtherArg" rvmArgs="-disablesystemassertions:${cmdLine.assertionArg} ${cmdLine.otherArg}" class="PrintCommandLineArgs"/>
+
+    <finishResults/>
+  </target>
+
+</project>

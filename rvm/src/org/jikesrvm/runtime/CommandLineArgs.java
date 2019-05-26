@@ -167,7 +167,7 @@ public class CommandLineArgs {
 
                                             new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea:", PrefixType.ENABLE_ASSERTION_ARG),
-                                            new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea", PrefixType.ENABLE_ASSERTION_ARG),
 
                                             new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),

@@ -28,6 +28,7 @@
   <classpathentry kind="src" path="testing/tests/gctest/src"/>
   <classpathentry kind="src" path="testing/tests/gctracingtest/src"/>
   <classpathentry kind="src" path="testing/tests/manual/src"/>
+  <classpathentry kind="src" path="testing/tests/cmdline/src"/>
 
   <!-- Entries with exclusion -->
   <classpathentry excluding="tNativeThreads.java|NativeThreadsWorker.java|StackResize.java" kind="src" path="testing/tests/jni/src"/>

@@ -171,6 +171,19 @@ usage(void)
   CONSOLE_PRINTF("    -javaagent:<jarpath>[=<options>]\n");
   CONSOLE_PRINTF("              load Java programming language agent, see java.lang.instrument\n");
 
+  CONSOLE_PRINTF("    -ea[:[packagename]...|:classname] -enableassertions[:[packagename]...|:classname]\n");
+  CONSOLE_PRINTF("              enable assertions, restricted to the provided packages and classes.\n");
+  CONSOLE_PRINTF("              Applies to all if no packages and no classes are provided\n");
+  CONSOLE_PRINTF("    -da[:[packagename]...|:classname] -disableassertions[:[packagename]...|:classname]\n");
+  CONSOLE_PRINTF("              disable assertions, restricted to the provided packages and classes.\n");
+  CONSOLE_PRINTF("              Applies to all if no packages and no classes are provided\n");
+  CONSOLE_PRINTF("    -esa[:[packagename]...|:classname] -enablesystemassertions[:[packagename]...|:classname]\n");
+  CONSOLE_PRINTF("              enable system assertions, restricted to the provided packages and classes.\n");
+  CONSOLE_PRINTF("              Applies to all if no packages and no classes are provided\n");
+  CONSOLE_PRINTF("    -dsa[:[packagename]...|:classname] -disablesystemassertions[:[packagename]...|:classname]\n");
+  CONSOLE_PRINTF("              enable system assertions, restricted to the provided packages and classes.\n");
+  CONSOLE_PRINTF("              Applies to all if no packages and no classes are provided\n");
+
   CONSOLE_PRINTF("\n For more information see http://jikesrvm.sourceforge.net\n");
 
   CONSOLE_PRINTF("\n");
@@ -445,7 +458,15 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
         || STRNEQUAL(token, nonStandardArgs[VMCLASSES_INDEX], 13)
         || STRNEQUAL(token, nonStandardArgs[BOOTCLASSPATH_P_INDEX], 18)
         || STRNEQUAL(token, nonStandardArgs[BOOTCLASSPATH_A_INDEX], 18)
-        || STRNEQUAL(token, nonStandardArgs[PROCESSORS_INDEX], 14))
+        || STRNEQUAL(token, nonStandardArgs[PROCESSORS_INDEX], 14)
+        || STRNEQUAL(token, "-ea", 3)
+        || STRNEQUAL(token, "-da", 3)
+        || STRNEQUAL(token, "-esa", 4)
+        || STRNEQUAL(token, "-dsa", 4)
+        || STRNEQUAL(token, "-enableassertions", 17)
+        || STRNEQUAL(token, "-disableassertions", 18)
+        || STRNEQUAL(token, "-enablesystemassertions", 23)
+        || STRNEQUAL(token, "-disablesystemassertions", 24))
     {
       CLAs[n_JCLAs++]=token;
       continue;
