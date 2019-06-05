@@ -436,8 +436,9 @@ public class CommandLineArgs {
   }
 
   /**
-   * @return the original arguments specified on the command line, without the
-   *  ones for the main class
+   * @return the arguments specified on the command line, without the
+   *  ones for the main class and without arguments that are handled
+   *  exclusively by the bootloader
    */
   public static String[] getInputArgs() {
     String[] inputArgs = new String[args.length];
