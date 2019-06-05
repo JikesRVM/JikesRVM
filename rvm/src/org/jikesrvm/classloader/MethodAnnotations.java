@@ -25,7 +25,7 @@ public class MethodAnnotations extends Annotations {
   /**
    * @param annotations array of runtime visible annotations
    * @param parameterAnnotations array of runtime visible parameter annotations
-   * @param annotationDefault value for this annotation that appears
+   * @param annotationDefaults value for this annotation that appears
    */
   public MethodAnnotations(RVMAnnotation[] annotations,
       RVMAnnotation[][] parameterAnnotations, Object annotationDefaults) {
