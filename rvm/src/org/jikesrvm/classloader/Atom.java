@@ -790,6 +790,14 @@ public final class Atom {
   private static final byte[][] CLASS_LIBRARY_PREFIXES =
       {"Ljava/".getBytes(), "Lsun/".getBytes(), "Lgnu/".getBytes()};
 
+
+  /**
+   * The set of class prefixes for the Jikes RVM JNI implementation.
+   * Needed to filter JNI methods for determining the caller class.
+   */
+  private static final byte[][] JNI_IMPLEMENTATION_CLASS_PREFIXES =
+      {"Lorg/jikesrvm/jni".getBytes(), "Lorg/jikesrvm/architecture/JNI".getBytes()};
+
   /**
    * @return true if this is a class descriptor of a bootstrap class
    * (ie a class that must be loaded by the bootstrap class loader)
@@ -856,6 +864,26 @@ public final class Atom {
       return true;
     }
     return false;
+  }
+
+  /**
+   * @return {@code true} if this is a class descriptor of a class from the
+   * Jikes RVM JNI implementation which needs to be filtered when determing
+   * the caller class for reflection APIs
+   */
+  @Pure
+  public boolean isJNIImplementationClassDescriptor() {
+    outer:
+      for (final byte[] test : JNI_IMPLEMENTATION_CLASS_PREFIXES) {
+        if (test.length > val.length) continue;
+        for (int j = 0; j < test.length; j++) {
+          if (val[j] != test[j]) {
+            continue outer;
+          }
+        }
+        return true;
+      }
+      return false;
   }
 
   //-------------//

@@ -60,7 +60,7 @@ public class sun_reflect_Reflection {
     }
 
     /* Skip JNI if necessary */
-    while (b.currentMethodIsJikesRVMInternal()) {
+    while (b.currentMethodIsPartOfJikesRVMJNIImplementation()) {
       b.up();
     }
 

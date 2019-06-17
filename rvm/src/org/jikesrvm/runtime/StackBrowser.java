@@ -234,4 +234,8 @@ public final class StackBrowser {
   public boolean currentMethodIsInClassLibrary() {
     return currentMethod.getDeclaringClass().getDescriptor().isClassLibraryDescriptor();
   }
+
+  public boolean currentMethodIsPartOfJikesRVMJNIImplementation() {
+    return currentMethod.getDeclaringClass().getDescriptor().isJNIImplementationClassDescriptor();
+  }
 }
