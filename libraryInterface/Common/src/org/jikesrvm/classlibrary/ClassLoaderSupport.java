@@ -57,7 +57,7 @@ public class ClassLoaderSupport {
 
   public static Class<?> defineClass(ClassLoader cl, String name, byte[] data,
       int offset, int len, ProtectionDomain pd) throws ClassFormatError {
-    RVMType vmType = RVMClassLoader.defineClassInternal(name, data, offset, len, cl);
+    RVMType vmType = RVMClassLoader.defineClassInternal(name, data, offset, len, cl, pd);
     Class<?> ans = vmType.getClassForType();
     JikesRVMSupport.setClassProtectionDomain(ans, pd);
     ImmutableEntryHashMapRVM<String,Class<?>> mapForCL;

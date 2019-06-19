@@ -52,7 +52,6 @@ import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.util.AddressInputStream;
-
 import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -174,7 +173,7 @@ public class JNIFunctions {
       }
       AddressInputStream reader = new AddressInputStream(data, Extent.fromIntZeroExtend(dataLen));
 
-      final RVMType vmType = RVMClassLoader.defineClassInternal(classString, reader, cl);
+      final RVMType vmType = RVMClassLoader.defineClassInternal(classString, reader, cl, null);
       return env.pushJNIRef(vmType.getClassForType());
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);

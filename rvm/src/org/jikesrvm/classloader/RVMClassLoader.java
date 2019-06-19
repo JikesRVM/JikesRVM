@@ -15,6 +15,7 @@ package org.jikesrvm.classloader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.security.ProtectionDomain;
 
 import org.jikesrvm.Properties;
 import org.jikesrvm.VM;
@@ -364,11 +365,21 @@ public class RVMClassLoader {
   }
 
   public static RVMType defineClassInternal(String className, byte[] classRep, int offset, int length,
+      ClassLoader classloader, ProtectionDomain pd) throws ClassFormatError {
+    return defineClassInternal(className, classRep, offset, length, classloader);
+  }
+
+  public static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader,
+      ProtectionDomain pd) throws ClassFormatError {
+    return defineClassInternal(className, is, classloader);
+  }
+
+  static RVMType defineClassInternal(String className, byte[] classRep, int offset, int length,
                                             ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
-  public static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader)
+  static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader)
       throws ClassFormatError {
     ClassFileReader reader = new ClassFileReader(is);
     return reader.readClass(className, classloader);

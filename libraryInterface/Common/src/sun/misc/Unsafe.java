@@ -130,14 +130,14 @@ public final class Unsafe {
   @Inline
   public Class<?> defineClass(String name, byte[] bytes, int off, int len, final ClassLoader parentClassLoader, ProtectionDomain protectionDomain) {
     if (parentClassLoader != null) {
-      return RVMClassLoader.defineClassInternal(name, bytes, off,len, parentClassLoader).getClassForType();
+      return RVMClassLoader.defineClassInternal(name, bytes, off,len, parentClassLoader, protectionDomain).getClassForType();
     } else {
       ClassLoader callingClassloader = null;
 //      ClassLoader callingClassloader = VMStackWalker.getCallingClassLoader();
       VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code " +
           "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
           "Classpath namespace");
-      return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
+      return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader, protectionDomain).getClassForType();
     }
   }
 
@@ -148,7 +148,7 @@ public final class Unsafe {
     VM.sysFail("Implement me with org.jikesrvm.runtime.StackBrowser or move code " +
       "from VMStackWalker.getCallingClassLoader() to a place that's not in the GNU " +
       "Classpath namespace");
-    return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader).getClassForType();
+    return RVMClassLoader.defineClassInternal(name, bytes, off,len, callingClassloader, null).getClassForType();
   }
 
   @Inline
