@@ -47,7 +47,7 @@ public class JikesRVMSupport {
   }
 
   public static void initializeInstrumentation(Instrumentation instrumenter) {
-    throw new Error("InitializeInstrumentation is not implemented");
+    // nothing to do right now
   }
 
   public static Class<?>[] getAllLoadedClasses() {
