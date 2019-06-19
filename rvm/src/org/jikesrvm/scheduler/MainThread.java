@@ -15,7 +15,6 @@ package org.jikesrvm.scheduler;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.jar.JarFile;
@@ -95,28 +94,8 @@ public final class MainThread extends Thread {
   }
 
   private static Instrumentation setupInstrumentation() throws Exception {
-    Instrumentation instrumenter = null;
-    if (VM.BuildForGnuClasspath) {
-        instrumenter = (Instrumentation)Class.forName("gnu.java.lang.JikesRVMSupport")
-          .getMethod("createInstrumentation").invoke(null);
-        java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
-    } else if (VM.BuildForOpenJDK) {
-      // FIXME OPENJDK/ICEDTEA initializeInstrumentation isn't implemented yet.
-      // OpenJDK 6 doesn't seem to provide any suitable hooks for implementation of instrumentation.
-      // The instrumentation in OpenJDK is done via native code which doesn't seem to be called automatically.
-      // That means we have to (re-)implement instrumentation ourselves and do it during classloading.
-      // Some relevant code in OpenJDK 6:
-      // JPLISAgent.c (openjdk/jdk/src/share/instrument)
-      // JPLISAgent.h (openjdk/jdk/src/share/instrument)
-      // sun.instrument.InstrumentationImpl (openjdk/jdk/src/share/classes/sun/instrument)
-      Class<?> instrumentationClass = Class.forName("sun.instrument.InstrumentationImpl");
-      Class[] constructorParameters = {long.class, boolean.class, boolean.class};
-      Constructor<?> constructor = instrumentationClass.getDeclaredConstructor(constructorParameters);
-      Object[] parameter = {Long.valueOf(0L), Boolean.FALSE, Boolean.FALSE};
-      instrumenter = (Instrumentation)constructor.newInstance(parameter);
-      java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
-
-    }
+    Instrumentation instrumenter = java.lang.JikesRVMSupport.createInstrumentation();
+    java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
     return instrumenter;
   }
 

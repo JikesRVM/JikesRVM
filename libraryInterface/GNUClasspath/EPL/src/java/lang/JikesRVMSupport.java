@@ -32,6 +32,12 @@ public class JikesRVMSupport {
     o.finalize();
   }
 
+  public static Instrumentation createInstrumentation() throws Exception {
+    Instrumentation instrumenter = (Instrumentation)Class.forName("gnu.java.lang.JikesRVMSupport")
+        .getMethod("createInstrumentation").invoke(null);
+    return instrumenter;
+  }
+
   public static void initializeInstrumentation(Instrumentation instrumenter) {
     VMClassLoader.setInstrumenter(instrumenter);
   }
