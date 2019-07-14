@@ -321,6 +321,7 @@ Ljava/lang/System$2;
 Lsun/misc/Launcher;
 Lsun/misc/Launcher$BootClassPathHolder;
 # instrumentation with Java agents
+Ljava/lang/instrument/Instrumentation;
 Lsun/instrument/InstrumentationImpl;
 
 # Jikes RVM Helpers - potentially move code somewhere else later

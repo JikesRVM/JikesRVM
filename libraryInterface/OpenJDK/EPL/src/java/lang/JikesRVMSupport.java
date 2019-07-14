@@ -15,9 +15,11 @@ package java.lang;
 import java.security.ProtectionDomain;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classlibrary.JavaLangInstrument;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.Magic;
@@ -63,11 +65,14 @@ public class JikesRVMSupport {
     Object[] parameter = {Long.valueOf(0L), Boolean.FALSE, Boolean.FALSE};
     Instrumentation instrumenter = (Instrumentation)constructor.newInstance(parameter);
     constructor.setAccessible(false);
+    Method m = instrumentationClass.getDeclaredMethod("transform", ClassLoader.class, String.class, Class.class, ProtectionDomain.class, byte[].class, boolean.class);
+    m.setAccessible(true);
+    JavaLangInstrument.setTransformMethod(m);
     return instrumenter;
   }
 
   public static void initializeInstrumentation(Instrumentation instrumenter) {
-    // nothing to do right now
+    JavaLangInstrument.setInstrumenter(instrumenter);
   }
 
   public static Class<?>[] getAllLoadedClasses() {
