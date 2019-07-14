@@ -159,6 +159,8 @@ public final class OptCompiledMethod extends CompiledMethod {
       VM.sysWrite(thisMethod.getDescriptor());
       VM.sysWrite(" declared by class with descriptor ");
       VM.sysWriteln(thisMethod.getDeclaringClass().getDescriptor());
+      VM.sysWriteln("Dumping machine code map:");
+      _mcMap.dumpMCInformation(true);
       String msg = "Couldn't find a method for given instruction offset";
       if (VM.VerifyAssertions) {
         VM._assert(NOT_REACHED, msg);
