@@ -279,7 +279,7 @@ public final class TypeReference {
       String className = klass.getName();
       if (className.startsWith("[")) {
         // an array
-        Atom classAtom = Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
+        Atom classAtom = Atom.findOrCreateAsciiAtom(ClassNameHelpers.convertClassnameToInternalName(className));
         return findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
       } else {
         Atom classDescriptor;
@@ -287,7 +287,7 @@ public final class TypeReference {
         if (primitiveTypeRef != null) {
           classDescriptor = primitiveTypeRef.name;
         } else {
-          Atom classAtom = Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
+          Atom classAtom = Atom.findOrCreateAsciiAtom(ClassNameHelpers.convertClassnameToInternalName(className));
           classDescriptor = classAtom.descriptorFromClassName();
         }
         return findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);

@@ -188,7 +188,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     }
     if (className.startsWith("[")) {
       TypeReference typeRef =
-          TypeReference.findOrCreate(this, Atom.findOrCreateAsciiAtom(className.replace('.', '/')));
+          TypeReference.findOrCreate(this, Atom.findOrCreateAsciiAtom(ClassNameHelpers.convertClassnameToInternalName(className)));
       RVMType ans = typeRef.resolve();
       loaded.put(className, ans);
       return ans.getClassForType();

@@ -23,6 +23,7 @@ import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classlibrary.JavaLangSupport;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.ClassNameHelpers;
 import org.jikesrvm.classloader.JMXSupport;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
@@ -682,7 +683,7 @@ public class VM extends Properties {
       sysWrite("running class initializer for ");
       sysWriteln(className);
     }
-    Atom classDescriptor = Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
+    Atom classDescriptor = Atom.findOrCreateAsciiAtom(ClassNameHelpers.convertClassnameToInternalName(className)).descriptorFromClassName();
     TypeReference tRef =
         TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     RVMClass cls = (RVMClass) tRef.peekType();

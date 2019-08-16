@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.ir.operand;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.ClassNameHelpers;
 import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Offset;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -69,7 +70,7 @@ public class ObjectConstantOperand extends ConstantOperand {
     } else {
       Class<?> rc = value.getClass();
       String className = rc.getName();
-      Atom classAtom = Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
+      Atom classAtom = Atom.findOrCreateAsciiAtom(ClassNameHelpers.convertClassnameToInternalName(className));
       if (className.startsWith("[")) {
         // an array
         return TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
