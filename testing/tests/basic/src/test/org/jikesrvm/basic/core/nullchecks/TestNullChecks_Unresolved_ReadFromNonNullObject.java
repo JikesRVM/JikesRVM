@@ -345,7 +345,7 @@ public class TestNullChecks_Unresolved_ReadFromNonNullObject {
   private static final int DEFAULT_INT = 123456789;
   private static final long DEFAULT_LONG = 123456789101112L;
   private static final double DEFAULT_DOUBLE = 1.23456789E100d;
-  private static final float DEFAULT_FLOAT = 1.23456789E10f;
+  private static final float DEFAULT_FLOAT = 1.23E4f;
   private static final Word DEFAULT_WORD = Word.fromIntZeroExtend(21);
   private static final Address DEFAULT_ADDRESS = Address.fromIntZeroExtend(12345);
   private static final Offset DEFAULT_OFFSET = Offset.fromIntZeroExtend(3);

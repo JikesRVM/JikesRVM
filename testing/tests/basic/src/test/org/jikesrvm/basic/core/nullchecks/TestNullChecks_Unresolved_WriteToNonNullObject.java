@@ -298,7 +298,7 @@ public class TestNullChecks_Unresolved_WriteToNonNullObject {
   private static final int DEFAULT_INT = 123456789;
   private static final long DEFAULT_LONG = 123456789101112L;
   private static final double DEFAULT_DOUBLE = 1.23456789E100d;
-  private static final float DEFAULT_FLOAT = 1.23456789E10f;
+  private static final float DEFAULT_FLOAT = 1.23E4f;
   private static final Word DEFAULT_WORD = Word.fromIntZeroExtend(21);
   private static final Address DEFAULT_ADDRESS = Address.fromIntZeroExtend(12345);
   private static final Offset DEFAULT_OFFSET = Offset.fromIntZeroExtend(3);
@@ -312,7 +312,7 @@ public class TestNullChecks_Unresolved_WriteToNonNullObject {
   private static final int WRITE_INT = 2500001;
   private static final long WRITE_LONG = 120010007600001L;
   private static final double WRITE_DOUBLE = 7.0078E100d;
-  private static final float WRITE_FLOAT = 8.0005E10f;
+  private static final float WRITE_FLOAT = 8.9E7f;
   private static final Word WRITE_WORD = Word.fromIntZeroExtend(10);
   private static final Address WRITE_ADDRESS = Address.fromIntZeroExtend(1240);
   private static final Offset WRITE_OFFSET = Offset.fromIntZeroExtend(12);

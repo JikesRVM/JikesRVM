@@ -160,6 +160,7 @@
     <runCompareTest tag="TestLoadingWithoutName" class="test.org.jikesrvm.basic.core.classloading.TestLoadingWithoutName"/>
 
     <runCompareTest tag="TestMath" class="test.org.jikesrvm.basic.java.lang.TestMath"/>
+    <runCompareTest tag="TestFloatingPointPrintouts" class="test.org.jikesrvm.basic.java.lang.TestFloatingPointPrintouts"/>
     <runCompareTest tag="TestSystem" class="test.org.jikesrvm.basic.java.lang.TestSystem"/>
     <runCompareTest tag="TestFileChannel" class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
 

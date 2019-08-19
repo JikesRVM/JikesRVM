@@ -781,7 +781,7 @@ public class TestNullChecks_Resolved {
   static final int DEFAULT_INT = 123456789;
   static final long DEFAULT_LONG = 123456789101112L;
   static final double DEFAULT_DOUBLE = 1.23456789E100d;
-  static final float DEFAULT_FLOAT = 1.23456789E10f;
+  static final float DEFAULT_FLOAT = 1.23E4f;
   static final Word DEFAULT_WORD = Word.fromIntZeroExtend(21);
   static final Address DEFAULT_ADDRESS = Address.fromIntZeroExtend(12345);
   static final Offset DEFAULT_OFFSET = Offset.fromIntZeroExtend(3);
@@ -795,7 +795,7 @@ public class TestNullChecks_Resolved {
   private static final int NPE_INT = 45678910;
   private static final long NPE_LONG = 121110987654321L;
   private static final double NPE_DOUBLE = 0.23456789E100d;
-  private static final float NPE_FLOAT = 0.23456789E10f;
+  private static final float NPE_FLOAT = 0.234567E10f;
   private static final Word NPE_WORD = Word.fromIntZeroExtend(11);
   private static final Address NPE_ADDRESS = Address.fromIntZeroExtend(6455);
   private static final Offset NPE_OFFSET = Offset.fromIntZeroExtend(5);
@@ -809,7 +809,7 @@ public class TestNullChecks_Resolved {
   private static final int WRITE_INT = 2500001;
   private static final long WRITE_LONG = 120010007600001L;
   private static final double WRITE_DOUBLE = 7.0078E100d;
-  private static final float WRITE_FLOAT = 8.0005E10f;
+  private static final float WRITE_FLOAT = 8.9E7f;
   private static final Word WRITE_WORD = Word.fromIntZeroExtend(10);
   private static final Address WRITE_ADDRESS = Address.fromIntZeroExtend(1240);
   private static final Offset WRITE_OFFSET = Offset.fromIntZeroExtend(12);

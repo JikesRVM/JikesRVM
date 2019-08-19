@@ -46,9 +46,9 @@ Read value 1.23456789E100 from field
 Caught NPE when writing double field
 Wrote value 7.0078E100 to field
 Caught NPE when reading float field
-Read value 1.23456788E10 from field
+Read value 12300.0 from field
 Caught NPE when writing float field
-Wrote value 8.0005E10 to field
+Wrote value 8.9E7 to field
 Caught NPE when reading Word field
 Read value 21 from field
 Caught NPE when writing Word field
@@ -98,9 +98,9 @@ Read value 1.23456789E100 from field
 Caught NPE when writing double field
 Wrote value 7.0078E100 to field
 Caught NPE when reading float field
-Read value 1.23456788E10 from field
+Read value 12300.0 from field
 Caught NPE when writing float field
-Wrote value 8.0005E10 to field
+Wrote value 8.9E7 to field
 Caught NPE when reading Word field
 Read value 21 from field
 Caught NPE when writing Word field
