@@ -329,7 +329,7 @@ JNIEXPORT jint JNICALL JVM_Open(const char *fileName, jint flags, jint mode) {
   openReturnVal = open(fileName, (int) flags, (mode_t) mode);
   if (openReturnVal < 0) {
     int savedErrorNumber = errno;
-    ERROR_PRINTF("JVM_Open: error opening file %s: %s\n", fileName, strerror(savedErrorNumber));
+    OPENJDK_DEBUG_PRINTF("JVM_Open: error opening file %s: %s\n", fileName, strerror(savedErrorNumber));
     return (jint) openReturnVal;
   }
   OPENJDK_DEBUG_PRINTF("JVM_Open: returning %d\n", openReturnVal);
