@@ -62,10 +62,10 @@
     <runCompareTest tag="RVM_957_Testcase" class="test.org.jikesrvm.opttests.bugs.RVM_957_Testcase"/>
     <runCompareTest tag="RVM_964_Testcase" class="test.org.jikesrvm.opttests.bugs.RVM_964_Testcase"/>
     <runCompareTest tag="RVM_1016_Testcase" class="test.org.jikesrvm.opttests.bugs.RVM_1016_Testcase"/>
-    <runCompareTest tag="RVM_1129_A" class="test.org.jikesrvm.opttests.bugs.RVM_1129_A" exitCode="113"/>
-    <runCompareTest tag="RVM_1129_B" class="test.org.jikesrvm.opttests.bugs.RVM_1129_B" exitCode="113"/>
-    <runCompareTest tag="RVM_1129_C" class="test.org.jikesrvm.opttests.bugs.RVM_1129_C" exitCode="113"/>
-    <runCompareTest tag="RVM_1129_ArithmeticException" class="test.org.jikesrvm.opttests.bugs.RVM_1129_ArithmeticException" exitCode="113"/>
+    <runCompareWithNormalizedWhitespaceTest tag="RVM_1129_A" class="test.org.jikesrvm.opttests.bugs.RVM_1129_A" exitCode="113"/>
+    <runCompareWithNormalizedWhitespaceTest tag="RVM_1129_B" class="test.org.jikesrvm.opttests.bugs.RVM_1129_B" exitCode="113"/>
+    <runCompareWithNormalizedWhitespaceTest tag="RVM_1129_C" class="test.org.jikesrvm.opttests.bugs.RVM_1129_C" exitCode="113"/>
+    <runCompareWithNormalizedWhitespaceTest tag="RVM_1129_ArithmeticException" class="test.org.jikesrvm.opttests.bugs.RVM_1129_ArithmeticException" exitCode="113"/>
 
     <!-- Deactivated because it will fail with the opt compiler. See RVM-1158
     <runCompareTest tag="RVM_1129_ArrayIndexOutOfBoundsException" class="test.org.jikesrvm.opttests.bugs.RVM_1129_ArrayIndexOutOfBoundsException" exitCode="113"/>

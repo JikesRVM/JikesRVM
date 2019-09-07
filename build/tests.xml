@@ -661,6 +661,53 @@
     </sequential>
   </macrodef>
 
+  <!-- run test, then normalize whitespace in output, then compare output to expected value in file named @{class}@{name}.expected and output results -->
+  <macrodef name="runCompareWithNormalizedWhitespaceTest">
+    <attribute name="tag"/>
+    <attribute name="class" default=""/>
+    <attribute name="classpath" default=""/>
+    <attribute name="bootclasspath" default=""/>
+    <attribute name="args" default=""/>
+    <attribute name="execution" default="default"/>
+    <attribute name="initialHeapSize" default=""/>
+    <attribute name="maxHeapSize" default=""/>
+    <attribute name="rvmArgs" default=""/>
+    <attribute name="timeLimit" default=""/>
+    <attribute name="exitCode" default="0"/>
+    <attribute name="expectedFile" default="@{class}"/>
+    <sequential>
+      <rvm tag="@{tag}"
+           class="@{class}"
+           args="@{args}"
+           classpath="@{classpath}"
+           bootclasspath="@{bootclasspath}"
+           initialHeapSize="@{initialHeapSize}"
+           maxHeapSize="@{maxHeapSize}"
+           rvmArgs="@{rvmArgs}"
+           timeLimit="@{timeLimit}"
+           exitCode="@{exitCode}"/>
+
+      <echo message="@{expectedFile}" file="${build.tests.dir}/deleteme.txt"/>
+      <replace file="${build.tests.dir}/deleteme.txt" token="." value="${file.separator}"/>
+
+      <loadfile property="test.@{tag}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
+      <copy file="${test.@{tag}.default.sanitized.output.file}" tofile="${build.tests.dir}/deleteme-output.txt"/>
+      <replaceregexp file="${build.tests.dir}/deleteme-output.txt" match="\s+" replace=" " flags="g" byline="true"/>
+
+      <loadfile property="test.@{tag}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
+      <copy file="${main.java}/${test.@{tag}.expected.output.file}.expected" toFile="${build.tests.dir}/adjusted-expected.txt"/>
+      <property name="adjustedExpected" value="${build.tests.dir}/adjusted-expected.txt"/>
+      <replaceregexp file="${adjustedExpected}" match="\s+" replace=" " flags="g" byline="true"/>
+
+      <diffCompareFiles tag="@{tag}"
+                execution="@{execution}"
+                        expected="${adjustedExpected}"
+                        actual="${build.tests.dir}/deleteme-output.txt"/>
+
+      <outputResults tag="@{tag}"/>
+    </sequential>
+  </macrodef>
+
   <!-- Similar to runCompareTest but uses a success message rather than checksum -->
   <macrodef name="successMessageTest">
     <attribute name="tag"/>
