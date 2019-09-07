@@ -217,6 +217,9 @@ public abstract class CompiledMethod {
         VM.sysWriteln("In thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);
         VM.sysWrite("\tsupposed method is ");
         VM.sysWrite(method);
+        VM.sysWrite(" (");
+        VM.sysWrite(CompiledMethod.compilerTypeToString(getCompilerType()));
+        VM.sysWrite(")");
         VM.sysWriteln();
         VM.sysWriteln("\tcode for this method starts at ", instructionStart);
         VM.sysWriteln("\t and has last valid return address of ", instructionStart.plus(max));
