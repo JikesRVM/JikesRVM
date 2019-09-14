@@ -49,6 +49,8 @@
     <taskdef name="SplitInstructionFormats" classname="org.jikesrvm.tools.ant.SplitInstructionFormats" classpath="${tasks.classes}"/>
     <!-- Generate a summary about all the bootimage sizes in a directory -->
     <taskdef name="GenerateBootImageSizeSummary" classname="org.jikesrvm.tools.ant.GenerateBootImageSizeSummary" classpath="${tasks.classes}"/>
+    <!-- Compare two text files containing stack traces for equivalence -->
+    <typedef name="StackTraceFilesAreEquivalent" classname="org.jikesrvm.tools.ant.StackTraceFilesAreEquivalent" classpath="${tasks.classes}"/>
   </target>
 
 </project>

@@ -622,6 +622,24 @@
     </sequential>
   </macrodef>
 
+  <!-- test the results of test run against an expected value in file named  @{class}@{name}.expected -->
+  <macrodef name="compareStackTraceFiles">
+    <attribute name="tag"/>
+    <attribute name="execution"/>
+    <attribute name="expected"/>
+    <attribute name="actual"/>
+    <sequential>
+      <touch file="@{expected}"/>
+      <touch file="@{actual}"/>
+      <condition property="test.@{tag}.@{execution}.result" value="FAILURE">
+        <not>
+          <StackTraceFilesAreEquivalent firstFile="@{expected}" secondFile="@{actual}"/>
+        </not>
+      </condition>
+      <explainResult tag="@{tag}" execution="@{execution}" message="Stack traces are not semantically equivalent"/>
+    </sequential>
+  </macrodef>
+
   <!-- run test then compare output to expected value in file named @{class}@{name}.expected and output results -->
   <macrodef name="runCompareTest">
     <attribute name="tag"/>
@@ -662,7 +680,7 @@
   </macrodef>
 
   <!-- run test, then normalize whitespace in output, then compare output to expected value in file named @{class}@{name}.expected and output results -->
-  <macrodef name="runCompareWithNormalizedWhitespaceTest">
+  <macrodef name="runCompareStackTraces">
     <attribute name="tag"/>
     <attribute name="class" default=""/>
     <attribute name="classpath" default=""/>
@@ -689,20 +707,13 @@
 
       <echo message="@{expectedFile}" file="${build.tests.dir}/deleteme.txt"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="." value="${file.separator}"/>
-
       <loadfile property="test.@{tag}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
-      <copy file="${test.@{tag}.default.sanitized.output.file}" tofile="${build.tests.dir}/deleteme-output.txt"/>
-      <replaceregexp file="${build.tests.dir}/deleteme-output.txt" match="\s+" replace=" " flags="g" byline="true"/>
 
-      <loadfile property="test.@{tag}.expected.output.file" srcFile="${build.tests.dir}/deleteme.txt"/>
-      <copy file="${main.java}/${test.@{tag}.expected.output.file}.expected" toFile="${build.tests.dir}/adjusted-expected.txt"/>
-      <property name="adjustedExpected" value="${build.tests.dir}/adjusted-expected.txt"/>
-      <replaceregexp file="${adjustedExpected}" match="\s+" replace=" " flags="g" byline="true"/>
-
-      <diffCompareFiles tag="@{tag}"
+      <compareStackTraceFiles tag="@{tag}"
                 execution="@{execution}"
-                        expected="${adjustedExpected}"
-                        actual="${build.tests.dir}/deleteme-output.txt"/>
+                        expected="${main.java}/${test.@{tag}.expected.output.file}.expected"
+                        actual="${test.@{tag}.default.sanitized.output.file}"/>
+
 
       <outputResults tag="@{tag}"/>
     </sequential>
