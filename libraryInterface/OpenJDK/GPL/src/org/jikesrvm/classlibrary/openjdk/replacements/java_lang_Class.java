@@ -196,7 +196,6 @@ public class java_lang_Class<T> {
   // first entry in the array: the immediately enclosing class (never null) <- Class
   // second entry: name of the enclosing method or constructor (may be null) <- String
   // third entry: descriptor of the enclosing method or constructor (may only be null when name is null, otherwise non-null) <- String
-  // -> use RVMClass.getEnclosingMethod and get information from there! (getEnclosingClass would return null if the class is not inner/nested)bl
   @ReplaceMember
   private Object[] getEnclosingMethod0() {
     RVMType type = JikesRVMSupport.getTypeForClass((Class<?>) (Object) this);
@@ -206,7 +205,14 @@ public class java_lang_Class<T> {
     RVMClass thisClass = type.asClass();
     MethodReference enclosingMethod = thisClass.getEnclosingMethod();
     if (enclosingMethod == null) {
-      return null;
+      TypeReference enclosingClassTypeRef = thisClass.getEnclosingClass();
+      if (enclosingClassTypeRef == null) {
+        return null;
+      }
+      RVMClass enclClass = enclosingClassTypeRef.resolve().asClass();
+      Object[] returnValue = new Object[3];
+      returnValue[0] = enclClass.getClassForType();
+      return returnValue;
     }
     RVMMethod resolve = enclosingMethod.resolve();
     Object[] returnValue = new Object[3];
