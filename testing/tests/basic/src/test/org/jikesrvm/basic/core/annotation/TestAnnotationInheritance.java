@@ -12,7 +12,6 @@
  */
 package test.org.jikesrvm.basic.core.annotation;
 
-import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -45,13 +44,11 @@ public class TestAnnotationInheritance {
   }
 
   public static void main(String[] args) {
-    final Annotation[] annotations = Y.class.getAnnotations();
-    for (final Annotation annotation : annotations) {
-      System.out.println(annotation.annotationType().getName());
-    }
     check("getAnnotations must return 2 annotations, 1 inherited and 1 declared", Y.class.getAnnotations().length == 2);
-    check("getAnnotations must return declared first", Y.class.getAnnotations()[0] instanceof B);
-    check("getAnnotations must return inherited second", Y.class.getAnnotations()[1] instanceof A);
+    boolean declaredReturned = Y.class.getAnnotations()[0] instanceof B || Y.class.getAnnotations()[1] instanceof B;
+    check("getAnnotations must return declared", declaredReturned);
+    boolean inheritedReturned = Y.class.getAnnotations()[0] instanceof A || Y.class.getAnnotations()[1] instanceof A;
+    check("getAnnotations must return inherited", inheritedReturned);
     check("getAnnotation on non-declared, non-inherited annotation must return null", Y.class.getAnnotation(C.class) == null);
     check("getAnnotation on declared annotation must not return null", Y.class.getAnnotation(B.class) != null);
     check("getAnnotation on inherited annotation must not return null", Y.class.getAnnotation(A.class) != null);
