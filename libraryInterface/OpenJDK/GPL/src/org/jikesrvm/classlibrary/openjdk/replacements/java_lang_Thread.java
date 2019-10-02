@@ -116,14 +116,18 @@ public class java_lang_Thread {
   private void suspend0() {
     RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
     if (VM.VerifyAssertions) VM._assert(rvmThread != null);
-    rvmThread.suspend();
+    synchronized (this) {
+      rvmThread.suspend();
+    }
   }
 
   @ReplaceMember
   private void resume0() {
     RVMThread rvmThread = JikesRVMSupport.getThread(thisAsThread());
     if (VM.VerifyAssertions) VM._assert(rvmThread != null);
-    rvmThread.resume();
+    synchronized (this) {
+      rvmThread.resume();
+    }
   }
 
   private Thread thisAsThread() {
