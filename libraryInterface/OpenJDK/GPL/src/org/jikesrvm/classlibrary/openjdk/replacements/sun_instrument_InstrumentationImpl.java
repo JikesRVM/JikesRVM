@@ -25,13 +25,30 @@
 
 package org.jikesrvm.classlibrary.openjdk.replacements;
 
+import org.jikesrvm.classlibrary.JavaLangInstrumentSupport;
 import org.vmmagic.pragma.ReplaceClass;
+import org.vmmagic.pragma.ReplaceMember;
 
 @ReplaceClass(className = "sun.instrument.InstrumentationImpl")
 public class sun_instrument_InstrumentationImpl {
 
   static {
     // don't load any static libraries
+  }
+
+  @ReplaceMember
+  public long getObjectSize(Object objectToSize) {
+    return JavaLangInstrumentSupport.getObjectSize(objectToSize);
+  }
+
+  @ReplaceMember
+  public Class[] getAllLoadedClasses() {
+    return java.lang.JikesRVMSupport.getAllLoadedClasses();
+  }
+
+  @ReplaceMember
+  public Class[] getInitiatedClasses(ClassLoader loader) {
+    return java.lang.JikesRVMSupport.getInitiatedClasses(loader);
   }
 
 }

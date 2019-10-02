@@ -15,9 +15,7 @@ package gnu.java.lang;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.ClassDefinition;
 
-import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classlibrary.JavaLangInstrumentSupport;
 
 
 /**
@@ -42,15 +40,6 @@ final class VMInstrumentationImpl {
   }
 
   static long getObjectSize(Object objectToSize) {
-    Class<?> cl = objectToSize.getClass();
-    RVMType vmType = java.lang.JikesRVMSupport.getTypeForClass(cl);
-    if (cl.isArray()) {
-      RVMArray vmArray = (RVMArray)vmType;
-      int nelements = java.lang.reflect.Array.getLength(objectToSize);
-      return vmArray.getInstanceSize(nelements);
-    } else {
-      RVMClass vmClass = (RVMClass)vmType;
-      return vmClass.getInstanceSize();
-    }
+    return JavaLangInstrumentSupport.getObjectSize(objectToSize);
   }
 }

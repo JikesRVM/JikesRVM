@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
+import org.jikesrvm.classlibrary.ClassLoaderSupport;
 import org.jikesrvm.classlibrary.JavaLangInstrument;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMType;
@@ -76,13 +77,11 @@ public class JikesRVMSupport {
   }
 
   public static Class<?>[] getAllLoadedClasses() {
-    //    VM.sysWriteln("get allloadedclasses is not implemented");
-    throw new Error("GetAllLoadedClasses is not implemented");
+    return ClassLoaderSupport.getAllLoadedClasses();
   }
 
   public static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
-    //    return VMClassLoader.getInitiatedClasses(classLoader);
-    throw new Error("GetInitiatedClasses is not implemented");
+    return ClassLoaderSupport.getInitiatedClasses(classLoader);
   }
 
   public static Class<?> createClass(RVMType type) {
