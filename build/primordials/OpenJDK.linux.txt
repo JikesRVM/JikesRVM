@@ -328,3 +328,19 @@ Lsun/instrument/InstrumentationImpl;
 Ljava/lang/reflect/JikesRVMHelpers;
 # for shutdown hooks
 Ljava/util/IdentityHashMap;
+# various classes that were missing from the boot image
+Ljava/util/AbstractMap;
+Ljava/util/AbstractSequentialList;
+Ljava/util/HashMap$HashIterator;
+Lsun/reflect/MethodAccessorImpl;
+Ljava/io/FilterReader;
+Ljava/util/TreeSet;
+Lsun/reflect/generics/repository/AbstractRepository;
+Ljava/nio/MappedByteBuffer;
+Ljava/io/Reader;
+Lsun/reflect/ConstructorAccessorImpl;
+Ljava/io/BufferedReader;
+Ljava/io/InputStreamReader;
+Lsun/reflect/MagicAccessorImpl;
+Lsun/reflect/generics/repository/GenericDeclRepository;
+Lsun/reflect/ConstantPool;
