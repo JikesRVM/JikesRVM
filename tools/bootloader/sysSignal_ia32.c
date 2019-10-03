@@ -416,7 +416,6 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
       case 0x0B: // ud2 - undefined instruction
       case 0x31: // rdtsc - read time stamp counter
         break;
-
       case 0x80: case 0x81: case 0x82: case 0x83: // conditional jumps
       case 0x84: case 0x85: case 0x86: case 0x87:
       case 0x88: case 0x89: case 0x8A: case 0x8B:
@@ -434,6 +433,7 @@ static Address getInstructionFollowing(Address faultingInstructionAddress) {
       case 0x2A: // ctpi2ps, cvtsi2ss, cvtpi2pd, cvtsi2sd
       case 0x2C: // cvttps2pi, cvttss2si, cvttpd2pi, cvttsd2si
       case 0x2E: // ucomisd, ucomiss
+      case 0x40: // cmov
       case 0x45: // cmovnz, cmovne
       case 0x51: // sqrtps, sqrtss, sqrtpd, sqrtsd
       case 0x54: // andps, andpd, andnps, andnpd
