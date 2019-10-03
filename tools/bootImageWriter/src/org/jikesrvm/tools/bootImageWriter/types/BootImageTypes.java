@@ -122,7 +122,7 @@ public abstract class BootImageTypes {
     for (FieldInfo fieldInfo : BootImageTypes.bootImageTypeFields.values()) {
       RVMType rvmType = fieldInfo.rvmType;
       if (rvmType == null) {
-        if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) say("bootImageTypeField entry has no rvmType:" + fieldInfo.jdkType);
+        logInformationAboutMissingTypeIfNecessary(fieldInfo);
         continue;
       }
       Class<?> jdkType   = fieldInfo.jdkType;
@@ -174,7 +174,41 @@ public abstract class BootImageTypes {
     return invalidEntrys;
   }
 
+  private static void logInformationAboutMissingTypeIfNecessary(
+      FieldInfo fieldInfo) {
+    Class<?> jdkType = fieldInfo.jdkType;
+    if (knownToBeMissingOnCurrentHostClassLibrary(jdkType)) {
+      if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) {
+        say("bootImageTypeField entry has no rvmType: " + jdkType + " but that's ok because we know it's missing in the current host class library");
+      }
+    } else {
+      if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) {
+        say("bootImageTypeField entry has no rvmType: " + jdkType);
+      }
+    }
+  }
 
+
+  /**
+   * @param jdkType the JDK type to check
+   * @return whether we know that the type is missing in our current implementation of the class library
+   */
+  private static boolean knownToBeMissingOnCurrentHostClassLibrary(Class<?> jdkType) {
+    String name = jdkType.getName();
+    if ("java.lang.ReflectiveOperationException".equals(name)) {
+      // only present from Java 7 on and we're using Java 6
+      return true;
+    } else if ("java.lang.reflect.Executable".equals(name)) {
+      // only present from Java 8 on and we're using Java 6
+      return true;
+    } else if ("java.uitl.HashMap$Node".equals(name)) {
+      // present in Java 8 but not present in Java 6 (the class
+      // was renamed in Java 8 because the internal organization of HashMap
+      // was changed)
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Obtains accessor via which a field value may be fetched from host JDK
@@ -293,7 +327,7 @@ public abstract class BootImageTypes {
     for (FieldInfo fieldInfo : fields) {
       RVMType rvmType = fieldInfo.rvmType;
       if (rvmType == null) {
-        if (BootImageWriter.verbosity().isAtLeast(SUMMARY)) say("bootImageTypeField entry has no rvmType:" + fieldInfo.jdkType);
+        logInformationAboutMissingTypeIfNecessary(fieldInfo);
         continue;
       }
       Class<?> jdkType   = fieldInfo.jdkType;
