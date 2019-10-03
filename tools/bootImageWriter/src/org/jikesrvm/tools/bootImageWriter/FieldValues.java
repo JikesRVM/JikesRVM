@@ -485,6 +485,11 @@ public class FieldValues {
           rvmFieldName);
     }
 
+    if (jdkObject instanceof java.lang.reflect.Constructor && "constructorAccessor".equals(rvmFieldName)) {
+      nullifyFieldKnownToBeInvalidAtRuntime(jdkType, rvmField, rvmFieldType, rvmFieldName, rvmFieldAddress);
+      return;
+    }
+
     boolean valueCopied = FieldValues.setInstanceFieldViaJDKMapping(jdkObject, rvmScalarType, allocOnly,
         rvmField, rvmFieldType, rvmFieldAddress, rvmFieldName, jdkFieldAcc,
         untracedField);
@@ -502,6 +507,20 @@ public class FieldValues {
     // Field not found at all, set default value
     FieldValues.setLanguageDefaultValueForInstanceField(jdkType, rvmField,
         rvmFieldType, rvmFieldAddress, rvmFieldName, untracedField);
+  }
+
+  private static void nullifyFieldKnownToBeInvalidAtRuntime(Class<?> jdkType,
+      RVMField rvmField, TypeReference rvmFieldType, String rvmFieldName, Address rvmFieldAddress) {
+    // Field is known to be invalid when simply copied but generating a value now isn't desired or possible.
+    // Therefore, just null it out.
+    BootImageWriter.bootImage().setNullAddressWord(rvmFieldAddress, true, true, false);
+    if (BootImageWriter.verbosity().isAtLeast(DETAILED)) BootImageWriter.traceContext().push(rvmFieldType.toString(),
+        jdkType.getName(), rvmFieldName);
+    if (BootImageWriter.verbosity().isAtLeast(DETAILED)) BootImageWriter.traceContext().trace(" Nulling out field " +
+        rvmFieldName + " from " + jdkType + " because generating a value is not desirable or possible");
+    if (BootImageWriter.verbosity().isAtLeast(DETAILED)) BootImageWriter.traceContext().pop();
+    if (!VM.runningTool)
+      BootImageWriter.bootImage().countNulledReference();
   }
 
   private static void setLanguageDefaultValueForInstanceField(Class<?> jdkType,
