@@ -30,6 +30,7 @@
 #include <string.h> // for strcmp
 #include <jni.h>
 #include <signal.h> // for siginfo
+#include <pthread.h> // threads
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -55,14 +56,8 @@
   #define Word uint64_t
 #endif
 
-#ifdef RVM_FOR_HARMONY
-  #define TLS_KEY_TYPE hythread_tls_key_t
-  #define GET_THREAD_LOCAL(key) hythread_tls_get(hythread_self(), key)
-#else
-  #include <pthread.h>
-  #define TLS_KEY_TYPE pthread_key_t
-  #define GET_THREAD_LOCAL(key) pthread_getspecific(key)
-#endif
+#define TLS_KEY_TYPE pthread_key_t
+#define GET_THREAD_LOCAL(key) pthread_getspecific(key)
 
 /** Page size determined at runtime */
 extern Extent pageSize;
@@ -103,10 +98,6 @@ extern Extent pageSize;
 #define EXTERNAL extern "C"
 #else
 #define EXTERNAL
-#endif
-
-#if (defined RVM_FOR_LINUX) && (defined RVM_FOR_HARMONY)
-#define LINUX
 #endif
 
 #define ERROR_PRINTF(...) fprintf(SysErrorFile, __VA_ARGS__)

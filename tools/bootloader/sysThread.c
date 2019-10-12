@@ -43,18 +43,12 @@ static const Address MAIN_THREAD_ALLOW_TERMINATE = 1;
 static const Address MAIN_THREAD_DONT_TERMINATE = 2;
 
 
-#ifdef RVM_FOR_HARMONY
-#include "hythread.h"
-#else
 #include <pthread.h>
-#endif
 
-#ifndef RVM_FOR_HARMONY
 typedef struct {
   pthread_mutex_t mutex;
   pthread_cond_t cond;
 } vmmonitor_t;
-#endif
 
 EXTERNAL void VMI_Initialize();
 
@@ -67,11 +61,7 @@ static const int debugging = 0;
 // #define DEBUG_SYS
 // #define DEBUG_THREAD
 
-#ifdef RVM_FOR_HARMONY
-EXTERNAL int sysThreadStartup(void *args);
-#else
 EXTERNAL void *sysThreadStartup(void *args);
-#endif
 
 EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 
@@ -82,11 +72,7 @@ static TLS_KEY_TYPE sigStackKey;
 
 void createThreadLocal(TLS_KEY_TYPE *key) {
   int rc;
-#ifdef RVM_FOR_HARMONY
-  rc = hythread_tls_alloc(key);
-#else
   rc = pthread_key_create(key, 0);
-#endif
   if (rc != 0) {
     ERROR_PRINTF("%s: alloc tls key failed (err=%d)\n", Me, rc);
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
@@ -136,9 +122,6 @@ EXTERNAL void * getVmThread()
 EXTERNAL void sysInitialize()
 {
   TRACE_PRINTF("%s: sysInitialize\n", Me);
-#ifdef RVM_FOR_HARMONY
-  VMI_Initialize();
-#endif
   DeathLock = sysMonitorCreate();
 }
 
@@ -685,41 +668,27 @@ EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority)
 
 EXTERNAL Word sysMonitorCreate()
 {
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_t monitor;
-  hythread_monitor_init_with_name(&monitor, 0, NULL);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*) checkMalloc(sizeof(vmmonitor_t));
   pthread_mutex_init(&monitor->mutex, NULL);
   pthread_cond_init(&monitor->cond, NULL);
-#endif
   TRACE_PRINTF("%s: sysMonitorCreate %p\n", Me, (void*)monitor);
   return (Word)monitor;
 }
 
 EXTERNAL void sysMonitorDestroy(Word _monitor)
 {
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_destroy((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   pthread_mutex_destroy(&monitor->mutex);
   pthread_cond_destroy(&monitor->cond);
   checkFree(monitor);
-#endif
   TRACE_PRINTF("%s: sysMonitorDestroy %p\n", Me, (void*)_monitor);
 }
 
 EXTERNAL int sysMonitorEnter(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorEnter %p\n", Me, (void*)_monitor);
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_enter((hythread_monitor_t)_monitor);
-  return 0;
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   return pthread_mutex_lock(&monitor->mutex);
-#endif
 }
 
 EXTERNAL int sysMonitorExit(Word _monitor)
