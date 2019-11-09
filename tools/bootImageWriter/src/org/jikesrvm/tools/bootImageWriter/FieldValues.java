@@ -94,6 +94,9 @@ public class FieldValues {
           // FIXME OPENJDK/ICEDTEA will probably lead to problems at runtime
           if (VM.VerifyAssertions) VM._assert(VM.BuildForOpenJDK);
           say("Doing nothing for proxy " + jdkObject + " for now");
+        } else if (OpenJDKDifferences.classOughtToBeSkippedFromCopying(jdkObjectAsClass)) {
+          if (VM.VerifyAssertions) VM._assert(VM.BuildForOpenJDK);
+          say("Doing nothing for class " + jdkObject + " with type " + jdkObjectAsClass + " for now");
         } else {
           value = TypeReference.findOrCreate((Class<?>)jdkObject).peekType();
           if (value == null) {

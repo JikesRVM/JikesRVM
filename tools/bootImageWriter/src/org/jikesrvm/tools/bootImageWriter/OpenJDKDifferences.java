@@ -38,6 +38,10 @@ import org.vmmagic.unboxed.Address;
  */
 public class OpenJDKDifferences {
 
+  static boolean classOughtToBeSkippedFromCopying(Class<?> openJdkClass) {
+    return openJdkClass.getName().startsWith("sun.nio.fs.UnixNativeDispatcher$1");
+  }
+
   private static class TableEntryWithNewIndex {
 
     private Object tableEntry;
