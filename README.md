@@ -11,7 +11,7 @@ More information is available at our [website](http://www.jikesrvm.org).
 You'll need
 
 * a JDK (>= 6 and < 9). Building with JDK 9 or later is currently [not supported](https://xtenlang.atlassian.net/projects/RVM/issues/RVM-1136).
-* Ant (>= 1.7) with optional tasks (e.g. for JUnit and JavaDoc)
+* Ant (>= 1.7 and < 1.10) with optional tasks (e.g. for JUnit and JavaDoc). Running unit tests with Ant 1.10 is not supported because Ant 1.10 uses class file version 52 (Java 8) and Jikes RVM currently only supports class file version 50 (Java 6).
 * GCC with multilibs
 * Bison
 * an internet connection during the first build to download [GNU Classpath](http://www.gnu.org/software/classpath/) and other components
