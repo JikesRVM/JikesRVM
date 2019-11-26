@@ -89,7 +89,7 @@ public class ClassFileReader {
       case 50: // we only support up to 50.0 (ie Java 1.6.0)
         if (minor == 0) break;
       default:
-        throw new UnsupportedClassVersionError("unsupported class file version " + major + "." + minor);
+        throw new UnsupportedClassVersionError("unsupported class file version " + major + "." + minor + " for type " + typeRef);
     }
 
     //
