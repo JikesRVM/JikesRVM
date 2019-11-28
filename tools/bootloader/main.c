@@ -498,7 +498,7 @@ static const char ** processCommandLineArguments(JavaVMInitArgs *initArgs, const
  */
 int main(int argc, const char **argv)
 {
-  int vbufret, j, ret;
+  int j, ret;
   JavaVMInitArgs initArgs;
   JavaVM *mainJavaVM;
   JNIEnv *mainJNIEnv;
