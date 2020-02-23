@@ -38,6 +38,7 @@ SUNWprivate_1.1 {
     JVM_Write;
     JVM_Close;
     JVM_Available;
+    JVM_Sync;
     JVM_SupportsCX8;
     JVM_GetLastErrorString;
     JVM_ActiveProcessorCount;

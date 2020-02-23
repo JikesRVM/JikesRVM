@@ -431,6 +431,14 @@ JNIEXPORT jint JNICALL JVM_Available(jint fd, jlong *pbytes) {
   return (jint) ret;
 }
 
+JNIEXPORT jint JNICALL JVM_Sync(jint fd) {
+    int syncOk = fsync(fd);
+    if (syncOk < 0) {
+      ERROR_PRINTF("JVM_Sync: error calling JVM_Sync on file with fd %d: %s\n", fd, strerror(errno));
+    }
+    return (jint) syncOk;
+}
+
 // Atomic Long
 
 JNIEXPORT jboolean JNICALL JVM_SupportsCX8() {
