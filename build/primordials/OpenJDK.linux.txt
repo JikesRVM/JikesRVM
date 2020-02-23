@@ -360,3 +360,5 @@ Lsun/reflect/DelegatingClassLoader;
 Ljava/io/ByteArrayInputStream;
 Lsun/reflect/BootstrapConstructorAccessorImpl;
 Lsun/reflect/UnsafeFieldAccessorImpl;
+# for replacement
+Ljava/lang/SecurityManager;

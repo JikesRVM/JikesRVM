@@ -149,6 +149,12 @@ JNIEXPORT void JNICALL JVM_AssertionStatusDirectives(JNIEnv *env, jclass unused)
   UNREACHABLE("JVM_AssertionStatusDirectives");
 }
 
+// java.lang.SecurityManager and java.util.ResourceBundle
+
+JNIEXPORT jobjectArray JNICALL JVM_GetClassContext(JNIEnv *env) {
+  UNREACHABLE("JVM_GetClassContext");
+}
+
 // java.lang.Compiler support
 
 JNIEXPORT void JNICALL JVM_CompileClass(JNIEnv *env, jclass compCls, jclass cls) {
