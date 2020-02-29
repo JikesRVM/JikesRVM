@@ -55,6 +55,13 @@ public class ReferenceQueue<T> {
         boolean enqueue(Reference r) {
             return false;
         }
+
+        @Override
+        @Uninterruptible
+        boolean enqueueInternal(Reference r) {
+          return false;
+        }
+
     }
 
     static ReferenceQueue NULL = new Null();
