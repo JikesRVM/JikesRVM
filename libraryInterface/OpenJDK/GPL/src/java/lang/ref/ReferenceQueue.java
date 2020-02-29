@@ -71,10 +71,10 @@ public class ReferenceQueue<T> {
     boolean enqueue(Reference<? extends T> r) { /* Called only by Reference class */
       r.instanceLock.lockWithHandshake();
       lock.lockWithHandshake();
-      enqueueInternal(r);
+      boolean result = enqueueInternal(r);
       lock.unlock();
       r.instanceLock.unlock();
-      return true;
+      return result;
     }
 
     // added for Jikes RVM
