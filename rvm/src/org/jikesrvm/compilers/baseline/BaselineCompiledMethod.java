@@ -86,8 +86,12 @@ public abstract class BaselineCompiledMethod extends CompiledMethod {
   }
 
   /**
+   * Saves method-specific data, if necessary.
+   * <p>
    * Architecture-specific subclasses are responsible for preserving any data about this
    * method (such as local variable locations) that will be needed later.
+   *
+   * @param comp reference to the compiler instance that compiled this method
    */
   protected abstract void saveCompilerData(BaselineCompiler comp);
 

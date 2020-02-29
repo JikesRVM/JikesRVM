@@ -524,7 +524,9 @@ public abstract class RVMMethod extends RVMMember {
   protected abstract CompiledMethod genCode();
 
   /**
-   * Set a replacement RVMMethod to be compiled in place of this one
+   * Sets a replacement RVMMethod to be compiled in place of this one
+   *
+   * @param m the replacement method
    */
   protected void setReplacementMethod(RVMMethod m) {
     replacementMethod = m;

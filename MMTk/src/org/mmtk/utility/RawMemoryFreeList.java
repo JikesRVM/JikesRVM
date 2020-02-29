@@ -84,7 +84,12 @@ public final class RawMemoryFreeList extends GenericFreeList {
   /** The free list allocates VM in blocks of this many pages */
   private final int pagesPerBlock;
 
-  /** Local version of Math.min(int, int) */
+  /**
+    Local version of Math.min(int, int)
+   * @param a an integer
+   * @param b another integer
+   * @return the minimum value of the arguments
+   */
   private static int min(int a, int b) {
     return a > b ? b : a;
   }
@@ -124,6 +129,8 @@ public final class RawMemoryFreeList extends GenericFreeList {
   /**
    * Constructor
    *
+   * @param base lowest address occuppied by the list
+   * @param limit highest address that the list could occupy
    * @param units The number of allocatable units for this free list
    *
    * Keeping grain as a unit restricts the maximum space size of a page-per-unit
@@ -136,6 +143,8 @@ public final class RawMemoryFreeList extends GenericFreeList {
   /**
    * Constructor
    *
+   * @param base lowest address occuppied by the list
+   * @param limit highest address that the list could occupy
    * @param units The number of allocatable units for this free list
    * @param grain Units are allocated such that they will never cross this granularity boundary
    */
@@ -150,7 +159,10 @@ public final class RawMemoryFreeList extends GenericFreeList {
   /**
    * Constructor
    *
+   * @param base lowest address occuppied by the list
+   * @param limit highest address that the list could occupy
    * @param units The number of allocatable units for this free list
+   * @param pagesPerBlock number of pages in a block
    * @param grain Units are allocated such that they will never cross this granularity boundary
    * @param heads The number of free lists which will share this instance
    */
@@ -245,7 +257,12 @@ public final class RawMemoryFreeList extends GenericFreeList {
   }
 
   /**
-   * Grow the free list by a specified number of units.
+   * Grows the free list by a specified number of units.
+   *
+   * @param units the number of units to add
+   *
+   * @return {@code true} if the list was grown, {@code false} if it was not
+   * (e.g. because the maximum would have been surpasssed)
    */
   public boolean growFreeList(int units) {
     int requiredUnits = units + currentUnits;
@@ -340,7 +357,8 @@ public final class RawMemoryFreeList extends GenericFreeList {
 
   /**
    * Raise the high water mark by requesting more pages from the OS
-   * @param blocks
+   *
+   * @param blocks block count to raise by
    */
   private void raiseHighWater(int blocks) {
     Extent growExtent = Conversions.pagesToBytes(pagesPerBlock * blocks);

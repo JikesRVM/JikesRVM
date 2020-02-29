@@ -537,12 +537,18 @@ public final class FragmentedMmapper extends Mmapper {
     return base.plus(chunk << VMLayoutConstants.LOG_MMAP_CHUNK_BYTES);
   }
 
-  /** @return the base address of the enclosing slab */
+  /**
+   * @param addr an address
+   * @return the base address of the enclosing slab
+   */
   Address slabAlignDown(Address addr) {
     return addr.toWord().and(MMAP_SLAB_MASK.not()).toAddress();
   }
 
-  /** @return the base address of the next slab */
+  /**
+   * @param addr an address
+   * @return the base address of the next slab
+   */
   Address slabLimit(Address addr) {
     return slabAlignDown(addr).plus(MMAP_SLAB_EXTENT);
   }

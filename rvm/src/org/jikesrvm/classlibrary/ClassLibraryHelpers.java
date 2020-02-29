@@ -55,10 +55,12 @@ public class ClassLibraryHelpers {
    * Allocates an object of the given class and runs the no-arg constructor
    * (even if that constructor is private).
    *
+   * @param <T> type of the object that will be returned
    * @param clazz
    *          clazz to be instantiated
    * @return an object of the given class
    */
+
   @SuppressWarnings("unchecked")
   public static <T> T allocateObjectForClassAndRunNoArgConstructor(
       Class<T> clazz) {

@@ -114,7 +114,7 @@ public final class StackBrowser {
   /**
    * Example: for a stack trace of
    * <pre>
-  A1 <- frame with call to countFrames()
+  A1 &lt;- frame with call to countFrames()
   A2
   A3
   A4

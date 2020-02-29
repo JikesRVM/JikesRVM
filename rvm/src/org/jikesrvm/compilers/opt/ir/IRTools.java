@@ -713,6 +713,7 @@ public abstract class IRTools {
    *
    * @param oldPrologue the old prologue instruction
    * @param newNumVarOps the new number of variable operands
+   * @return the new prologue instruction
    */
   public static Instruction createNewPrologueInst(Instruction oldPrologue, int newNumVarOps) {
     if (VM.VerifyAssertions) Prologue.conforms(oldPrologue);

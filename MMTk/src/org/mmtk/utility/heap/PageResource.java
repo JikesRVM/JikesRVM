@@ -88,6 +88,7 @@ public abstract class PageResource {
   /**
    * @param space The space to which this resource is attached
    * @param contiguous whether the space is contiguous or discontiguous
+   * @param growable whether the resource can grow
    */
   private PageResource(Space space, boolean contiguous, boolean growable) {
     this.contiguous = contiguous;

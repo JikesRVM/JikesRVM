@@ -350,7 +350,9 @@ public abstract class GenericFreeList {
   }
 
   /**
-   * Print one entry in the free list (for debugging purposes)
+   * Prints one entry in the free list (for debugging purposes)
+   *
+   * @param i entry index
    */
   protected void dbgPrintEntry(int i) {
     boolean multi = isMulti(i);

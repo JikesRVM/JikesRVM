@@ -60,7 +60,7 @@ public final class MonotonePageResource extends PageResource {
   /** Current frontier of zeroing, in a separate zeroing thread */
   private volatile Address zeroingCursor;
 
-  /** Current limit of zeroing.  If zeroingCursor < zeroingSentinel, zeroing is still happening. */
+  /** Current limit of zeroing.  If zeroingCursor &lt; zeroingSentinel, zeroing is still happening. */
   private Address zeroingSentinel;
 
   /**

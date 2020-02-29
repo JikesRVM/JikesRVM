@@ -1409,8 +1409,12 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Replace the static methods and fields by resetting the offset.
-   * Replace the virtual methods by resetting CodeArray address in TIB.
+   * Replaces the static methods and fields by resetting the offset.
+   * Replaces the virtual methods by resetting CodeArray address in TIB.
+   *
+   * @param targetClassRef type reference of the class to be replaced
+   * @param targetClass class to be replaced (resolved version of the type ref)
+   * @param member the member to replace
    */
   private void replaceMember(TypeReference targetClassRef, RVMClass targetClass, RVMMember member) {
     final ReplaceMember annotation = member.getAnnotation(org.vmmagic.pragma.ReplaceMember.class);
