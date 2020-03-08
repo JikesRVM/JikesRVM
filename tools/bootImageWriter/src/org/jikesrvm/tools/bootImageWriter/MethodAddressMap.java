@@ -77,12 +77,12 @@ public abstract class MethodAddressMap {
     out.println("#! /bin/bash");
     out.println("# This is a method address map, for use with the ``dbx'' debugger.");
     out.println("# To sort by \"code\" address, type \"bash <name-of-this-file>\".");
-    out.println("# Bootimage data: " + Integer.toHexString(BOOT_IMAGE_DATA_START.toInt()) +
-                "..." + Integer.toHexString(BOOT_IMAGE_DATA_START.toInt() + BootImageWriter.bootImageDataSize()));
-    out.println("# Bootimage code: " + Integer.toHexString(BOOT_IMAGE_CODE_START.toInt()) +
-                "..." + Integer.toHexString(BOOT_IMAGE_CODE_START.toInt() + BootImageWriter.bootImageCodeSize()));
-    out.println("# Bootimage refs: " + Integer.toHexString(BOOT_IMAGE_RMAP_START.toInt()) +
-                "..." + Integer.toHexString(BOOT_IMAGE_RMAP_START.toInt() + BootImageWriter.bootImageRMapSize()));
+    out.println("# Bootimage data: " + Services.addressAsHexString(BOOT_IMAGE_DATA_START) +
+                "..." + Services.addressAsHexString(BOOT_IMAGE_DATA_START.plus(BootImageWriter.bootImageDataSize())));
+    out.println("# Bootimage code: " + Services.addressAsHexString(BOOT_IMAGE_CODE_START) +
+                "..." + Services.addressAsHexString(BOOT_IMAGE_CODE_START.plus(BootImageWriter.bootImageCodeSize())));
+    out.println("# Bootimage refs: " + Services.addressAsHexString(BOOT_IMAGE_RMAP_START) +
+                "..." + Services.addressAsHexString(BOOT_IMAGE_RMAP_START.plus(BootImageWriter.bootImageRMapSize())));
 
     out.println();
     out.println("(/bin/grep 'code     0x' | /bin/sort -k 4.3,4) << EOF-EOF-EOF");
@@ -258,8 +258,8 @@ public abstract class MethodAddressMap {
     out.println();
     out.println("Method Map");
     out.println("----------");
-    out.println("                          address             method");
-    out.println("                          -------             ------");
+    out.println("                          address             size             method");
+    out.println("                          -------             ------           ------");
     out.println();
     for (int i = 0; i < CompiledMethods.numCompiledMethods(); ++i) {
       CompiledMethod compiledMethod = CompiledMethods.getCompiledMethodUnchecked(i);
@@ -269,7 +269,7 @@ public abstract class MethodAddressMap {
           CodeArray instructions = compiledMethod.getEntryCodeArray();
           Address code = BootImageMap.getImageAddress(instructions.getBacking(), true);
           out.println(".     .          code     " + Services.addressAsHexString(code) +
-                      "          " + compiledMethod.getMethod());
+                      "          " + "0x" + Integer.toHexString(compiledMethod.size()) + "          "  + compiledMethod.getMethod());
         }
       }
     }

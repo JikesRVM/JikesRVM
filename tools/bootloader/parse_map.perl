@@ -72,8 +72,8 @@ while (<MAPFH>) {
 $count = 0;
 while(<MAPFH>) {
   chomp;
-  my ($offset, $type, $method, $args, $ret);
-  if (! (($offset, $type, $method, $args, $ret) = m/\.\s+\.\s+code\s+(0x[0-f]+)\s+< \S+, L(\S+); >.(\S+) \((\S*)\)(\S+)/)) {
+  my ($offset, $size, $type, $method, $args, $ret);
+  if (! (($offset, $size, $type, $method, $args, $ret) = m/\.\s+\.\s+code\s+(0x[0-f]+)\s+(0x[0-f]+)\s+< \S+, L(\S+); >.(\S+) \((\S*)\)(\S+)/)) {
     if (/0x/) {
       print STDERR "Warning, skipping: $_ \n";
     }
