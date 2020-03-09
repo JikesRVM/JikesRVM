@@ -250,7 +250,7 @@
       64 bit system the libraries are created appropriately -->
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
-      <env key="CFLAGS" value="${cp.cflags} -Wno-implicit-fallthrough -Wno-deprecated-declarations"/>
+      <env key="CFLAGS" value="${cp.cflags} -Wno-implicit-fallthrough -Wno-deprecated-declarations -Wno-error=cast-function-type"/>
       <arg value="--enable-jni"/>
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
