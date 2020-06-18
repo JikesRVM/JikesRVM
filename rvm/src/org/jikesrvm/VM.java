@@ -343,24 +343,37 @@ public class VM extends Properties {
 
     if (verboseBoot >= 1) VM.sysWriteln("Booting DynamicLibrary");
     if (VM.BuildForOpenJDK) {
+      String jikesRVMHomePathAbsolute = CommandLineArgs.getEnvironmentArg("jikesrvm.home.absolute");
+      if (verboseBoot >= 10) VM.sysWriteln("Absolute path to Jikes RVM home is ", jikesRVMHomePathAbsolute);
+
       // For OpenJDK 6, System.loadLibrary(..) ends up calling UnixFileSystem.getBooleanAttributes0(..)
       // which is a native method. Therefore, ensure that the java library is already loaded before
       // attempting to boot DynamicLibrary (which will trigger loading of a dynamic library).
+
       String platformSpecificJikesRVMJNILibraryName = JavaLangSupport.mapLibraryName("jvm_jni");
       DynamicLibrary.load(platformSpecificJikesRVMJNILibraryName);
+
       String platformSpecificOpenJDKLibraryName = JavaLangSupport.mapLibraryName("java");
-      DynamicLibrary.load(platformSpecificOpenJDKLibraryName);
-      runClassInitializer("java.io.File"); // needed for loading dynamic libraries
+      // can't use File.separator because initializer runs after loading the dynamic library, see below
+      String fileSeparator = CommandLineArgs.getEnvironmentArg("file.separator");
+      platformSpecificOpenJDKLibraryName = jikesRVMHomePathAbsolute + fileSeparator + "lib" + fileSeparator + Configuration.OPENJDK_LIB_ARCH + fileSeparator + platformSpecificOpenJDKLibraryName;
+      if (verboseBoot >= 10) VM.sysWriteln("Absolute path to libjava: ", platformSpecificOpenJDKLibraryName);
+      boolean javaLibLoaded = DynamicLibrary.load(platformSpecificOpenJDKLibraryName) == 1;
+      if (verboseBoot >= 10) SysCall.sysCall.sysConsoleFlushErrorAndTrace();
+      if (VM.VerifyAssertions) VM._assert(javaLibLoaded);
+
+      runClassInitializer("java.io.File"); // needed for loading dynamic libraries via Java API
       runClassInitializer("java.io.UnixFileSystem");
       // Initialize properties early, before complete java.lang.System initialization. Those will be
       // overwritten later, when System is initialized.
       System.setProperties(null);
-      // Wiped out values for usr_paths and sys_paths carried over from boot image writing
+      // Wipe out values for usr_paths and sys_paths carried over from boot image writing
       Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.usr_paths_Field.getOffset(), null);
       Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.sys_paths_Field.getOffset(), null);
     }
     DynamicLibrary.boot();
     if (VM.BuildForOpenJDK) {
+      // Load the libraries via the normal Java API so they're properly known to the class library
       System.loadLibrary("jvm");
       System.loadLibrary("java");
       System.loadLibrary("zip");

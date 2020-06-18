@@ -224,6 +224,12 @@
     <test-file name="openjdk.lib.dir" location="${components.file}"/>
     <property name="config.portable-native-sync" value="false"/>
     <property name="build.extra.rt.jars" value=""/>
+    <condition property="openjdk.lib.arch" value="amd64" else="unknown">
+      <and>
+        <equals arg1="${target.arch}" arg2="ia32"/>
+        <equals arg1="${target.address.size}" arg2="64"/>
+        </and>
+    </condition>
   </target>
 
   <target name="check-mmtk-properties"  depends="check-host-name">
@@ -1093,6 +1099,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_OPENJDK" value="true" else="false">
       <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
     </condition>
+    <condition property="pp_OPENJDK_LIB_ARCH" value="${openjdk.lib.arch}" else="unset">
+      <isset property="openjdk.lib.arch"/>
+    </condition>
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/Configuration.java">
@@ -1123,6 +1132,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_PORTABLE_NATIVE_SYNC_" value="${config.portable-native-sync}"/>
         <filter token="_RVM_WITH_GNU_CLASSPATH_" value="${pp_RVM_WITH_GNU_CLASSPATH}"/>
         <filter token="_RVM_WITH_OPENJDK_" value="${pp_RVM_WITH_OPENJDK}"/>
+        <filter token="_OPENJDK_LIB_ARCH_" value="${pp_OPENJDK_LIB_ARCH}"/>
       </filterset>
     </copy>
 
@@ -2199,9 +2209,18 @@ target.jni-suffix=${target.jni-suffix}
         <include name="BootImageWriterOutput.txt"/>
       </fileset>
     </copy>
+
+    <!-- Add OpenJDK architecture to start script -->
+    <condition property="pp_OPENJDK_LIB_ARCH" value="${openjdk.lib.arch}" else="unset">
+      <isset property="openjdk.lib.arch"/>
+    </condition>
     <copy file="${bl.dir}/rvm.openjdk"
           tofile="${dist.base}/rvm">
+      <filterset>
+        <filter token="_OPENJDK_LIB_ARCH_" value="${pp_OPENJDK_LIB_ARCH}"/>
+      </filterset>
     </copy>
+
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
@@ -2216,7 +2235,7 @@ target.jni-suffix=${target.jni-suffix}
       </conditions>
       <sequential>
         <symlink link="${dist.base}/libjvm.jnilib"
-                 resource="${dist.base}/lib/amd64/server/libjvm.dylib"
+                 resource="${dist.base}/lib/${openjdk.lib.arch}/server/libjvm.dylib"
                  overwrite="true"/>
         <symlink link="${dist.base}/librvm.jnilib"
                  resource="${dist.base}/librvm.dylib"
@@ -2226,20 +2245,6 @@ target.jni-suffix=${target.jni-suffix}
                  overwrite="true"/>
       </sequential>
     </if>
-    <if>
-      <conditions>
-        <os name="Linux"/>
-      </conditions>
-      <sequential>
-        <copy file="${dist.base}/lib/amd64/server/libjvm.so" todir="${dist.base}/lib/amd64/"/>
-      </sequential>
-    </if>
-    <copy todir="${dist.base}">
-      <fileset dir="${openjdk.lib.dir}/amd64">
-        <include name="*${target.dll-ext}"/>
-      </fileset>
-      <globmapper from="*${target.dll-ext}" to="*${target.jni-suffix}"/>
-    </copy>
     <mkdir dir="${dist.base}/include"/>
     <copy todir="${dist.base}/include">
       <fileset dir="${build.native}">

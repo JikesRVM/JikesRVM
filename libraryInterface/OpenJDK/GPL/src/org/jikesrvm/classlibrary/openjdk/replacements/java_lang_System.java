@@ -30,6 +30,7 @@ import java.util.Properties;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.JavaLangSupport;
+import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Time;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
@@ -50,8 +51,8 @@ public class java_lang_System {
     String bootClassPath = props.getProperty("java.boot.class.path");
     props.setProperty("sun.boot.class.path", bootClassPath);
     // sun.boot.library.path is mapped to sys_paths in java.lang.ClassLoader on OpenJDK 6
-    String libraryPath = props.getProperty("java.library.path");
-    props.setProperty("sun.boot.library.path", libraryPath);
+    String sunBootLibraryPath = CommandLineArgs.getEnvironmentArg("sun.boot.library.path");
+    props.setProperty("sun.boot.library.path", sunBootLibraryPath);
 
     if (VM.BuildFor32Addr) {
       props.setProperty("sun.arch.data.model", "32");

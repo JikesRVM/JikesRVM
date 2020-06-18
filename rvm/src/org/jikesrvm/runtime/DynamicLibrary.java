@@ -174,7 +174,7 @@ public final class DynamicLibrary {
    * unload a dynamic library
    */
   public void unload() {
-    VM.sysWriteln("DynamicLibrary.unload: not implemented yet");
+    VM.sysWriteln("DynamicLibrary.unload: not implemented yet. libName: " + libName);
   }
 
   /**
