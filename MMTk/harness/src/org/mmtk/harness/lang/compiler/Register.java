@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.lang.compiler;
 
+import org.mmtk.harness.lang.runtime.ConstantPool;
 import org.mmtk.harness.lang.type.Type;
 
 /**
@@ -85,7 +86,7 @@ public final class Register {
     if (index >= 0) {
       return "t" + index;
     }
-    return "c" + (-index - 1);
+    return "c" + (-index - 1) + "=" + ConstantPool.get(index);
   }
 
   @Override
