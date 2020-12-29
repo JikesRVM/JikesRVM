@@ -39,7 +39,7 @@
   <target name="fetch" depends="init-asm-properties" if="asm.from-web">
     <mkdir dir="${asm.dir}"/>
     <cachedGet key="asm-${asm.version}.jar"
-         src="http://central.maven.org/maven2/asm/asm/3.0/asm-3.0.jar"
+         src="https://repo1.maven.org/maven2/asm/asm/3.0/asm-3.0.jar"
          dest="${asm.dir}/asm.jar"/>
     <writeComponentConstants dir="${asm.dir}"/>
   </target>
