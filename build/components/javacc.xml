@@ -18,7 +18,7 @@
   <property name="javacc.description" value="Java CC"/>
 
   <property name="javacc.package.dir" value="${components.dir}/javacc/${javacc.version}"/>
-  <property name="javacc.dir" location="${javacc.package.dir}/javacc-${javacc.version}"/>
+  <property name="javacc.dir" location="${javacc.package.dir}"/>
 
   <target name="init-javacc-properties" depends="prepare-ant-tasks">
     <condition property="javacc.from-web" value="true">
@@ -32,12 +32,12 @@
   </target>
 
   <target name="fetch" depends="init-javacc-properties" if="javacc.from-web">
-    <property name="javacc.web-archive" value="javacc-${javacc.version}.zip"/>
+    <property name="javacc.web-archive" value="javacc-${javacc.version}.jar"/>
+    <property name="javacc.target.jar" value="javacc.jar"/>
     <mkdir dir="${javacc.package.dir}"/>
     <cachedGet key="${javacc.web-archive}"
-         src="https://javacc.org/downloads/${javacc.web-archive}"
-         dest="${javacc.package.dir}/${javacc.web-archive}"/>
-    <unzip src="${javacc.package.dir}/${javacc.web-archive}" dest="${javacc.package.dir}"/>
+         src="https://repo1.maven.org/maven2/net/java/dev/javacc/javacc/${javacc.version}/javacc-${javacc.version}.jar"
+         dest="${javacc.package.dir}/${javacc.target.jar}"/>
     <writeComponentConstants dir="${javacc.dir}"/>
   </target>
 
