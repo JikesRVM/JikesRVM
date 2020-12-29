@@ -83,8 +83,8 @@ public final class Branch extends UnaryOp {
 
   @Override
   public String toString() {
-    return String.format("[%s] if(%st%d) goto %d", formatGcMap(), branchOn ? ""
-        : "!", operand, target);
+    return String.format("[%s] if(%st%d) goto %d", formatGcMap(), branchOn ? "" :
+        "!", operand, target);
   }
 
 }
