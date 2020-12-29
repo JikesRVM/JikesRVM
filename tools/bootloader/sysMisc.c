@@ -128,7 +128,7 @@ EXTERNAL jlong sysParseMemorySize(const char *sizeName, const char *sizeFlag,
                                   const char *subtoken /* e.g., "200M" or "200" */)
 {
   int fastExit = 0;
-  unsigned ret_uns;
+  Extent ret_uns;
   TRACE_PRINTF("%s: sysParseMemorySize %s\n", Me, token);
   ret_uns = parse_memory_size(sizeName, sizeFlag, defaultFactor,
                                        (Extent) roundTo, token, subtoken,
@@ -220,7 +220,7 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
   }
 
   if (!*fastExit) {
-    if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) )
+    if ( errno == ERANGE || userNum > (((long double) (ULONG_MAX - roundTo))/factor) )
     {
       CONSOLE_PRINTF( "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
       *fastExit = 1;
@@ -245,7 +245,7 @@ EXTERNAL Extent parse_memory_size(const char *sizeName, /*  "initial heap" or "m
     return 0U;              // Distinguished value meaning trouble.
   }
   tot_d = userNum * factor;
-  if (tot_d > (UINT_MAX - roundTo) || tot_d < 1) {
+  if (tot_d > (ULONG_MAX - roundTo) || tot_d < 1) {
     ERROR_PRINTF("Unexpected memory size %Lf\n", tot_d);
     exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
