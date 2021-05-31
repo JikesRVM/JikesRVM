@@ -27,7 +27,7 @@
   <property file="${components.file}"/>
 
   <property name="test.class.path" value="${dacapo.jar}"/>
-  <property name="xalanBootClasspath" value="-Xbootclasspath/p:xalan.jar"/>
+  <property name="xalanBootClasspath" value="-Xbootclasspath/p:${test.build.dir}/xalan.jar"/>
 
   <target name="extract-xalan-jar" depends="init">
     <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
