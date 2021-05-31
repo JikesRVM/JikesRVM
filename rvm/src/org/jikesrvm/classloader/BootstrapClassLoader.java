@@ -35,6 +35,12 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  */
 public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
+  /**
+   * Java > 1.8 does not support modification of the boot classpath. For now, this is supported.
+   * Setting this to {@code false} will make dacapo xalan fail on OpenJDK.
+   */
+  private static final boolean SUPPORT_MODIFICATION_OF_BOOTCLASSPATH_FOR_OPENJDK = true;
+
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
 
@@ -263,7 +269,6 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
   private void fillInPackageSource() {
     StringTokenizer tok = new StringTokenizer(getBootstrapRepositories(), File.pathSeparator);
-
     while (tok.hasMoreElements()) {
       try {
         String path = tok.nextToken();
@@ -291,8 +296,10 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
               } else {
                 String prexistingSource = packageSources.get(classesPackage);
                 if (!prexistingSource.equals(path)) {
-                  VM.sysFail("Wanted to write source " + path + " for classes' package " +
-                      classesPackage + " but was already set to " + prexistingSource);
+                  if (!SUPPORT_MODIFICATION_OF_BOOTCLASSPATH_FOR_OPENJDK) {
+                    VM.sysFail("Wanted to write source " + path + " for classes' package " +
+                        classesPackage + " but was already set to " + prexistingSource);
+                  }
                 }
               }
             }
