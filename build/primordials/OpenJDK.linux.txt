@@ -362,3 +362,4 @@ Lsun/reflect/BootstrapConstructorAccessorImpl;
 Lsun/reflect/UnsafeFieldAccessorImpl;
 # for replacement
 Ljava/lang/SecurityManager;
+Lsun/reflect/AccessorGenerator;

@@ -104,4 +104,5 @@ SUNWprivate_1.1 {
     JVM_RawMonitorCreate;
     JVM_NativePath;
     JVM_GetClassContext;
+    JVM_ResolveClass;
 } JVM_0.1;

@@ -26,6 +26,7 @@ package org.jikesrvm.classlibrary.openjdk.replacements;
 
 import java.security.ProtectionDomain;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLoaderSupport;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.vmmagic.pragma.ReplaceClass;
@@ -58,6 +59,13 @@ public class java_lang_ClassLoader {
     // TODO OPENJDK/ICEDTEA do we need to do something with source? Seems to be the location property
     // from CodeSource
     return ClassLoaderSupport.defineClass(thisAsClassLoader(), name, b, off, len, pd);
+  }
+
+  @ReplaceMember
+  private void resolveClass0(Class c) {
+    if (VM.VerifyAssertions) VM._assert(c != null, "Argument class was null");
+    // According to the JavaDoc, this merely does the linking. This means that resolution is not required.
+    // Therefore, do nothing.
   }
 
   private ClassLoader thisAsClassLoader() {

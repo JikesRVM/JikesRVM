@@ -588,6 +588,11 @@ public class VM extends Properties {
       Magic.setObjectAtOffset(Magic.getJTOC().toObjectReference().toObject(), Entrypoints.sys_paths_Field.getOffset(), null);
     }
 
+    // Prepare for accessor generators (needed e.g. for jython)
+    if (VM.BuildForOpenJDK) {
+      runClassInitializer("sun.reflect.AccessorGenerator");
+    }
+
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
 
     if (VM.BuildForAdaptiveSystem) {
