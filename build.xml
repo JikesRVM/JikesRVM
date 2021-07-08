@@ -1993,7 +1993,9 @@ const char *rvm_target_configuration = "${target.file}";
     </CreateDLL>
   </target>
 
-  <target name="build-bootloader" depends="build-gcspy-stub">
+  <!-- We want to test the TPH system calls againsts any changes, regarless of being related to TPH or not -->
+  <import file="testing/tests/tph/build_tph_test_lib.xml"/>
+  <target name="build-bootloader" depends="build-gcspy-stub,build-tph-test-lib">
     <!-- create JVM library -->
     <echo message="Creating jvm${target.lib-ext}"/>
     <CompileCtoObj cfile="${bl.dir}/jvm.c"
@@ -2116,12 +2118,12 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/main.c"
                    objfile="${build.base}/${target.obj-prefix}main${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext}">
+    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} -ltph_test_lib">
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
       </ObjectFiles>
     </CreateEXE>
-    
+
     <antcall target="build-debug-symbols"/>
   </target>
 

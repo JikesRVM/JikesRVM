@@ -468,6 +468,7 @@ class SimpleEscape extends CompilerPhase {
       case INT_SHR_opcode:
       case INT_USHR_opcode:
       case SYSCALL_opcode:
+      case ALIGNED_SYSCALL_opcode:
       case REF_SHL_opcode:
       case REF_SHR_opcode:
       case REF_USHR_opcode:
@@ -686,6 +687,7 @@ class SimpleEscape extends CompilerPhase {
       case INT_SHR_opcode:
       case INT_USHR_opcode:
       case SYSCALL_opcode:
+      case ALIGNED_SYSCALL_opcode:
       case REF_SHL_opcode:
       case REF_SHR_opcode:
       case REF_USHR_opcode:

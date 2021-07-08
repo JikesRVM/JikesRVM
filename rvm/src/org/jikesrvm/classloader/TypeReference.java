@@ -150,6 +150,7 @@ public final class TypeReference {
   public static final TypeReference Type = findOrCreate(org.jikesrvm.classloader.RVMType.class);
   public static final TypeReference Class = findOrCreate(org.jikesrvm.classloader.RVMClass.class);
 
+  public static final TypeReference StackAlignment = findOrCreate(org.vmmagic.pragma.StackAlignment.class);
   public static final TypeReference NativeBridge = findOrCreate(org.vmmagic.pragma.NativeBridge.class);
   public static final TypeReference DynamicBridge = findOrCreate(org.vmmagic.pragma.DynamicBridge.class);
   public static final TypeReference SaveVolatile = findOrCreate(org.vmmagic.pragma.SaveVolatile.class);

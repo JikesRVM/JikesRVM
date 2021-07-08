@@ -1,0 +1,39 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+
+<project name="tph_test_lib" default="build" basedir=".">
+
+    <condition property="tph.target" value="i686-unknown-linux-gnu" else="x86_64-unknown-linux-gnu">
+        <equals arg1="${target.address.size}" arg2="32"/>
+    </condition>
+    <!-- **************************************************************************** -->
+    <!-- *                                                                          * -->
+    <!-- *                            Build tph test lib,                           * -->
+    <!-- *                            and copy to build base dir                    * -->
+    <!-- **************************************************************************** -->
+    <target name="build-tph-test-lib">
+        <echo message="Creating TPH test SysCalls library for target: ${target.address.size}-Bits"/>
+        <exec executable="cargo" dir="${jikesrvm.dir}/testing/tests/tph/src/rust_sys_calls/" failonerror="true">
+            <arg value="+nightly"/>
+            <arg value="rustc"/>
+            <arg value="--manifest-path=${jikesrvm.dir}/testing/tests/tph/src/rust_sys_calls/Cargo.toml"/>
+            <arg value="--target=${tph.target}"/>
+            <arg value="--"/>
+            <arg value="-C"/>
+            <arg value="force-frame-pointers=yes"/>
+        </exec>
+        <copy file="${jikesrvm.dir}/testing/tests/tph/src/rust_sys_calls/target/${tph.target}/debug/librust_sys_calls.so" tofile="${build.base}/libtph_test_lib.so">
+        </copy>
+    </target>
+
+</project>

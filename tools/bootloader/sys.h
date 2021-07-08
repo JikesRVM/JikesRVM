@@ -226,6 +226,12 @@ EXTERNAL int sysMProtect(char *start, size_t length, int prot);
 EXTERNAL void sysCopy(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysSyncCache(void *address, size_t size);
+
+// sysTPH
+
+EXTERNAL void test_stack_alignment_0();
+EXTERNAL void test_stack_alignment_5(int a, int b, int c, int d, int e);
+
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);
 EXTERNAL int sysGetenv(const char *varName, char *buf, int limit);

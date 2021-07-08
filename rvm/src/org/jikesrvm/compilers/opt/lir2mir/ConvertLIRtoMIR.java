@@ -31,6 +31,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_REM_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.ALIGNED_SYSCALL_opcode;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_ARRAY_ELEMENT_TIB_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
@@ -158,6 +159,16 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
       } else {
         if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
         org.jikesrvm.compilers.opt.regalloc.ppc.CallingConvention.expandSysCall(s, ir);
+      }
+    }
+
+    private void expandAlignedSysCall(Instruction s, IR ir) {
+      if (VM.BuildForIA32) {
+        org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.expandAlignedSysCall(s, ir);
+      } else {
+        // No support for aligned syscalls for PPC
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+          org.jikesrvm.compilers.opt.regalloc.ppc.CallingConvention.expandSysCall(s, ir);
       }
     }
 
@@ -344,6 +355,9 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
           break;
           case SYSCALL_opcode:
             expandSysCall(s, ir);
+            break;
+          case ALIGNED_SYSCALL_opcode:
+            expandAlignedSysCall(s, ir);
             break;
           default:
             break;

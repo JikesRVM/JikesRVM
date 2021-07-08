@@ -87,12 +87,12 @@ class SysCallGeneratedFileWriter extends AbstractGeneratedFileWriter {
    * @param method
    * @throws IOException
    */
-  void processMethod(ExecutableElement method) throws IOException {
-    generateMethodImplementation(method);
-    generatePrivateNativeStub(method);
+  void processMethod(ExecutableElement method, boolean aligned) throws IOException {
+    generateMethodImplementation(method, aligned);
+    generatePrivateNativeStub(method, aligned);
   }
 
-  private void generateMethodImplementation(ExecutableElement method)
+  private void generateMethodImplementation(ExecutableElement method, boolean aligned)
       throws IOException {
 
     List<? extends VariableElement> parameters = method.getParameters();
@@ -124,7 +124,7 @@ class SysCallGeneratedFileWriter extends AbstractGeneratedFileWriter {
 
     methodBody.append(getMethodName(method) +
         "(BootRecord.the_boot_record.");
-    methodBody.append(getMethodName(method) + "IP");
+    methodBody.append(getMethodName(method) + (aligned ? "RIP" : "IP"));
 
     generateParameterList(parameters, methodBody, false);
 
@@ -243,9 +243,12 @@ class SysCallGeneratedFileWriter extends AbstractGeneratedFileWriter {
     }
   }
 
-  private void generatePrivateNativeStub(ExecutableElement method)
+  private void generatePrivateNativeStub(ExecutableElement method, boolean aligned)
       throws IOException {
     writeLine("@org.vmmagic.pragma.SysCallNative");
+    if (aligned) {
+      writeLine("@org.vmmagic.pragma.StackAlignment");
+    }
 
     StringBuilder stubDeclaration = new StringBuilder();
     stubDeclaration.append("private static native ");
@@ -283,7 +286,5 @@ class SysCallGeneratedFileWriter extends AbstractGeneratedFileWriter {
       }
     }
   }
-
-
 
 }

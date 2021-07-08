@@ -291,6 +291,15 @@ public final class MethodReference extends MemberReference {
   }
 
   /**
+   * Is the method reference to a syscall that has to be stack aligned?
+   *
+   * @return {@code true} if this method has to be stack aligned
+   */
+  public boolean isStackAligned() {
+    return (getType() == TypeReference.StackAlignment) || ((resolvedMember != null) && (resolvedMember.hasStackAlignment()));
+  }
+
+  /**
    * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
    * @param declaringClass the class that declared the method

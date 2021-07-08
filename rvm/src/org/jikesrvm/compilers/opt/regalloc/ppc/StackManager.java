@@ -875,6 +875,14 @@ public final class StackManager extends GenericStackManager {
   }
 
   /**
+   * Is a particular instruction a system call?
+   */
+  @Override
+  public boolean isAlignedSysCall(Instruction s) {
+    throw new Error("Stack alignment for PPC is not implemented");
+  }
+
+  /**
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
    */

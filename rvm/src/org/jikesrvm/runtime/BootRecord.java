@@ -233,6 +233,10 @@ public class BootRecord {
   public Address sysConsoleWriteDoubleIP;
   public Address sysConsoleFlushErrorAndTraceIP;
 
+  // TPH functions
+  public Address test_stack_alignment_0RIP;
+  public Address test_stack_alignment_5RIP;
+
   // startup/shutdown
   public Address sysExitIP;
   public Address sysArgIP;

@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.regalloc.ia32;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.Operators.ALIGNED_SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CALL;
@@ -28,6 +29,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ALIGNEDSYSCALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TEST;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP_opcode;
@@ -136,7 +138,7 @@ public abstract class CallingConvention extends IRTools {
     // expand the prologue instruction
     expandPrologue(ir);
 
-    if (VM.BuildFor64Addr && ir.stackManager.hasSysCall()) {
+    if ((VM.BuildFor64Addr && ir.stackManager.hasSysCall()) || ir.stackManager.isAligned()) {
       // Recompute def-use data structures due to added blocks
       // for syscall expansion.
       DefUse.computeDU(ir);
@@ -155,10 +157,11 @@ public abstract class CallingConvention extends IRTools {
    * @param ir the IR that contains the call instruction
    */
   private static void callExpand(Instruction call, IR ir) {
-    boolean isSysCall = call.operator() == IA32_SYSCALL;
+    boolean isSysCall = call.operator() == IA32_SYSCALL || call.operator() == IA32_ALIGNEDSYSCALL;
+    boolean isAlignedSysCall = call.operator() == IA32_ALIGNEDSYSCALL;
 
     // 0. Handle the parameters
-    int parameterBytes = isSysCall ? expandParametersToSysCall(call, ir) : expandParametersToCall(call, ir);
+    int parameterBytes = isSysCall ? expandParametersToSysCall(call, ir, isAlignedSysCall) : expandParametersToCall(call, ir);
 
     // 1. Clear the floating-point stack if dirty.
     if (!SSE2_FULL) {
@@ -197,11 +200,100 @@ public abstract class CallingConvention extends IRTools {
     Instruction adviseESP = MIR_UnaryNoRes.create(ADVISE_ESP, IC(isSysCall ? parameterBytes : 0));
     call.insertAfter(adviseESP);
 
+    if (VM.BuildFor32Addr && isSysCall && isAlignedSysCall) {
+      alignStackForX32SysCall(call, ir, parameterBytes, requireESP, adviseESP);
+    }
     // 5. For x64 syscalls, the ABI requires that the stack pointer is divisible
     // by 16 at the call.
     if (VM.BuildFor64Addr && isSysCall) {
       alignStackForX64SysCall(call, ir, parameterBytes, requireESP, adviseESP);
     }
+  }
+
+  public static void alignStackForX32SysCall(Instruction call, IR ir,
+                                             int parameterBytes, Instruction requireESP, Instruction adviseESP) {
+    BasicBlock originalBlockForCall = call.getBasicBlock();
+
+    // Search marker instruction
+    Instruction currentInst = requireESP;
+    do {
+      currentInst = currentInst.prevInstructionInCodeOrder();
+      if (currentInst.getOpcode() == REQUIRE_ESP_opcode &&
+              MIR_UnaryNoRes.getVal(currentInst).asIntConstant().value == MARKER) {
+        break;
+      }
+    } while (!(currentInst.getOpcode() == LABEL_opcode));
+
+    if (VM.VerifyAssertions) VM._assert(currentInst != null);
+    if (VM.VerifyAssertions) VM._assert(currentInst.getBasicBlock() == originalBlockForCall);
+    if (VM.VerifyAssertions) VM._assert(currentInst.getOpcode() == REQUIRE_ESP_opcode);
+    Instruction marker = currentInst;
+
+    // Leave everything before the marker in the original block and move the rest to test block
+    BasicBlock testBlock = originalBlockForCall.splitNodeWithLinksAt(marker, ir);
+
+    // originalBlockForCall now has only code preceding the call,
+    // testBlock has call code and subsequent code
+    marker.remove();
+
+    // make testBlock empty
+    BasicBlock newBlockForCall = testBlock.splitNodeWithLinksAt(testBlock.firstInstruction(), ir);
+
+    BasicBlock test1Block =  testBlock.splitNodeWithLinksAt(testBlock.firstInstruction(), ir);
+    BasicBlock test2Block =  test1Block.splitNodeWithLinksAt(test1Block.firstInstruction(), ir);
+    BasicBlock test3Block =  test2Block.splitNodeWithLinksAt(test2Block.firstInstruction(), ir);
+
+    BasicBlock[] testBlocks = {testBlock,test1Block,test2Block,test3Block};
+
+    // testBlock is now empty, newBlockForCall has the call and subsequent code
+    // Move everything after the call to a new block
+    BasicBlock callBlockRest = newBlockForCall.splitNodeWithLinksAt(adviseESP, ir);
+
+    // newBlockForCall now has the call and advise_esp / require_esp, subsequent code is in callBlockRest
+
+    BasicBlock[] callBlocks = new BasicBlock[4];
+    callBlocks[0] = newBlockForCall;
+    callBlocks[0].recomputeNormalOut(ir);
+
+    for (int i = 1; i < 4; i++) {
+      BasicBlock copiedBlock = newBlockForCall.copyWithoutLinks(ir);
+      ir.cfg.addLastInCodeOrder(copiedBlock);
+      copiedBlock.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
+      copiedBlock.recomputeNormalOut(ir);
+      callBlocks[i] = copiedBlock;
+    }
+
+    // Set up test block for checking stack alignment before the call
+    int wordsToPush = -parameterBytes;
+    Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+
+    for (int i = 0; i < 4; i++) {
+      Instruction spTest = MIR_Test.create(IA32_TEST,
+              new RegisterOperand(espReg, TypeReference.Word), IC((3 - i) * 4));
+      Instruction jcc = MIR_CondBranch.create(IA32_JCC,
+              IA32ConditionOperand.EQ(),
+              callBlocks[i].makeJumpTarget(),
+              new BranchProfileOperand());
+      testBlocks[i].appendInstruction(spTest);
+      testBlocks[i].appendInstruction(jcc);
+      testBlocks[i].recomputeNormalOut(ir);
+    }
+
+    // modify ESP in the copied block to ensure correct alignment
+    // when the original alignment would be incorrect. That's accomplished
+    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+    for (int i = 0; i < 4; i++) {
+      Enumeration<Instruction> copiedInsts = callBlocks[i].forwardRealInstrEnumerator();
+      while (copiedInsts.hasMoreElements()) {
+        Instruction inst = copiedInsts.nextElement();
+        if (inst.getOpcode() == REQUIRE_ESP_opcode ||
+                inst.getOpcode() == ADVISE_ESP_opcode) {
+          int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
+          MIR_UnaryNoRes.setVal(inst, IC(val - ((i * WORDSIZE - wordsToPush) % 16 + 16) % 16));
+        }
+      }
+    }
+
   }
 
   public static void alignStackForX64SysCall(Instruction call, IR ir,
@@ -631,13 +723,24 @@ public abstract class CallingConvention extends IRTools {
    * @param ir the IR that contains the call
    * @return the number of bytes necessary to hold the parameters
    */
-  private static int expandParametersToSysCall(Instruction call, IR ir) {
+  private static int expandParametersToSysCall(Instruction call, IR ir, boolean isAligned) {
     int nGPRParams = 0;
     int nFPRParams = 0;
     int parameterBytes = 0;
     int numParams = MIR_Call.getNumberOfParams(call);
 
     if (VM.BuildFor32Addr) {
+      if (isAligned) {
+        // Add a marker instruction. When processing aligned syscalls, the block of the syscall
+        // needs to be split up to copy the code for the call. Copying has to occur
+        // to be able to ensure stack alignment for the x32 ABI. This instruction
+        // marks the border for the copy: everything before this instruction isn't duplicated.
+        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(MARKER)));
+
+        // Require ESP to be at bottom of frame before a call,
+        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
+
+      }
       // walk over the parameters in reverse order
       // NOTE: All params to syscall are passed on the stack!
       for (int i = numParams - 1; i >= 0; i--) {
@@ -795,7 +898,7 @@ public abstract class CallingConvention extends IRTools {
    *
    * @param ir the governing IR
    */
-  public static void allocateSpaceForSysCall(IR ir) {
+  public static void allocateSpaceForSysCall(IR ir, boolean isAligned) {
     StackManager sm = (StackManager) ir.stackManager;
 
     // add one to account for the thread register.
@@ -803,7 +906,7 @@ public abstract class CallingConvention extends IRTools {
     // add one for JTOC
     if (JTOC_REGISTER != null) nToSave++;
 
-    sm.allocateSpaceForSysCall(nToSave);
+    sm.allocateSpaceForSysCall(nToSave, isAligned);
   }
 
   /**
@@ -817,7 +920,7 @@ public abstract class CallingConvention extends IRTools {
     Operand ip = Call.getClearAddress(s);
 
     // Allocate space to save non-volatiles.
-    allocateSpaceForSysCall(ir);
+    allocateSpaceForSysCall(ir, false);
 
     // Make sure we allocate enough space for the parameters to this call.
     int numberParams = Call.getNumberOfParams(s);
@@ -836,6 +939,38 @@ public abstract class CallingConvention extends IRTools {
 
     // Convert to a SYSCALL instruction with a null method operand.
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
+  }
+
+  /**
+   * Calling convention to implement calls to native (C) routines
+   * using the Linux linkage conventions.<p>
+   *
+   * @param s the call instruction
+   * @param ir the IR that contains the call
+   */
+  public static void expandAlignedSysCall(Instruction s, IR ir) {
+    Operand ip = Call.getClearAddress(s);
+
+    // Allocate space to save non-volatiles.
+    allocateSpaceForSysCall(ir, true);
+
+    // Make sure we allocate enough space for the parameters to this call.
+    int numberParams = Call.getNumberOfParams(s);
+    int parameterWords = 0;
+    for (int i = 0; i < numberParams; i++) {
+      parameterWords++;
+      Operand op = Call.getParam(s, i);
+      parameterWords += op.getType().getStackWords();
+    }
+
+    // allocate space for each parameter,
+    // plus one word on the stack to hold the address of the callee,
+    // plus three words on stack for alignment of x32 syscalls
+    int alignWords = 0;
+    int neededWords = parameterWords + alignWords + 1;
+    ir.stackManager.allocateParameterSpace(neededWords * WORDSIZE);
+    // Convert to a SYSCALL instruction with a null method operand.
+    Call.mutate0(s, ALIGNED_SYSCALL, Call.getClearResult(s), ip, null);
   }
 
   private static int countFPRParams(Instruction call) {

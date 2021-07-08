@@ -1501,6 +1501,14 @@ call | memAsLoad | memAsStore
 callDefs
 callUses
 
+# A call instruction.  Used for special aligned system calls.
+# Is marked as a memory model load/store, but does not directly load/store any values itself.
+ALIGNED_SYSCALL
+Call
+call | memAsLoad | memAsStore
+callDefs
+callUses
+
 # An explicit thread switch point from a prologue.
 YIELDPOINT_PROLOGUE
 Empty

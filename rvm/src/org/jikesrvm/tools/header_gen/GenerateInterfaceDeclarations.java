@@ -313,7 +313,12 @@ public class GenerateInterfaceDeclarations {
       int suffixIndex = fieldName.indexOf("IP");
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
-        String functionName = fieldName.substring(0, suffixIndex);
+        String functionName;
+        if (fieldName.indexOf("RIP") > -1) {
+          functionName = fieldName.substring(0,suffixIndex - 1);
+        } else {
+          functionName = fieldName.substring(0, suffixIndex);
+        }
         // e. g.,
         //sysFOOIP = (int) sysFOO;
         pln("  br->" + fieldName + " = (Address)" + functionName + ";");
@@ -418,6 +423,3 @@ public class GenerateInterfaceDeclarations {
     arch.emitArchAssemblerDeclarations();
   }
 }
-
-
-
