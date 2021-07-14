@@ -21,18 +21,18 @@
     <!-- *                            Build tph test lib,                           * -->
     <!-- *                            and copy to build base dir                    * -->
     <!-- **************************************************************************** -->
-    <target name="build-tph-test-lib">
+    <target name="build-tph-test-lib" if="${config.third-party-heap.enabled}">
         <echo message="Creating TPH test SysCalls library for target: ${target.address.size}-Bits"/>
-        <exec executable="cargo" dir="${jikesrvm.dir}/testing/tests/tph/src/rust_sys_calls/" failonerror="true">
+        <exec executable="cargo" dir="${jikesrvm.dir}/testing/tests/third_party_heap/src/rust_sys_calls/" failonerror="true">
             <arg value="+nightly"/>
             <arg value="rustc"/>
-            <arg value="--manifest-path=${jikesrvm.dir}/testing/tests/tph/src/rust_sys_calls/Cargo.toml"/>
+            <arg value="--manifest-path=${jikesrvm.dir}/testing/tests/third_party_heap/src/rust_sys_calls/Cargo.toml"/>
             <arg value="--target=${tph.target}"/>
             <arg value="--"/>
             <arg value="-C"/>
             <arg value="force-frame-pointers=yes"/>
         </exec>
-        <copy file="${jikesrvm.dir}/testing/tests/tph/src/rust_sys_calls/target/${tph.target}/debug/librust_sys_calls.so" tofile="${build.base}/libtph_test_lib.so">
+        <copy file="${jikesrvm.dir}/testing/tests/third_party_heap/src/rust_sys_calls/target/${tph.target}/debug/librust_sys_calls.so" tofile="${build.base}/libtph_test_lib.so">
         </copy>
     </target>
 

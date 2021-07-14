@@ -227,10 +227,11 @@ EXTERNAL void sysCopy(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysSyncCache(void *address, size_t size);
 
-// sysTPH
-
+// Third Party Heap
+#ifdef THIRD_PARTY_HEAP_BUILD
 EXTERNAL void test_stack_alignment_0();
 EXTERNAL void test_stack_alignment_5(int a, int b, int c, int d, int e);
+#endif
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);
