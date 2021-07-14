@@ -880,6 +880,7 @@ public final class StackManager extends GenericStackManager {
   @Override
   public boolean isAlignedSysCall(Instruction s) {
     OptimizingCompilerException.UNREACHABLE("Stack alignment for PPC is not implemented");
+    return false;
   }
 
   /**

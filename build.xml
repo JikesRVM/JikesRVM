@@ -385,7 +385,7 @@
     <property file="${gcspy.server.dir}/constants.properties"/>
   </target>
 
-  <target name="check-third-party-heap-configs" if="config.third-party-heap.enabled">
+  <target name="check-third-party-heap-configs" if="${config.third-party-heap.enabled}">
     <fail message="Third party heap is only supported for 32-bits IA32!">
       <condition>
 	      <not>
