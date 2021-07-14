@@ -385,6 +385,19 @@
     <property file="${gcspy.server.dir}/constants.properties"/>
   </target>
 
+  <target name="check-third-party-heap-configs" if="config.third-party-heap.enabled">
+    <fail message="Third party heap is only supported for 32-bits IA32!">
+      <condition>
+	      <not>
+          <and>
+            <equals arg1="${target.arch}" arg2="ia32"/>
+            <equals arg1="${target.address.size}" arg2="32"/>
+          </and>
+        </not>
+      </condition>
+    </fail>
+  </target>
+
   <!--
 Check to make sure all required properties are specified. This includes properties that define the:
  * host environment
@@ -393,7 +406,7 @@ Check to make sure all required properties are specified. This includes properti
  * component properties for classpath, gcspy etc.
   -->
   <target name="check-properties"
-          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-openjdk-properties,check-gcspy-properties,check-mmtk-properties"
+          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-openjdk-properties,check-gcspy-properties,check-mmtk-properties, check-third-party-heap-configs"
           description="Check that all required properties are specified.">
 
     <!-- setup properties for start of build. -->
