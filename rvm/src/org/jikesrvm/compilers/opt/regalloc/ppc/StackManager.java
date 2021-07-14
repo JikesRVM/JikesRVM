@@ -875,11 +875,11 @@ public final class StackManager extends GenericStackManager {
   }
 
   /**
-   * Is a particular instruction a system call?
+   * Is a particular instruction an aligned system call?
    */
   @Override
   public boolean isAlignedSysCall(Instruction s) {
-    throw new Error("Stack alignment for PPC is not implemented");
+    OptimizingCompilerException.UNREACHABLE("Stack alignment for PPC is not implemented");
   }
 
   /**
