@@ -40,6 +40,7 @@ import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_POP;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_RET_opcode;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ALIGNEDSYSCALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_REG;
@@ -1119,5 +1120,10 @@ public final class StackManager extends GenericStackManager {
   @Override
   public boolean isSysCall(Instruction s) {
     return s.operator() == IA32_SYSCALL;
+  }
+
+  @Override
+  public boolean isAlignedSysCall(Instruction s) {
+    return s.operator() == IA32_ALIGNEDSYSCALL;
   }
 }

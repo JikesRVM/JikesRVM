@@ -78,6 +78,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.ALIGNED_SYSCALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
@@ -290,6 +291,14 @@ public abstract class ConvertToLowLevelIR extends IRTools {
           break;
 
         case SYSCALL_opcode:
+          // If the SYSCALL is using a symbolic address, convert that to
+          // a sequence of loads off the BootRecord to find the appropriate field.
+          if (Call.getMethod(s) != null) {
+            expandSysCallTarget(s, ir);
+          }
+          break;
+
+        case ALIGNED_SYSCALL_opcode:
           // If the SYSCALL is using a symbolic address, convert that to
           // a sequence of loads off the BootRecord to find the appropriate field.
           if (Call.getMethod(s) != null) {

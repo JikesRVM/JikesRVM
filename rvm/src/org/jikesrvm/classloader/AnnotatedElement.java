@@ -251,6 +251,15 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   public final boolean hasUninterruptibleAnnotation() {
     return isAnnotationDeclared(TypeReference.Uninterruptible);
   }
+
+  /**
+   * @return {@code true} if this element has a StackAlignment annotation.
+   * @see org.vmmagic.pragma.StackAlignment
+   */
+  public final boolean hasStackAlignment() {
+    return isAnnotationDeclared(TypeReference.StackAlignment);
+  }
+
   /**
    * @return {@code true} if this element has a NoCheckStore annotation.
    * @see org.vmmagic.pragma.NoCheckStore

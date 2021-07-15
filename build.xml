@@ -385,6 +385,19 @@
     <property file="${gcspy.server.dir}/constants.properties"/>
   </target>
 
+  <target name="check-third-party-heap-configs" if="${config.third-party-heap.enabled}">
+    <fail message="Third party heap is only supported for 32-bits IA32!">
+      <condition>
+	      <not>
+          <and>
+            <equals arg1="${target.arch}" arg2="ia32"/>
+            <equals arg1="${target.address.size}" arg2="32"/>
+          </and>
+        </not>
+      </condition>
+    </fail>
+  </target>
+
   <!--
 Check to make sure all required properties are specified. This includes properties that define the:
  * host environment
@@ -393,7 +406,7 @@ Check to make sure all required properties are specified. This includes properti
  * component properties for classpath, gcspy etc.
   -->
   <target name="check-properties"
-          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-openjdk-properties,check-gcspy-properties,check-mmtk-properties"
+          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-openjdk-properties,check-gcspy-properties,check-mmtk-properties, check-third-party-heap-configs"
           description="Check that all required properties are specified.">
 
     <!-- setup properties for start of build. -->
@@ -1133,6 +1146,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITH_GNU_CLASSPATH_" value="${pp_RVM_WITH_GNU_CLASSPATH}"/>
         <filter token="_RVM_WITH_OPENJDK_" value="${pp_RVM_WITH_OPENJDK}"/>
         <filter token="_OPENJDK_LIB_ARCH_" value="${pp_OPENJDK_LIB_ARCH}"/>
+        <filter token="_RVM_WITH_THIRD_PARTY_HEAP_" value="${config.third-party-heap.enabled}"/>
       </filterset>
     </copy>
 
@@ -1979,7 +1993,12 @@ const char *rvm_target_configuration = "${target.file}";
 
     <property name="rvm.defines" value="-D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE ${filter} "/>
 
-    <property name="rvm.c.args" value="${c.args} ${rvm.includes} ${rvm.defines}"/>
+    <condition property="rvm.c.args" value="${c.args} ${rvm.includes} ${rvm.defines}">
+      <equals arg1="${config.third-party-heap.enabled}" arg2="false"/>
+    </condition>
+    <condition property="rvm.c.args" value="${c.args} ${rvm.includes} ${rvm.defines} -DTHIRD_PARTY_HEAP_BUILD">
+      <equals arg1="${config.third-party-heap.enabled}" arg2="true"/>
+    </condition>
   </target>
   
   <target name="build-gcspy-stub" depends="check-bootloader-properties" if="include.gcspy-stub">
@@ -1993,7 +2012,9 @@ const char *rvm_target_configuration = "${target.file}";
     </CreateDLL>
   </target>
 
-  <target name="build-bootloader" depends="build-gcspy-stub">
+  <!-- We want to test the TPH system calls againsts any changes, regarless of being related to TPH or not -->
+  <import file="testing/tests/third_party_heap/build_tph_test_lib.xml"/>
+  <target name="build-bootloader" depends="build-gcspy-stub,build-tph-test-lib">
     <!-- create JVM library -->
     <echo message="Creating jvm${target.lib-ext}"/>
     <CompileCtoObj cfile="${bl.dir}/jvm.c"
@@ -2116,12 +2137,32 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/main.c"
                    objfile="${build.base}/${target.obj-prefix}main${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext}">
-      <ObjectFiles>
-        <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
-      </ObjectFiles>
-    </CreateEXE>
-    
+
+    <if>
+      <conditions>
+        <equals arg1="${config.third-party-heap.enabled}" arg2="false"/>
+      </conditions>
+      <sequential>
+        <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext}">
+          <ObjectFiles>
+            <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
+          </ObjectFiles>
+        </CreateEXE>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <equals arg1="${config.third-party-heap.enabled}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} -ltph_test_lib">
+          <ObjectFiles>
+            <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
+          </ObjectFiles>
+        </CreateEXE>
+      </sequential>
+    </if>
+
     <antcall target="build-debug-symbols"/>
   </target>
 

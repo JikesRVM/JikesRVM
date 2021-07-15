@@ -313,10 +313,19 @@ public class GenerateInterfaceDeclarations {
       int suffixIndex = fieldName.indexOf("IP");
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
-        String functionName = fieldName.substring(0, suffixIndex);
+        String functionName;
+        if (VM.BuildWithThirdPartyHeap && fieldName.indexOf("RIP") > -1) {
+          functionName = fieldName.substring(0,suffixIndex - 1);
+        } else {
+          functionName = fieldName.substring(0, suffixIndex);
+        }
         // e. g.,
         //sysFOOIP = (int) sysFOO;
-        pln("  br->" + fieldName + " = (Address)" + functionName + ";");
+        if (!VM.BuildWithThirdPartyHeap && fieldName.indexOf("RIP") > -1) {
+          pln("  br->" + fieldName + " = (Address) 0;");
+        } else {
+          pln("  br->" + fieldName + " = (Address)" + functionName + ";");
+        }
       } else if (fieldName.equals("sysJavaVM")) {
         pln("  br->" + fieldName + " = (Address)&" + fieldName + ";");
       }
@@ -418,6 +427,3 @@ public class GenerateInterfaceDeclarations {
     arch.emitArchAssemblerDeclarations();
   }
 }
-
-
-

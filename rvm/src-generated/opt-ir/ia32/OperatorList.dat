@@ -367,6 +367,17 @@ call
 callDefs
 callUses
 
+#########################################################
+# Used for special aligned system calls.
+# NOTE: May indirectly be a PEI (due to callee), but the actual call itself
+# is not an immediate PEI and thus is _not_ marked as one.
+#################################################################
+IA32_ALIGNEDSYSCALL
+MIR_Call
+call
+callDefs
+callUses
+
 ####################
 IA32_CALL
 MIR_Call

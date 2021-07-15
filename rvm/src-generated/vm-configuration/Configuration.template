@@ -76,6 +76,9 @@ public abstract class Configuration {
   /** If set, ignore the supression pragma and print all warning messages. */
   public static final boolean ParanoidVerifyUnint = false;
 
+  /** Is this using the default MMTk or the rust MMTk? **/
+  public static final boolean BuildWithThirdPartyHeap = @_RVM_WITH_THIRD_PARTY_HEAP_@;
+
   /** Is this an adaptive build? */
   public static final boolean BuildForAdaptiveSystem = @_RVM_WITH_ADAPTIVE_SYSTEM_@;
 

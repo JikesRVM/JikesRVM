@@ -1,0 +1,79 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+
+<project name="tph_test" default="test" basedir=".">
+
+    <condition property="tph.target" value="i686-unknown-linux-gnu" else="x86_64-unknown-linux-gnu">
+        <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+    <condition property="arg" value="perf" else="base">
+        <equals arg1="${test.mode}" arg2="performance"/>
+    </condition>
+    <condition property="test.max.heapsize" value="300" else="150">
+        <equals arg1="${test.mode}" arg2="performance"/>
+    </condition>
+    <condition property="test.time.limit" value="1200" else="300">
+        <equals arg1="${test.mode}" arg2="performance"/>
+    </condition>
+
+    <import file="../../../build/tests.xml"/>
+
+    <property name="main.java" location="${basedir}/src"/>
+    <property name="build.classes" location="${build.tests.dir}/classes"/>
+    <property name="test.class.path" value="${build.classes}"/>
+
+    <!-- **************************************************************************** -->
+    <!-- *                                                                          * -->
+    <!-- *                            Compile the tests                             * -->
+    <!-- *                                                                          * -->
+    <!-- **************************************************************************** -->
+
+    <macrodef name="tphTest">
+        <attribute name="class"/>
+        <attribute name="initialHeapSize" default="60"/>
+        <attribute name="maxHeapSize" default="150" />
+        <sequential>
+            <rvm tag="@{class}" class="@{class}" args="${arg}" initialHeapSize="@{initialHeapSize}" maxHeapSize="@{maxHeapSize}" rvmArgs="-Djava.library.path=./rust_sys_calls/target/target/i686-unknown-linux-gnu/debug/librust_sys_calls.so"/>
+            <findStatistic tag="@{class}" pattern="ALL TESTS PASSED" key="success"/>
+            <outputResults tag="@{class}"/>
+        </sequential>
+    </macrodef>
+
+    <!-- **************************************************************************** -->
+    <!-- *                                                                          * -->
+    <!-- *                            Compile the tests                             * -->
+    <!-- *                                                                          * -->
+    <!-- **************************************************************************** -->
+    <target name="compile" depends="init">
+        <mkdir dir="${build.classes}"/>
+        <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" source="1.6" target="1.6" includeantruntime="false">
+            <classpath>
+                <pathelement path="${test.rvm.dir}/jksvm.jar"/>
+                <pathelement path="${test.rvm.dir}/rvmrt.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- **************************************************************************** -->
+    <!-- *                                                                          * -->
+    <!-- *                            Run the tests                                 * -->
+    <!-- *                                                                          * -->
+    <!-- **************************************************************************** -->
+
+    <target name="test" depends="compile">
+        <startResults/>
+        <tphTest class="TestTPHSysCalls"/>
+        <finishResults/>
+    </target>
+
+</project>

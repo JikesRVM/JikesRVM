@@ -122,6 +122,11 @@ public abstract class GenericStackManager extends IRTools {
   private int sysCallOffset = 0;
 
   /**
+   * This field records whether or not the stack needs to be aligned.
+   */
+  private boolean aligned = false;
+
+  /**
    * For each physical register, holds a ScratchRegister which records
    * the current scratch assignment for the physical register.
    */
@@ -163,6 +168,12 @@ public abstract class GenericStackManager extends IRTools {
    * @return whether the instruction is a system call?
    */
   public abstract boolean isSysCall(Instruction s);
+
+  /**
+   * @param s the instruction to check
+   * @return whether the instruction is a system call?
+   */
+  public abstract boolean isAlignedSysCall(Instruction s);
 
   /**
    * Given symbolic register r in instruction s, do we need to ensure that
@@ -301,12 +312,20 @@ public abstract class GenericStackManager extends IRTools {
    * @return the offset into the stack where n*4 contiguous words are
    * reserved
    */
-  public int allocateSpaceForSysCall(int n) {
+  public int allocateSpaceForSysCall(int n, boolean isAligned) {
     int bytes = n * WORDSIZE;
     if (sysCallOffset == 0) {
       sysCallOffset = allocateOnStackFrame(bytes);
+      aligned = isAligned;
     }
     return sysCallOffset;
+  }
+
+  /**
+   * @return whether the compiled method has to be aligned
+   */
+  public boolean isAligned() {
+    return aligned;
   }
 
   /**
@@ -1193,7 +1212,7 @@ public abstract class GenericStackManager extends IRTools {
         }
 
         // deal with sys calls that may bash non-volatiles
-        if (isSysCall(s)) {
+        if (isSysCall(s) || isAlignedSysCall(s)) {
           if (VM.BuildForIA32) {
             org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.saveNonvolatilesAroundSysCall(s, ir);
           } else {

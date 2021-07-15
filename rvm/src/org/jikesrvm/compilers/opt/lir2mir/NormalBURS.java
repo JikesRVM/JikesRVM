@@ -30,6 +30,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.OTHER_OPERAND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.ALIGNED_SYSCALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
@@ -170,6 +171,7 @@ final class NormalBURS extends BURS {
       switch (instr.getOpcode()) {
         case CALL_opcode:
         case SYSCALL_opcode:
+        case ALIGNED_SYSCALL_opcode:
         case YIELDPOINT_OSR_opcode:
           if (cur_parent.getChild2() == null) {
             cur_parent.setChild2(NullTreeNode);

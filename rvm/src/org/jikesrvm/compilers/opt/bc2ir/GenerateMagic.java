@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.bc2ir;
 import static org.jikesrvm.compilers.opt.ir.IRTools.AC;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG;
+import static org.jikesrvm.compilers.opt.ir.Operators.ALIGNED_SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT;
@@ -509,7 +510,13 @@ public class GenerateMagic {
       // callNAME(Address functionAddress, <var args to pass via native calling convention>)
       // With 64 bit PowerPC ELF ABI, functionAddress points to the function descriptor
       TypeReference[] args = meth.getParameterTypes();
-      Instruction call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
+      Instruction call;
+      if (meth.isStackAligned()) {
+        call = Call.create(ALIGNED_SYSCALL, null, null, null, null, args.length - 1);
+      } else {
+        call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
+      }
+
       for (int i = args.length - 1; i >= 1; i--) {
         Call.setParam(call, i - 1, bc2ir.pop(args[i]));
       }

@@ -1,0 +1,13 @@
+[package]
+name = "rust_sys_calls"
+version = "0.1.0"
+authors = ["Javad Amiri <javad.amiri@anu.edu.au>"]
+edition = "2018"
+
+[lib]
+name = "rust_sys_calls"
+crate-type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

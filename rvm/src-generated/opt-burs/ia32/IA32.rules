@@ -654,6 +654,23 @@ RegisterOperand temp = regpool.makeTemp(TypeReference.Int); \\
 EMIT(MIR_Move.create(IA32_MOV, temp, Call.getAddress(P(p)))); \\
 SYSCALL(P(p), temp.copyRO());
 
+r:	ALIGNED_SYSCALL(r, any)
+13
+EMIT_INSTRUCTION
+ALIGNED_SYSCALL(P(p), Call.getAddress(P(p)));
+
+r:	ALIGNED_SYSCALL(INT_LOAD(riv, riv), any)
+11
+EMIT_INSTRUCTION
+ALIGNED_SYSCALL(P(p), MO_L(PL(p), DW));
+
+r:	ALIGNED_SYSCALL(INT_CONSTANT, any)
+23
+EMIT_INSTRUCTION
+RegisterOperand temp = regpool.makeTemp(TypeReference.Int); \\
+EMIT(MIR_Move.create(IA32_MOV, temp, Call.getAddress(P(p)))); \\
+ALIGNED_SYSCALL(P(p), temp.copyRO());
+
 #####
 # RDTSC
 #####
