@@ -166,9 +166,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
       if (VM.BuildForIA32) {
         org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.expandAlignedSysCall(s, ir);
       } else {
-        // No support for aligned syscalls for PPC
-        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
-          org.jikesrvm.compilers.opt.regalloc.ppc.CallingConvention.expandSysCall(s, ir);
+        VM.sysFail("No support for aligned syscalls for PPC");
       }
     }
 
