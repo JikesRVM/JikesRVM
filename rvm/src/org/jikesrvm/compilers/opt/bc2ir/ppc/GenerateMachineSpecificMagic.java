@@ -21,6 +21,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNIMPLEMENTED_BUT_UNREACHABLE;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBST;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBT;
 import static org.jikesrvm.compilers.opt.ir.ppc.ArchOperators.DCBTST;
@@ -38,10 +39,12 @@ import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.runtime.MagicNames;
@@ -133,6 +136,24 @@ public abstract class GenerateMachineSpecificMagic {
       // IA-specific
     } else if (methodName == MagicNames.illegalInstruction) {
       bc2ir.appendInstruction(Empty.create(ILLEGAL_INSTRUCTION));
+    } else if (methodName == MagicNames.unsignedDivide) {
+      Operand divisor = bc2ir.popInt();
+      Operand dividend = bc2ir.popLong();
+      RegisterOperand res = gc.getTemps().makeTempInt();
+      Instruction call = Call.create(UNIMPLEMENTED_BUT_UNREACHABLE, res, null, null, 2);
+      Call.setParam(call, 0, divisor);
+      Call.setParam(call, 1, dividend);
+      bc2ir.appendInstruction(call);
+      bc2ir.push(new IntConstantOperand(0xDEADC0DE));
+    } else if (methodName == MagicNames.unsignedRemainder) {
+      Operand divisor = bc2ir.popInt();
+      Operand dividend = bc2ir.popLong();
+      RegisterOperand res = gc.getTemps().makeTempInt();
+      Instruction call = Call.create(UNIMPLEMENTED_BUT_UNREACHABLE, res, null, null, 2);
+      Call.setParam(call, 0, divisor);
+      Call.setParam(call, 1, dividend);
+      bc2ir.appendInstruction(call);
+      bc2ir.push(new IntConstantOperand(0xDEADC0DE));
     } else if (methodName == MagicNames.dcbst) {
       bc2ir.appendInstruction(CacheOp.create(DCBST, bc2ir.popAddress()));
     } else if (methodName == MagicNames.dcbt || methodName == MagicNames.prefetch) {

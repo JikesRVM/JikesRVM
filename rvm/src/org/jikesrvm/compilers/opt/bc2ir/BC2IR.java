@@ -3336,7 +3336,7 @@ public final class BC2IR {
    * Pops a long operand from the stack.
    * @return the popped operand
    */
-  Operand popLong() {
+  public Operand popLong() {
     Operand r = pop();
     if (VM.VerifyAssertions) opt_assert(r.isLong());
     popDummy();

@@ -1364,7 +1364,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    * @param val1 the first operand
    * @param val2 the second operand
    * @param isDiv {@code true} for division,
-   *  {@code false} for reminder
+   *  {@code false} for remainder
    * @param signed {@code true} for signed,
    *  {@code false} for unsigned
    */
@@ -1397,10 +1397,10 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       } else {
         EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
             new RegisterOperand(getEDX(), TypeReference.Int),
-            val1)));
+            val1.copy())));
         EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
             new RegisterOperand(getEAX(), TypeReference.Int),
-            val1)));
+            val1.copy())));
         EMIT(CPOS(s, MIR_Move.create(IA32_SHR,
             new RegisterOperand(getEDX(), TypeReference.Int),
             LC(32))));

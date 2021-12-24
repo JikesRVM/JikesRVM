@@ -18,6 +18,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_DIV_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_REM_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NEWARRAY_UNRESOLVED_opcode;
@@ -36,6 +38,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNIMPLEMENTED_BUT_UNREACHABLE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
@@ -61,6 +64,7 @@ import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.GetStatic;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -151,6 +155,39 @@ public final class ExpandRuntimeServices extends CompilerPhase {
       int opcode = inst.getOpcode();
 
       switch (opcode) {
+        case LONG_DIV_opcode: {
+          if (VM.BuildFor64Addr) break; // don't reduce operator
+          if (!VM.UseJavaImplementationForLremAndLdiv) break; // don't reduce operator
+          RVMMethod target = Entrypoints.ldivMethod;
+          Call.mutate2(inst,
+                       CALL,
+                       GuardedBinary.getClearResult(inst),
+                       IRTools.AC(target.getOffset()),
+                       MethodOperand.STATIC(target),
+                       GuardedBinary.getClearVal1(inst),
+                       GuardedBinary.getClearVal2(inst));
+          if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+            inline(inst, ir);
+          }
+        }
+        break;
+
+        case LONG_REM_opcode: {
+          if (VM.BuildFor64Addr) break; // don't reduce operator
+          if (!VM.UseJavaImplementationForLremAndLdiv) break; // don't reduce operator
+          RVMMethod target = Entrypoints.lremMethod;
+          Call.mutate2(inst,
+                       CALL,
+                       GuardedBinary.getClearResult(inst),
+                       IRTools.AC(target.getOffset()),
+                       MethodOperand.STATIC(target),
+                       GuardedBinary.getClearVal1(inst),
+                       GuardedBinary.getClearVal2(inst));
+          if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+            inline(inst, ir);
+          }
+        }
+        break;
 
         case NEW_opcode: {
           TypeOperand Type = New.getClearType(inst);
@@ -588,6 +625,14 @@ public final class ExpandRuntimeServices extends CompilerPhase {
               inline(rb, ir, true);
             }
           }
+        }
+        break;
+
+        case UNIMPLEMENTED_BUT_UNREACHABLE_opcode: {
+          RVMMethod target = Entrypoints.unimplementedButUnreachable;
+          MethodOperand methodOp = MethodOperand.STATIC(target);
+          methodOp.setIsNonReturningCall(true);
+          Call.mutate(inst, CALL, null, IRTools.AC(target.getOffset()), methodOp, 0);
         }
         break;
 

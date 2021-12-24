@@ -14,3 +14,19 @@ EMIT_INSTRUCTION
 INT_DIVIDES(P(p), GuardedBinary.getClearResult(P(p)), GuardedBinary.getClearVal1(P(p)), \\
             consumeMO(), true, true);
 
+#####
+# UNSIGNED_DIV_64_32
+#####
+r:     UNSIGNED_DIV_64_32(rlv, riv)
+52
+EMIT_INSTRUCTION
+INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
+            GuardedBinary.getVal2(P(p)), true, false);
+
+### Memory operands ###
+r:     UNSIGNED_DIV_64_32(rlv, load32)
+55
+EMIT_INSTRUCTION
+INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \\
+            consumeMO(), true, false);
+

@@ -254,7 +254,20 @@ does it work? 4
  so [2].
  At End
 run10
+run12
 caught run12
+run13
+caught run13
+run14
+5
+run15
+caught run15
+run16
+3
+run17
+caught run17
+run18
+10
 **** RESULT: true
 **** START OF EXECUTION of TestFinally.run ()Z ****.
 TestFinally

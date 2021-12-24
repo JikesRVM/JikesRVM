@@ -2399,6 +2399,50 @@ final class BaselineMagic {
   }
 
   /**
+   * Unsigned long divide by 32bit divisor giving 32bit quotient
+   */
+  private static final class UnsignedDivide extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      // stack: value1.high = divident
+      //        value1.low
+      //        value2 = divisor <-- ESP
+      if (VM.VerifyAssertions) VM._assert(S0 != EAX && S0 != EDX);
+      asm.emitPOP_Reg(S0);
+      asm.emitPOP_Reg(EAX);
+      asm.emitPOP_Reg(EDX);
+      asm.emitDIV_Reg_Reg(EAX, S0);
+      asm.emitPUSH_Reg(EAX);
+    }
+  }
+  static {
+    MagicGenerator g = new UnsignedDivide();
+    generators.put(getMethodReference(Magic.class, MagicNames.unsignedDivide, long.class, int.class, int.class), g);
+  }
+
+  /**
+   * Unsigned long remainder by 32bit divisor giving 32bit quotient
+   */
+  private static final class UnsignedRemainder extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      // stack: value1.high = divident
+      //        value1.low
+      //        value2 = divisor <-- ESP
+      if (VM.VerifyAssertions) VM._assert(S0 != EAX && S0 != EDX);
+      asm.emitPOP_Reg(S0);
+      asm.emitPOP_Reg(EAX);
+      asm.emitPOP_Reg(EDX);
+      asm.emitDIV_Reg_Reg(EAX, S0);
+      asm.emitPUSH_Reg(EDX);
+    }
+  }
+  static {
+    MagicGenerator g = new UnsignedRemainder();
+    generators.put(getMethodReference(Magic.class, MagicNames.unsignedRemainder, long.class, int.class, int.class), g);
+  }
+
+  /**
    * Floating point square root
    */
   private static final class Fsqrt extends MagicGenerator {

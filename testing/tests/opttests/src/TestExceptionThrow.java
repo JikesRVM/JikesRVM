@@ -46,18 +46,27 @@ class TestExceptionThrow {
       if (!run6()) correct = false;
       System.out.println("run7");
       if (!run7()) correct = false;
-      //System.out.println("WARNING: Skipping run8; breaks opt compiler");
       System.out.println("run8");
       if (!run8()) correct = false;
-      //System.out.println("WARNING: Skipping run9; breaks opt compiler");
       System.out.println("run9");
       if (!run9()) correct = false;
-      //System.out.println("WARNING: Skipping run10; breaks opt compiler");
       System.out.println("run10");
       if (!run10()) correct = false;
-      //System.out.println("run11");
       //if (!run11()) correct = false;
+      System.out.println("run12");
       if (!run12()) correct = false;
+      System.out.println("run13");
+      if (!run13()) correct = false;
+      System.out.println("run14");
+      if (!run14()) correct = false;
+      System.out.println("run15");
+      if (!run15()) correct = false;
+      System.out.println("run16");
+      if (!run16()) correct = false;
+      System.out.println("run17");
+      if (!run17()) correct = false;
+      System.out.println("run18");
+      if (!run18()) correct = false;
       return correct;
    }
 
@@ -349,5 +358,82 @@ class TestExceptionThrow {
          return a / b;
    }
 
+   public static boolean run13() {
+     try {
+       System.out.println(longDivide1(1L,0L));
+     } catch (ArithmeticException e) {
+       System.out.println("caught run13");
+     }
+     return true;
+   }
+
+   static long longDivide1(long a, long b) {
+         return a / b;
+   }
+
+   public static boolean run14() {
+     System.out.println(longDivideCatch(5L,0L));
+     return true;
+   }
+
+   static long longDivideCatch(long a, long b) {
+     try {
+       return a / b;
+     } catch (ArithmeticException ae) {
+       return a / (b + 1);
+     }
+   }
+
+   public static boolean run15() {
+     try {
+       System.out.println(longRem(Long.MAX_VALUE,0L));
+     } catch (ArithmeticException e) {
+       System.out.println("caught run15");
+     }
+     return true;
+   }
+
+   static long longRem(long a, long b) {
+     return a % b;
+   }
+
+   public static boolean run16() {
+     System.out.println(longRemCatch(Long.MAX_VALUE,0L));
+     return true;
+   }
+
+   static long longRemCatch(long a, long b) {
+     try {
+       return a % b;
+     } catch (ArithmeticException ae) {
+       return a % (b + 4);
+     }
+   }
+
+   public static boolean run17() {
+     try {
+       System.out.println(intRem(Integer.MAX_VALUE,0));
+     } catch (ArithmeticException ae) {
+       System.out.println("caught run17");
+     }
+     return true;
+   }
+
+   static int intRem(int a, int b) {
+     return a % b;
+   }
+
+   public static boolean run18() {
+     System.out.println(intRemCatch(Integer.MAX_VALUE,0));
+     return true;
+   }
+
+   static int intRemCatch(int a, int b) {
+     try {
+       return a % b;
+     } catch (ArithmeticException ae) {
+       return a % (b + 13);
+     }
+   }
 
 }

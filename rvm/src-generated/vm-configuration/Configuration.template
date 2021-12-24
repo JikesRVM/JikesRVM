@@ -32,6 +32,11 @@ public abstract class Configuration {
    * IA32 because attempts use {@code cmpxchg*} which has the effect of a full memory fence.
    */
   public static final boolean MagicAttemptImpliesStoreLoadBarrier = !BuildForPowerPC;
+  /**
+   * Does the 32-bit version of the architecure use the Java implementation of lrem and ldiv? This implies that
+   * Magic.unsignedDiv and Magic.unsignedRemainer are implemented.
+   */
+  public static final boolean UseJavaImplementationForLremAndLdiv = BuildForIA32;
 
   public static final boolean BuildFor32Addr = @_RVM_FOR_32_ADDR_@;
   public static final boolean BuildFor64Addr = !BuildFor32Addr;

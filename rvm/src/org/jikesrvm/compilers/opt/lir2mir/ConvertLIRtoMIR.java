@@ -247,6 +247,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
           case LONG_DIV_opcode: {
             if (VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
+            if (VM.UseJavaImplementationForLremAndLdiv) break; // don't reduce operator
             Call.mutate2(s,
                          SYSCALL,
                          GuardedBinary.getClearResult(s),
@@ -261,6 +262,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
           case LONG_REM_opcode: {
             if (VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
+            if (VM.UseJavaImplementationForLremAndLdiv) break; // don't reduce operator
             Call.mutate2(s,
                          SYSCALL,
                          GuardedBinary.getClearResult(s),

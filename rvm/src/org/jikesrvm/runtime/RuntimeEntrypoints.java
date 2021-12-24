@@ -103,6 +103,177 @@ public class RuntimeEntrypoints {
   private static final String UNREACHABLE_BC_MESSAGE = "Attempted to execute " +
   "a bytecode that was determined to be unreachable!";
 
+  /**
+   * Perform signed division implementing the ldiv bytecode
+   *
+   * @param u dividend
+   * @param v divisor
+   * @return quotient
+   */
+  @Entrypoint
+  static long ldiv(long u, long v) {
+    boolean c = false;
+    if (u < 0) {
+      c = !c;
+      u = -u;
+    }
+    if (v < 0) {
+      c = !c;
+      v = -v;
+    }
+    long w = unsignedDivide(u, v);
+    return c ? -w : w;
+  }
+
+  private static long makeLong(int upper, int lower) {
+    return (((long)upper) << 32) | ((lower) & 0xFFFFFFFFL);
+  }
+
+  private static long unsignedMultiply(int a, int b) {
+    return ((a) & 0xFFFFFFFFL) * ((b) & 0xFFFFFFFFL);
+  }
+
+  private static boolean unsignedGT(int a, int b) {
+    return Word.fromIntZeroExtend(a).GT(Word.fromIntZeroExtend(b));
+  }
+
+  private static boolean unsignedGE(int a, int b) {
+    return Word.fromIntZeroExtend(a).GE(Word.fromIntZeroExtend(b));
+  }
+
+  /**
+   * Perform the unsigned division subcase of the ldiv bytecode
+   *
+   * @param n dividend
+   * @param d divisor
+   * @return quotient
+   */
+  private static long unsignedDivide(final long n, final long d) {
+    final int d0 = (int)d;
+    final int d1 = (int)(d >>> 32);
+    final int n0 = (int)n;
+    final int n1 = (int)(n >>> 32);
+    if (d1 == 0) {
+      if (unsignedGT(d0, n1)) {
+        // 0q = nn / 0d
+        return makeLong(0, Magic.unsignedDivide(n, d0));
+      } else {
+        // qq = NN / 0d
+        if (d0 == 0) {
+          raiseArithmeticException();
+        }
+        final int q1 = Magic.unsignedDivide(makeLong(0, n1), d0);
+        final int n1_ = Magic.unsignedRemainder(makeLong(0, n1), d0);
+        final int q0 = Magic.unsignedDivide(makeLong(n1_,n0), d0);
+        return makeLong(q1, q0);
+      }
+    } else {
+      if (unsignedGT(d1, n1)) {
+        // 00 = nn / DD
+        return 0L;
+      } else {
+        // 0q = NN / dd
+        final int bm = Integer.numberOfLeadingZeros(d1);
+        if (bm == 0) {
+          return (unsignedGT(n1, d1) || unsignedGE(n0, d0)) ? 1L : 0L;
+        } else {
+          final int b = 32 - bm;
+          final int d1_ = (d1 << bm) | (d0 >>> b);
+          final int d0_ = d0 << bm;
+          final int n2 = n1 >>> b;
+          final int n1_ = (n1 << bm) | (n0 >>> b);
+          final int n0_ = n0 << bm;
+          int q0 = Magic.unsignedDivide(makeLong(n2,n1_), d1_);
+          final int n1__ = Magic.unsignedRemainder(makeLong(n2,n1_), d1_);
+          final long m = unsignedMultiply(q0, d0_);
+          final int m0 = (int)m;
+          final int m1 = (int)(m >>> 32);
+          if (unsignedGT(m1, n1__) || ((m1 == n1__) && unsignedGT(m0, n0_))) {
+            q0--;
+          }
+          return makeLong(0, q0);
+        }
+      }
+    }
+  }
+
+  /**
+   * Perform the unsigned remainder part of the lrem bytecode
+   *
+   * @param n dividend
+   * @param d divisor
+   * @return remainder
+   */
+  private static long unsignedRemainder(final long n, final long d) {
+    final int d0 = (int)d;
+    final int d1 = (int)(d >>> 32);
+    final int n0 = (int)n;
+    final int n1 = (int)(n >>> 32);
+    if (d1 == 0) {
+      if (unsignedGT(d0, n1)) {
+        // 0q = nn / 0d
+        return makeLong(0, Magic.unsignedRemainder(n, d0));
+      } else {
+        // qq = NN / 0d
+        if (d0 == 0) {
+          raiseArithmeticException();
+        }
+        final int n1_ = Magic.unsignedRemainder(makeLong(0, n1), d0);
+        final int r0 = Magic.unsignedRemainder(makeLong(n1_,n0), d0);
+        return makeLong(0, r0);
+      }
+    } else {
+      if (unsignedGT(d1, n1)) {
+        // 00 = nn / DD
+        return n;
+      } else {
+        // 0q = NN / dd
+        final int bm = Integer.numberOfLeadingZeros(d1);
+        if (bm == 0) {
+          return (unsignedGT(n1, d1) || unsignedGE(n0, d0)) ? (n - d) : n;
+        } else {
+          final int b = 32 - bm;
+          final int d1_ = (d1 << bm) | (d0 >>> b);
+          final int d0_ = d0 << bm;
+          final int n2 = n1 >>> b;
+          final int n1_ = (n1 << bm) | (n0 >>> b);
+          final int n0_ = n0 << bm;
+          final int q0 = Magic.unsignedDivide(makeLong(n2,n1_), d1_);
+          final int n1__ = Magic.unsignedRemainder(makeLong(n2,n1_), d1_);
+          long m = unsignedMultiply(q0, d0_);
+          final int m0 = (int)m;
+          final int m1 = (int)(m >>> 32);
+          if (unsignedGT(m1, n1__) || ((m1 == n1__) && unsignedGT(m0, n0_))) {
+            m = m - makeLong(d1_, d0_);
+          }
+          return (makeLong(n1__, n0_) - m) >>> bm;
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Perform signed remainder implementing the lrem bytecode
+   *
+   * @param u dividend
+   * @param v divisor
+   * @return remainder
+   */
+  @Entrypoint
+  static long lrem(long u, long v) {
+    boolean c = false;
+    if (u < 0) {
+      c = !c;
+      u = -u;
+    }
+    if (v < 0) {
+      v = -v;
+    }
+    long w = unsignedRemainder(u, v);
+    return c ? -w : w;
+  }
+
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
   //---------------------------------------------------------------//
@@ -908,6 +1079,12 @@ public class RuntimeEntrypoints {
   @Entrypoint
   static void raiseIllegalAccessError() {
     throw new java.lang.IllegalAccessError();
+  }
+
+  @NoInline
+  @Entrypoint
+  static void unimplementedButUnreachable() {
+    VM.sysFail("Executed an instruction that should have been unreachable.");
   }
 
   //----------------//

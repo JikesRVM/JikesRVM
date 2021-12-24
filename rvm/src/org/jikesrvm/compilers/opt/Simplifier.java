@@ -231,6 +231,12 @@ public abstract class Simplifier extends IRTools {
       case INT_DIV_opcode:
         result = intDiv(regpool, s, opts);
         break;
+      case UNSIGNED_DIV_64_32_opcode:
+        result = unsignedDiv64_32(regpool, s, opts);
+        break;
+      case UNSIGNED_REM_64_32_opcode:
+        result = unsignedRem64_32(regpool, s, opts);
+        break;
       case INT_MUL_opcode:
         result = intMul(regpool, s, opts);
         break;
@@ -1314,6 +1320,72 @@ public abstract class Simplifier extends IRTools {
               Binary.mutate(s, INT_SHR, GuardedBinary.getClearResult(s), tempInt3.copyRO(), IC(power));
               return DefUseEffect.REDUCED;
             }
+          }
+        }
+      }
+    }
+    return DefUseEffect.UNCHANGED;
+  }
+
+  private static DefUseEffect unsignedDiv64_32(AbstractRegisterPool regpool, Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
+      Operand op1 = GuardedBinary.getVal1(s);
+      Operand op2 = GuardedBinary.getVal2(s);
+      if (op2.isIntConstant()) {
+        int val2 = op2.asIntConstant().value;
+        if (val2 == 0) {
+          // TODO: This instruction is actually unreachable.
+          // There will be an INT_ZERO_CHECK
+          // guarding this instruction that will result in an
+          // ArithmeticException.  We
+          // should probabbly just remove the INT_DIV as dead code.
+          return DefUseEffect.UNCHANGED;
+        }
+        if (op1.isLongConstant()) {
+          // BOTH CONSTANTS: FOLD
+          long val1 = op1.asLongConstant().value;
+          long longRes = val1 / (((long)val2) & 0xFFFFFFFF);
+          int res = (int)longRes;
+          Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), IC(res));
+          return DefUseEffect.MOVE_FOLDED;
+        } else {
+          // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+          if (val2 == 1) {                  // x / 1 == x;
+            Unary.mutate(s, LONG_2INT, GuardedBinary.getClearResult(s), GuardedBinary.getClearVal1(s));
+            return DefUseEffect.REDUCED;
+          }
+        }
+      }
+    }
+    return DefUseEffect.UNCHANGED;
+  }
+
+  private static DefUseEffect unsignedRem64_32(AbstractRegisterPool regpool, Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
+      Operand op1 = GuardedBinary.getVal1(s);
+      Operand op2 = GuardedBinary.getVal2(s);
+      if (op2.isIntConstant()) {
+        int val2 = op2.asIntConstant().value;
+        if (val2 == 0) {
+          // TODO: This instruction is actually unreachable.
+          // There will be an INT_ZERO_CHECK
+          // guarding this instruction that will result in an
+          // ArithmeticException.  We
+          // should probabbly just remove the INT_DIV as dead code.
+          return DefUseEffect.UNCHANGED;
+        }
+        if (op1.isLongConstant()) {
+          // BOTH CONSTANTS: FOLD
+          long val1 = op1.asLongConstant().value;
+          long longRes = val1 % (((long)val2) & 0xFFFFFFFF);
+          int res = (int)longRes;
+          Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), IC(res));
+          return DefUseEffect.MOVE_FOLDED;
+        } else {
+          // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+          if (val2 == 1) {                  // x / 1 == x;
+            Unary.mutate(s, LONG_2INT, GuardedBinary.getClearResult(s), GuardedBinary.getClearVal1(s));
+            return DefUseEffect.REDUCED;
           }
         }
       }

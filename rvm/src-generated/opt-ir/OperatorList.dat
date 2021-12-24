@@ -755,6 +755,24 @@ none
 
 
 
+# Unsigned divide a long operand by an int operand putting the
+# quotient result in an int register operand. Magic operation used to
+# implement long division on 32bit architectures.
+UNSIGNED_DIV_64_32
+GuardedBinary
+none
+
+
+
+# Unsigned remainder a long operand by an int operand putting the
+# quotient result in an int register operand. Magic operation used to
+# implement long division on 32bit architectures.
+UNSIGNED_REM_64_32
+GuardedBinary
+none
+
+
+
 # Divide two (register/constant) float operands putting
 # the result in a register operand.
 FLOAT_DIV
@@ -1496,6 +1514,15 @@ callUses
 # A call instruction.  Used for special system calls.
 # Is marked as a memory model load/store, but does not directly load/store any values itself.
 SYSCALL
+Call
+call | memAsLoad | memAsStore
+callDefs
+callUses
+
+# A call that represents a failure at runtime. Used for instructions that are not implemented on an
+# architecture but that should never be reached (e.g. because another code path will be taken on that
+# architecture).
+UNIMPLEMENTED_BUT_UNREACHABLE
 Call
 call | memAsLoad | memAsStore
 callDefs

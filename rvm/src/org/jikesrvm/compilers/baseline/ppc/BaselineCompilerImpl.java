@@ -1400,6 +1400,14 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitTWEQ0(T0);         // trap if 0.
       popLong(T0, T1);
       generateSysCall(16, Entrypoints.sysLongDivideIPField);
+//    If we had an implementation of Magic.unsignedRemainder and Magic.unsignedDiv we could write the else block as:
+//      asm.emitOR(T0, T3, T2); // or two halves of denominator together
+//      asm.emitTWEQ0(T0);         // trap if 0.
+//      Offset methodOffset = Entrypoints.ldivMethod.getOffset();
+//      asm.emitLAddrToc(T0, methodOffset);
+//      asm.emitMTCTR(T0);
+//      popLong(T0, T1);
+//      asm.emitBCCTRL();
     }
     pushLong(T0, T1);
   }
@@ -1418,6 +1426,14 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitTWEQ0(T0);         // trap if 0.
       popLong(T0, T1);
       generateSysCall(16, Entrypoints.sysLongRemainderIPField);
+//    If we had an implementation of Magic.unsignedRemainder and Magic.unsignedDiv we could write the else block as:
+//      asm.emitOR(T0, T3, T2); // or two halves of denominator together
+//      asm.emitTWEQ0(T0);         // trap if 0.
+//      Offset methodOffset = Entrypoints.lremMethod.getOffset();
+//      asm.emitLAddrToc(T0, methodOffset);
+//      asm.emitMTCTR(T0);
+//      popLong(T0, T1);
+//      asm.emitBCCTRL();
     }
     pushLong(T0, T1);
   }

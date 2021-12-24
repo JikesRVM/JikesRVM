@@ -61,6 +61,11 @@ public class Entrypoints {
                "objectAddressRemapper",
                org.jikesrvm.runtime.ObjectAddressRemapper.class);
 
+  public static final NormalMethod ldivMethod =
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "ldiv", "(JJ)J");
+  public static final NormalMethod lremMethod =
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "lrem", "(JJ)J");
+
   public static final NormalMethod instanceOfMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "instanceOf", "(Ljava/lang/Object;I)Z");
   public static final NormalMethod checkcastMethod =
@@ -115,7 +120,10 @@ public class Entrypoints {
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseAbstractMethodError", "()V");
   public static final NormalMethod raiseIllegalAccessError =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
-
+  // Hard failures for execution of instructions that should never be reachable. This is used to rewrite instructions that are in
+  // the boot image but unused on some architectures (e.g. Magic.unsignedDivide on PPC).
+  public static final NormalMethod unimplementedButUnreachable =
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "unimplementedButUnreachable", "()V");
 
   public static final RVMField gcLockField = getField("Lorg/jikesrvm/classlibrary/JavaLangSupport$GCLock;", "gcLock", int.class);
 

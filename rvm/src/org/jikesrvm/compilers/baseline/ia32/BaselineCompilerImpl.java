@@ -1108,38 +1108,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitIDIV_Reg_Reg_Quad(EAX, ECX);
       asm.emitPUSH_Reg(EAX); // push result
     } else {
-      // (1) zero check
-      asm.emitMOV_Reg_RegInd(T0, SP);
-      asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr1 = asm.forwardJcc(NE);
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
-      fr1.resolve(asm);
-      // (2) save RVM nonvolatiles
-      int numNonVols = NONVOLATILE_GPRS.length;
-      Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-      for (int i = 0; i < numNonVols; i++) {
-        asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-      }
-      // (3) Push args to C function (reversed)
-      asm.emitPUSH_RegDisp(SP, off.plus(4));
-      asm.emitPUSH_RegDisp(SP, off.plus(4));
-      asm.emitPUSH_RegDisp(SP, off.plus(20));
-      asm.emitPUSH_RegDisp(SP, off.plus(20));
-      // (4) invoke C function through bootrecord
-      asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(Entrypoints.the_boot_recordField.getOffset()));
-      asm.emitCALL_RegDisp(S0, Entrypoints.sysLongDivideIPField.getOffset());
-      // (5) pop space for arguments
-      adjustStack(4 * WORDSIZE, true);
-      // (6) restore RVM nonvolatiles
-      for (int i = numNonVols - 1; i >= 0; i--) {
-        asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-      }
-      // (7) pop expression stack
-      adjustStack(WORDSIZE * 4, true);
-      // (8) push results
-      asm.emitPUSH_Reg(T1);
-      asm.emitPUSH_Reg(T0);
+      genParameterRegisterLoad(asm, 4); // pass 4 parameter words
+      asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.ldivMethod.getOffset()));
+      asm.emitPUSH_Reg(T0); // high half
+      asm.emitPUSH_Reg(T1); // low half
     }
   }
 
@@ -1153,38 +1125,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitIDIV_Reg_Reg_Quad(EAX, ECX);
       asm.emitPUSH_Reg(EDX); // push result
     } else {
-      // (1) zero check
-      asm.emitMOV_Reg_RegInd(T0, SP);
-      asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr1 = asm.forwardJcc(NE);
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
-      fr1.resolve(asm);
-      // (2) save RVM nonvolatiles
-      int numNonVols = NONVOLATILE_GPRS.length;
-      Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-      for (int i = 0; i < numNonVols; i++) {
-        asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-      }
-      // (3) Push args to C function (reversed)
-      asm.emitPUSH_RegDisp(SP, off.plus(4));
-      asm.emitPUSH_RegDisp(SP, off.plus(4));
-      asm.emitPUSH_RegDisp(SP, off.plus(20));
-      asm.emitPUSH_RegDisp(SP, off.plus(20));
-      // (4) invoke C function through bootrecord
-      asm.emitMOV_Reg_Abs(S0, Magic.getTocPointer().plus(Entrypoints.the_boot_recordField.getOffset()));
-      asm.emitCALL_RegDisp(S0, Entrypoints.sysLongRemainderIPField.getOffset());
-      // (5) pop space for arguments
-      adjustStack(4 * WORDSIZE, true);
-      // (6) restore RVM nonvolatiles
-      for (int i = numNonVols - 1; i >= 0; i--) {
-        asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-      }
-      // (7) pop expression stack
-      adjustStack(WORDSIZE * 4, true);
-      // (8) push results
-      asm.emitPUSH_Reg(T1);
-      asm.emitPUSH_Reg(T0);
+      genParameterRegisterLoad(asm, 4); // pass 4 parameter words
+      asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.lremMethod.getOffset()));
+      asm.emitPUSH_Reg(T0); // high half
+      asm.emitPUSH_Reg(T1); // low half
     }
   }
 

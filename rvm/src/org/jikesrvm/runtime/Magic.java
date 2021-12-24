@@ -1487,6 +1487,32 @@ public final class Magic {
     }
   }
 
+  /**
+   * Executes a hardware unsigned long divide by 32bit divisor giving 32bit quotient
+   * @param u dividend
+   * @param v divisor
+   * @return the quotient
+   */
+  public static int unsignedDivide(long u, int v) {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+    return 0;
+  }
+
+  /**
+   * Executes a hardware unsigned long remainder by 32bit divisor giving 32bit remainder
+   * @param u dividend
+   * @param v divisor
+   * @return the remainder
+   */
+  public static int unsignedRemainder(long u, int v) {
+    if (VM.VerifyAssertions && VM.runningVM) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+    return 0;
+  }
+
   //---------------------------------------//
   //    Methods which are evaluated at     //
   //    compile-time when instructions     //

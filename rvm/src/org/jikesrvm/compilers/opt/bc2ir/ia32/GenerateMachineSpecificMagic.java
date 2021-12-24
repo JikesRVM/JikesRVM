@@ -21,6 +21,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNSIGNED_DIV_64_32;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNSIGNED_REM_64_32;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PAUSE;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.PREFETCH;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET;
@@ -37,6 +39,7 @@ import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
@@ -112,6 +115,22 @@ public abstract class GenerateMachineSpecificMagic {
       bc2ir.appendInstruction(Empty.create(PAUSE));
     } else if (methodName == MagicNames.illegalInstruction) {
       bc2ir.appendInstruction(Empty.create(ILLEGAL_INSTRUCTION));
+    } else if (methodName == MagicNames.unsignedDivide) {
+      Operand divisor = bc2ir.popInt();
+      Operand dividend = bc2ir.popLong();
+      RegisterOperand res = gc.getTemps().makeTempInt();
+      bc2ir.appendInstruction(GuardedBinary.create(UNSIGNED_DIV_64_32, res,
+                                                   dividend, divisor,
+                                                   bc2ir.getCurrentGuard()));
+      bc2ir.push(res.copyD2U());
+    } else if (methodName == MagicNames.unsignedRemainder) {
+      Operand divisor = bc2ir.popInt();
+      Operand dividend = bc2ir.popLong();
+      RegisterOperand res = gc.getTemps().makeTempInt();
+      bc2ir.appendInstruction(GuardedBinary.create(UNSIGNED_REM_64_32, res,
+                                                   dividend, divisor,
+                                                   bc2ir.getCurrentGuard()));
+      bc2ir.push(res.copyD2U());
     } else if (methodName == MagicNames.getCallerFramePointer) {
       Operand fp = bc2ir.popAddress();
       RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
