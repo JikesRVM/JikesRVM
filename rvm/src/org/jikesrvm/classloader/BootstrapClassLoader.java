@@ -36,7 +36,7 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 public final class BootstrapClassLoader extends java.lang.ClassLoader {
 
   /**
-   * Java > 1.8 does not support modification of the boot classpath. For now, this is supported.
+   * Java &gt; 1.8 does not support modification of the boot classpath. For now, this is supported.
    * Setting this to {@code false} will make dacapo xalan fail on OpenJDK.
    */
   private static final boolean SUPPORT_MODIFICATION_OF_BOOTCLASSPATH_FOR_OPENJDK = true;
