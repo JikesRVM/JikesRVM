@@ -1401,7 +1401,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
         EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
             new RegisterOperand(getEAX(), TypeReference.Int),
             val1.copy())));
-        EMIT(CPOS(s, MIR_Move.create(IA32_SHR,
+        EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SHR,
             new RegisterOperand(getEDX(), TypeReference.Int),
             LC(32))));
       }
