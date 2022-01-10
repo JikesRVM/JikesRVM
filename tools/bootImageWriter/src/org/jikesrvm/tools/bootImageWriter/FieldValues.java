@@ -468,7 +468,7 @@ public class FieldValues {
         Statics.setSlotContents(rvmFieldOffset, lock);
         return true;
       } else {
-        System.out.println("Unknow field in " + rvmFieldName + " " + rvmFieldType + " " + rvmFieldOffset);
+        System.out.println("Unknown field " + rvmFieldName + " " + rvmFieldType + " " + rvmFieldOffset + " in JDK type " + jdkType);
         return false;
       }
     } else {
