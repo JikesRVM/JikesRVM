@@ -28,10 +28,8 @@ import java.lang.reflect.Constructor;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
-import org.vmmagic.unboxed.Offset;
 
 @ReplaceClass(className = "java.lang.reflect.Constructor")
 public class java_lang_reflect_Constructor {
@@ -47,14 +45,12 @@ public class java_lang_reflect_Constructor {
 
     // set root field
     RVMField rootField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "root");
-    Offset rootOffset = rootField.getOffset();
-    Magic.setObjectAtOffset(newConstructor, rootOffset, source);
+    rootField.setObjectValueUnchecked(newConstructor, source);
 
     // copy constructorAccessor from this
     RVMField constructorAccessorField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "constructorAccessor");
-    Offset constructorAccessorOffset = constructorAccessorField.getOffset();
-    Object sourceConstructorAccessor = Magic.getObjectAtOffset(source, constructorAccessorOffset);
-    Magic.setObjectAtOffset(newConstructor, constructorAccessorOffset, sourceConstructorAccessor);
+    Object sourceConstructorAccessor = constructorAccessorField.getObjectUnchecked(source);
+    constructorAccessorField.setObjectValueUnchecked(newConstructor, sourceConstructorAccessor);
 
     return newConstructor;
   }

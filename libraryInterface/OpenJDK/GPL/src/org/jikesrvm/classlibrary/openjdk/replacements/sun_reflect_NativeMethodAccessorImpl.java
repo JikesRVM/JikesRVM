@@ -33,7 +33,6 @@ import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.ReflectionBase;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
@@ -61,14 +60,14 @@ public class sun_reflect_NativeMethodAccessorImpl {
       Atom methodDescriptor = Atom.findOrCreateUnicodeAtom(descriptorAsString);
       RVMMethod realMethod = type.findDeclaredMethod(methodName, methodDescriptor);
       if (VM.VerifyAssertions) VM._assert(realMethod != null);
-      Magic.setObjectAtOffset(m, ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.getOffset(), realMethod);
+      ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.setObjectValueUnchecked(m, realMethod);
       rvmMethod = java.lang.reflect.JikesRVMSupport.getMethodOf(m);
     }
 
     if (VM.VerifyAssertions) VM._assert(rvmMethod != null);
 
     RVMClass callerClass = RVMClass.getClassFromStackFrame(4);
-    ReflectionBase invoker = (ReflectionBase) Magic.getObjectAtOffset(m, ClassLibraryHelpers.javaLangReflectMethod_invokerField.getOffset());
+    ReflectionBase invoker = (ReflectionBase) ClassLibraryHelpers.javaLangReflectMethod_invokerField.getObjectUnchecked(m);
     return JavaLangReflectSupport.invoke(obj, args, rvmMethod, m, callerClass, invoker);
   }
 

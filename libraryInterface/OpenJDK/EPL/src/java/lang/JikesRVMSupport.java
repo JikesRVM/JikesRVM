@@ -23,7 +23,6 @@ import org.jikesrvm.classlibrary.ClassLoaderSupport;
 import org.jikesrvm.classlibrary.JavaLangInstrument;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.classloader.RVMField;
 
 import org.vmmagic.pragma.*;
@@ -87,7 +86,7 @@ public class JikesRVMSupport {
   public static Class<?> createClass(RVMType type) {
     Class<?> createdClass = ClassLibraryHelpers.allocateObjectForClassAndRunNoArgConstructor(java.lang.Class.class);
     RVMField rvmTypeField = ClassLibraryHelpers.rvmTypeField;
-    Magic.setObjectAtOffset(createdClass, rvmTypeField.getOffset(), type);
+    rvmTypeField.setObjectValueUnchecked(createdClass, type);
     return createdClass;
   }
 
@@ -99,18 +98,18 @@ public class JikesRVMSupport {
 
   public static RVMType getTypeForClass(Class<?> c) {
     RVMField rvmTypeField = ClassLibraryHelpers.rvmTypeField;
-    return (RVMType) Magic.getObjectAtOffset(c, rvmTypeField.getOffset());
+    return (RVMType) rvmTypeField.getObjectUnchecked(c);
   }
 
   @Uninterruptible
   public static RVMType getTypeForClassUninterruptible(Class<?> c) {
     RVMField rvmTypeField = ClassLibraryHelpers.rvmTypeField;
-    return (RVMType) Magic.getObjectAtOffset(c, rvmTypeField.getOffset());
+    return (RVMType) rvmTypeField.getObjectValueUnchecked(c);
   }
 
   public static void setClassProtectionDomain(Class<?> c, ProtectionDomain pd) {
     RVMField protectionDomainField = ClassLibraryHelpers.protectionDomainField;
-    Magic.setObjectAtOffset(c, protectionDomainField.getOffset(), pd);
+    protectionDomainField.setObjectValueUnchecked(c, pd);
   }
 
   /***
@@ -123,7 +122,7 @@ public class JikesRVMSupport {
     RVMField[] instanceFields = typeForClass.getInstanceFields();
     for (RVMField f : instanceFields) {
       if (f.getName() == VALUE_ATOM) {
-        return  (char[]) Magic.getObjectAtOffset(str, f.getOffset());
+        return  (char[]) f.getObjectValueUnchecked(str);
       }
     }
     VM.sysFail("field 'value' not found");
@@ -142,7 +141,7 @@ public class JikesRVMSupport {
     RVMField[] instanceFields = typeForClass.getInstanceFields();
     for (RVMField f : instanceFields) {
       if (f.getName() == OFFSET_ATOM) {
-        return Magic.getIntAtOffset(str, f.getOffset());
+        return f.getIntValueUnchecked(str);
       }
     }
     VM.sysFail("field offset not found");
@@ -173,7 +172,7 @@ public class JikesRVMSupport {
 
   public static void setThread(RVMThread vmdata, Thread thread) {
     RVMField rvmThreadField = ClassLibraryHelpers.rvmThreadField;
-    Magic.setObjectAtOffset(thread, rvmThreadField.getOffset(), vmdata);
+    rvmThreadField.setObjectValueUnchecked(thread, vmdata);
   }
 
   public static RVMThread getThread(Thread thread) {
@@ -181,7 +180,7 @@ public class JikesRVMSupport {
       return null;
     else {
       RVMField rvmThreadField = ClassLibraryHelpers.rvmThreadField;
-      RVMThread realRvmThread = (RVMThread) Magic.getObjectAtOffset(thread, rvmThreadField.getOffset());
+      RVMThread realRvmThread = (RVMThread) rvmThreadField.getObjectUnchecked(thread);
       return realRvmThread;
     }
   }

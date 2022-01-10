@@ -28,10 +28,8 @@ import java.lang.reflect.Field;
 
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
-import org.vmmagic.unboxed.Offset;
 
 @ReplaceClass(className = "java.lang.reflect.Field")
 public class java_lang_reflect_Field {
@@ -47,19 +45,16 @@ public class java_lang_reflect_Field {
 
     // set root field
     RVMField rootField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "root");
-    Offset rootOffset = rootField.getOffset();
-    Magic.setObjectAtOffset(newField, rootOffset, source);
+    rootField.setObjectValueUnchecked(newField, source);
 
     // copy fieldAccessor and overrideFieldAccessor from this
     RVMField fieldAccessorField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "fieldAccessor");
-    Offset fieldAccessorOffset = fieldAccessorField.getOffset();
-    Object sourceFieldAccessor = Magic.getObjectAtOffset(source, fieldAccessorOffset);
-    Magic.setObjectAtOffset(newField, fieldAccessorOffset, sourceFieldAccessor);
+    Object sourceFieldAccessor = fieldAccessorField.getObjectUnchecked(source);
+    fieldAccessorField.setObjectValueUnchecked(newField, sourceFieldAccessor);
 
     RVMField overrideFieldAccessorField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "overrideFieldAccessor");
-    Offset overrideFieldAccessorOFfset = overrideFieldAccessorField.getOffset();
-    Object sourceOverrideFieldAccessor = Magic.getObjectAtOffset(source, overrideFieldAccessorOFfset);
-    Magic.setObjectAtOffset(newField, overrideFieldAccessorOFfset, sourceOverrideFieldAccessor);
+    Object sourceOverrideFieldAccessor = overrideFieldAccessorField.getObjectUnchecked(source);
+    overrideFieldAccessorField.setObjectValueUnchecked(newField, sourceOverrideFieldAccessor);
 
     return newField;
   }

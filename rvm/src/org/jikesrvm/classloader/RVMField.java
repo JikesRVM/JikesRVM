@@ -268,6 +268,7 @@ public final class RVMField extends RVMMember {
    * @return {@code true} if this this field is invisible to the memory
    *  management system.
    */
+  @Uninterruptible
   public boolean isUntraced() {
     return hasUntracedAnnotation();
   }
@@ -349,6 +350,7 @@ public final class RVMField extends RVMMember {
    * or {@code null} if the field is static.
    * @return the reference described by this RVMField from the given object.
    */
+  @Uninterruptible
   public Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {
       if (NEEDS_OBJECT_GETSTATIC_BARRIER && !isUntraced()) {
@@ -431,6 +433,7 @@ public final class RVMField extends RVMMember {
     }
   }
 
+  @Uninterruptible
   public int getIntValueUnchecked(Object obj) {
     return get32Bits(obj);
   }
@@ -447,6 +450,7 @@ public final class RVMField extends RVMMember {
     return Magic.longBitsAsDouble(get64Bits(obj));
   }
 
+  @Uninterruptible
   private int get32Bits(Object obj) {
     if (isStatic()) {
       return Statics.getSlotContentsAsInt(getOffset());

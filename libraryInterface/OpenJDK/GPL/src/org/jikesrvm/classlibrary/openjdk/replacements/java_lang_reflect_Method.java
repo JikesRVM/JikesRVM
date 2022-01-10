@@ -29,10 +29,8 @@ import java.lang.reflect.Method;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
-import org.vmmagic.unboxed.Offset;
 
 @ReplaceClass(className = "java.lang.reflect.Method")
 public class java_lang_reflect_Method {
@@ -48,14 +46,12 @@ public class java_lang_reflect_Method {
 
     // set root field
     RVMField rootField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "root");
-    Offset rootOffset = rootField.getOffset();
-    Magic.setObjectAtOffset(newMethod, rootOffset, source);
+    rootField.setObjectValueUnchecked(newMethod, source);
 
     // copy constructorAccessor from this
     RVMField methodAccessorField = java.lang.reflect.JikesRVMHelpers.findFieldByName(typeForClass, "methodAccessor");
-    Offset methodAccessorOffset = methodAccessorField.getOffset();
-    Object sourceMethodAccessor = Magic.getObjectAtOffset(source, methodAccessorOffset);
-    Magic.setObjectAtOffset(newMethod, methodAccessorOffset, sourceMethodAccessor);
+    Object sourceMethodAccessor = methodAccessorField.getObjectUnchecked(source);
+    methodAccessorField.setObjectValueUnchecked(newMethod, sourceMethodAccessor);
 
     return newMethod;
   }

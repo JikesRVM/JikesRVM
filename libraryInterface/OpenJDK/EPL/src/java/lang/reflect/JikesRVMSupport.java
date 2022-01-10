@@ -15,7 +15,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classlibrary.JavaLangReflectSupport;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.ReflectionBase;
 
@@ -50,7 +49,7 @@ public class JikesRVMSupport {
     String signature = convertAtomToInternedStringOrNull(f.getSignature());
     byte[] annotations = f.getAnnotationsData().getRawAnnotations();
     Field newField = ra.newField(declaringClass, name, type, modifiers, slot, signature, annotations);
-    Magic.setObjectAtOffset(newField, ClassLibraryHelpers.javaLangReflectField_rvmFieldField.getOffset(), f);
+    ClassLibraryHelpers.javaLangReflectField_rvmFieldField.setObjectValueUnchecked(newField, f);
     return newField;
   }
 
@@ -68,12 +67,12 @@ public class JikesRVMSupport {
     byte[] parameterAnnotations = annotationsData.getRawParameterAnnotations();
     byte[] annotationDefault = annotationsData.getRawAnnotationDefault();
     Method newMethod = ra.newMethod(declaringClass, name, parameterTypes, returnType, checkedExceptions, modifiers, slot, signature, annotations, parameterAnnotations, annotationDefault);
-    Magic.setObjectAtOffset(newMethod, ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.getOffset(), m);
+    ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.setObjectValueUnchecked(newMethod, m);
     ReflectionBase invoker = m.getInvoker();
     if (Reflection.cacheInvokerInJavaLangReflect) {
-      Magic.setObjectAtOffset(newMethod, ClassLibraryHelpers.javaLangReflectMethod_invokerField.getOffset(), invoker);
+      ClassLibraryHelpers.javaLangReflectMethod_invokerField.setObjectValueUnchecked(newMethod, invoker);
     } else {
-      Magic.setObjectAtOffset(newMethod, ClassLibraryHelpers.javaLangReflectMethod_invokerField.getOffset(), null);
+      ClassLibraryHelpers.javaLangReflectMethod_invokerField.setObjectValueUnchecked(newMethod, null);
     }
     return newMethod;
   }
@@ -93,7 +92,7 @@ public class JikesRVMSupport {
     byte[] annotations = annotationsData.getRawAnnotations();
     byte[] parameterAnnotations = annotationsData.getRawParameterAnnotations();
     Constructor<T> newConstructor = (Constructor<T>) ra.newConstructor(declaringClass, parameterTypes, checkedExceptions, modifiers, slot, signature, annotations, parameterAnnotations);
-    Magic.setObjectAtOffset(newConstructor, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset(), m);
+    ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.setObjectValueUnchecked(newConstructor, m);
     return newConstructor;
   }
 
@@ -103,15 +102,15 @@ public class JikesRVMSupport {
   }
 
   public static RVMField getFieldOf(Field f) {
-    return (RVMField) Magic.getObjectAtOffset(f, ClassLibraryHelpers.javaLangReflectField_rvmFieldField.getOffset());
+    return (RVMField) ClassLibraryHelpers.javaLangReflectField_rvmFieldField.getObjectUnchecked(f);
   }
 
   public static RVMMethod getMethodOf(Method m) {
-    return (RVMMethod) Magic.getObjectAtOffset(m, ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.getOffset());
+    return (RVMMethod) ClassLibraryHelpers.javaLangReflectMethod_rvmMethodField.getObjectUnchecked(m);
   }
 
   public static RVMMethod getMethodOf(Constructor cons) {
-    return (RVMMethod) Magic.getObjectAtOffset(cons, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset());
+    return (RVMMethod) ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getObjectUnchecked(cons);
   }
 
   private static Class[] determineCheckedExceptionTypes(

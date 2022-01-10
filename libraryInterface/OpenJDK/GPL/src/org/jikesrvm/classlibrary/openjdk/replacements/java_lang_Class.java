@@ -44,7 +44,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Callbacks;
-import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.ReplaceClass;
 import org.vmmagic.pragma.ReplaceMember;
 
@@ -252,7 +251,7 @@ public class java_lang_Class<T> {
 
   @ReplaceMember
   private java.security.ProtectionDomain getProtectionDomain0() {
-    return (java.security.ProtectionDomain) Magic.getObjectAtOffset(this, ClassLibraryHelpers.protectionDomainField.getOffset());
+    return (java.security.ProtectionDomain) ClassLibraryHelpers.protectionDomainField.getObjectUnchecked(this);
   }
 
   @ReplaceMember

@@ -32,7 +32,6 @@ import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.ReplaceClass;
@@ -67,7 +66,7 @@ public class sun_reflect_NativeConstructorAccessorImpl {
       Atom constructorDescriptor = Atom.findOrCreateUnicodeAtom(descriptorAsString);
       RVMMethod initMethod = type.findInitializerMethod(constructorDescriptor);
       if (VM.VerifyAssertions) VM._assert(initMethod != null);
-      Magic.setObjectAtOffset(c, ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.getOffset(), initMethod);
+      ClassLibraryHelpers.javaLangReflectConstructor_rvmMethodField.setObjectValueUnchecked(c, initMethod);
       constructorMethod = java.lang.reflect.JikesRVMSupport.getMethodOf(c);
     }
 
