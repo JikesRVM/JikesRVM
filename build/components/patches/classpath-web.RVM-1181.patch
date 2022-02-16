@@ -1,0 +1,64 @@
+--- native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkFileDialogPeer.c	2007-06-21 16:07:01.000000000 +0200
++++ native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkFileDialogPeer.c	2022-02-16 10:24:29.604296730 +0100
+@@ -265,7 +265,7 @@
+                     jobject peer_obj)
+ {
+   void *ptr;
+-  G_CONST_RETURN gchar *fileName;
++  const gchar *fileName;
+   jstring str_fileName = NULL;
+ 
+   /* We only need this for the case when the user closed the window,
+--- native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkToolkit.c	2022-01-28 12:11:54.429548898 +0100
++++ native/jni/gtk-peer/gnu_java_awt_peer_gtk_GtkToolkit.c	2022-02-16 10:54:40.117655461 +0100
+@@ -265,7 +265,8 @@
+       portableNativeSync = 0;
+ #endif
+     }
+-  
++
++#if GLIB_MINOR_VERSION < 32
+   if (!g_thread_supported ())
+     {
+       if (portableNativeSync)
+@@ -273,9 +274,7 @@
+           global_lock = (*env)->NewGlobalRef(env, lock);
+           gdk_threads_set_lock_functions(&jni_lock_cb, &jni_unlock_cb);
+         }
+-#if GLIB_MINOR_VERSION < 32
+       g_thread_init(NULL);
+-#endif
+     }
+   else
+     {
+@@ -289,6 +288,18 @@
+ 
+   /* Debugging progress message; uncomment if needed: */
+   /*   printf("called gthread init\n"); */
++#else
++      /* Warn if portable native sync is desired but the threading
++         system is already initialized.  In that case we can't
++         override the threading implementation with our portable
++         native sync functions. */
++      if (portableNativeSync)
++        g_printerr ("peer warning: portable native sync disabled.\n");
++
++  /* Debugging progress message; uncomment if needed: */
++  /*   printf("called gthread init\n"); */
++
++#endif
+ }
+ 
+ void
+--- native/jni/gtk-peer/GtkDragSourceContextPeer.c	2011-06-27 21:58:06.000000000 +0200
++++ native/jni/gtk-peer/GtkDragSourceContextPeer.c	2022-02-16 11:04:58.933449089 +0100
+@@ -267,7 +267,7 @@
+ 
+   data = (*env)->GetStringUTFChars (env, target, NULL);
+   tar[0].target = (gchar *) data;  
+-  event = gdk_event_new (GDK_ALL_EVENTS_MASK);
++  event = gdk_event_new ((GdkEventType)GDK_ALL_EVENTS_MASK);
+   
+   switch (act)
+     {
+
