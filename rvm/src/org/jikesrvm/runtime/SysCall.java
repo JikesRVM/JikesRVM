@@ -500,8 +500,7 @@ public abstract class SysCall {
       int thirdInt, int fourthInt, int fifthInt, int sixthInt, int seventhInt,
       int eightInt);
 
-  /* Syscalls added 4/24 */
-
+  /* Vincent::Syscalls added 4/24 */
   @SysCallTemplate
   public abstract int ProfileInit();
   @SysCallTemplate
