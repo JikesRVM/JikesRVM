@@ -2050,6 +2050,12 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/sysVarArgs.c"
                        objfile="${build.base}/${target.obj-prefix}sysVarArgs${target.obj-ext}"
                        cargs="${rvm.c.args}"/>
+    <CompileCtoObj cfile="${bl.dir}/kenan.c"
+		                          objfile="${build.base}/${target.obj-prefix}kenan${target.obj-ext}"
+					  cargs="${rvm.c.args}"/>
+    <CompileCtoObj cfile="${bl.dir}/log_queue.c"
+		                          objfile="${build.base}/${target.obj-prefix}log_queue${target.obj-ext}"
+					  cargs="${rvm.c.args}"/>
 
     <CreateLibrary outdir="${build.base}" dllname="jvm" srcdir="${bl.dir}">
       <ObjectFiles>
