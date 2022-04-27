@@ -338,6 +338,7 @@ EXTERNAL void sysThreadYield();
 EXTERNAL Word sysGetThreadPriorityHandle();
 EXTERNAL int sysGetThreadPriority(Word thread, Word handle);
 EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority);
+EXTERNAL void SetDramTimeWindowLimit(int, int, double);
 // sysThread - architecture specific
 // parameters are architecture specific too.
 EXTERNAL void bootThread(void *, void *, void *, void *);
