@@ -10,12 +10,15 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import org.jikesrvm.runtime.SysCall;
+
 
 @RunWith(VMRequirements.class)
 @Category(RequiresBuiltJikesRVM.class)
 public class VincentTest {
     @Test
-    public void sampleTest() {
-        assertTrue(true);
+    public void smokeTest() {
+        SysCall.sysCall.ProfileInit();
+        System.out.println(SysCall.sysCall.GetSocketNum());   
     }
 }
