@@ -409,4 +409,35 @@ public class BootRecord {
   public Address sysPerfEventDisableIP;
   public Address sysPerfEventReadIP;
 
+  //RAPL methods
+  public Address ProfileInitIP;
+  public Address GetSocketNumIP;
+  public Address SetPowerLimitIP;
+  public Address GetPackagePowerSpecIP;
+  public Address GetDramPowerSpecIP;
+  public Address SetPackagePowerLimitIP;
+  public Address SetPackageTimeWindowLimitIP;
+  public Address SetDramTimeWindowLimitIP;
+  public Address SetDramPowerLimitIP;
+  public Address EnergyStatCheckIP;
+  public Address ProfileDeallocIP;
+  public Address SetGovernorIP;
+  public Address GetGovernorIP;
+  public Address getCpuNumIP;
+  public Address getCurrentCpuIP;
+  public Address ScaleIP;
+  public Address FreqAvailableIP;
+  public Address checkFrequencyIP;
+  public Address openDVFSFilesIP;
+  public Address closeDVFSFilesIP;
+    
+  //Log Queue Methods
+  public Address init_log_queueIP;
+  public Address print_logsIP;
+  public Address register_thread_statIP;
+  public Address add_log_entryIP;
+  public Address add_method_entryIP;
+  public Address end_iterationIP;
+  public Address quota_expiredIP;
+
 }

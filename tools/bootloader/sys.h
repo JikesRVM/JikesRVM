@@ -117,6 +117,36 @@ extern void* checkMalloc(int length);
 extern void* checkCalloc(int numElements, int sizeOfOneElement);
 extern void checkFree(void* mem);
 
+/**  Adding Kenan Related Files **/	
+EXTERNAL void closeDVFSFiles();	
+EXTERNAL void openDVFSFiles();	
+EXTERNAL int checkFrequency();	
+EXTERNAL void FreqAvailable(int *);	
+EXTERNAL int Scale(int);	
+EXTERNAL int getCurrentCpu();	
+EXTERNAL int getCpuNum();	
+EXTERNAL int SetGovernor(const char*);	
+EXTERNAL int GetGovernor(char*);	
+EXTERNAL void ProfileDealloc();	
+EXTERNAL void EnergyStatCheck(char *);	
+EXTERNAL void SetDramPowerLimit(int , int , double);	
+EXTERNAL void SetPackageTimeWindowLimit(int , int , double);	
+EXTERNAL void SetPackagePowerLimit(int , int , double );	
+EXTERNAL double * GetDramPowerSpec();	
+EXTERNAL double * GetPackagePowerSpec();	
+EXTERNAL void SetPowerLimit (int);	
+EXTERNAL int GetSocketNum();	
+EXTERNAL int ProfileInit();	
+/** Adding LogQueue related definitions **/	
+EXTERNAL void register_thread_stat();	
+EXTERNAL void init_log_queue(int,int);	
+EXTERNAL void print_logs();	
+EXTERNAL void add_log_entry(double*,int,long long,int);	
+EXTERNAL int add_method_entry(char*,char*);	
+EXTERNAL void end_iteration();	
+EXTERNAL int quota_expired(int cmid);	
+
+
 // sysAlignmentCheck
 extern volatile int numEnableAlignCheckingCalls;
 EXTERNAL void sysEnableAlignmentChecking();
@@ -308,6 +338,7 @@ EXTERNAL void sysThreadYield();
 EXTERNAL Word sysGetThreadPriorityHandle();
 EXTERNAL int sysGetThreadPriority(Word thread, Word handle);
 EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority);
+EXTERNAL void SetDramTimeWindowLimit(int, int, double);
 // sysThread - architecture specific
 // parameters are architecture specific too.
 EXTERNAL void bootThread(void *, void *, void *, void *);
