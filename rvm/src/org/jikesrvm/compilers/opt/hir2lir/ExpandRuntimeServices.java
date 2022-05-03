@@ -160,7 +160,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
     instru.perform();
 
     for (Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst = next) {
-      next = inst.nextInstructionInCodeOrder();
+      next = inst.nextInstructionInCodeOrder(); 
       int opcode = inst.getOpcode();
 
       switch (opcode) {
