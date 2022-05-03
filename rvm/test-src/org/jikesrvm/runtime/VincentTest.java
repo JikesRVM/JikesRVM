@@ -12,7 +12,6 @@ import org.junit.runner.RunWith;
 
 import org.jikesrvm.runtime.SysCall;
 
-
 @RunWith(VMRequirements.class)
 @Category(RequiresBuiltJikesRVM.class)
 public class VincentTest {
