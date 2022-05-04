@@ -107,4 +107,24 @@
       errx(1, "read of perf event did not return 3 64-bit values");
     }
   }
+
+  //Vincent
+  EXTERNAL void sysInitPerf() {	
+    	if(initialized==0) {
+    		int ret = pfm_initialize();
+    		if (ret != PFM_SUCCESS) {
+			errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
+							           
+    		} else {
+			initialized = 1;	
+    		}
+    	}
+
+  }
+
+  EXTERNAL void sysCloseFd(int id)
+  {
+	  close(perf_event_fds[id]);
+  }
+  //Vincent E
 #endif
