@@ -165,7 +165,8 @@ public final class Instruction {
    * uniquely identifies the source position of the bytecode that
    * this instruction came from.
    */
-  // Vincent private->public
+  // Vincent private->public, referenced in Instrumentation.java
+  // Joonhwan, TODO: This exposes the physical address, and thus should not be declared public
   public int bcIndex = UNKNOWN_BCI;
 
   /**
@@ -180,6 +181,7 @@ public final class Instruction {
    * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
    */
   // Vincent private->public
+  // Joonhwan, TODO: This exposes the physical address, and thus should not be declared public
   public InlineSequence position;
 
   /**
