@@ -29,6 +29,7 @@
 
 #ifndef RVM_WITH_PERFEVENT
   EXTERNAL void sysInitPerf() {}
+  EXTERNAL void sysCloseFd(int id) {}
   EXTERNAL void sysPerfEventInit(int events) {}
   EXTERNAL void sysPerfEventCreate(int id, const char *eventName) {}
   EXTERNAL void sysPerfEventEnable() {}
