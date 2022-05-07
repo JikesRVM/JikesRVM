@@ -403,10 +403,12 @@ public class BootRecord {
   public Address sysArgumentPassingSeveralFloatsAndSeveralIntsIP;
 
   // perf event support
+  public Address sysInitPerfIP;
   public Address sysPerfEventInitIP;
   public Address sysPerfEventCreateIP;
   public Address sysPerfEventEnableIP;
   public Address sysPerfEventDisableIP;
+  public Address sysCloseFdIP;
   public Address sysPerfEventReadIP;
 
   //RAPL methods

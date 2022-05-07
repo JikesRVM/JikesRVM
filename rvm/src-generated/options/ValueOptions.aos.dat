@@ -121,3 +121,67 @@ What is the sample interval for counter-based sampling
 V MAX_OPT_LEVEL int 2
 The maximum optimization level to enable.
 
+
+#Vincent
+V CPU_CLOCK int 0
+Which CPU frequency do we need to scale?
+
+
+V HOT_METHOD_TIME_MIN double -1
+What is the minimum time of hot method
+
+
+V HOT_METHOD_TIME_MAX double -1
+What is the maximum time of hot method
+
+
+V DVFS_CLS_MTH String \"\"
+What is the name of the DVFS method (including class name)
+
+
+V EVENTCOUNTER String \"\"
+Which event counter do we need to profile? Events are based on command perf list
+
+
+V PROFILER_FILE String \"profile.csv\"
+Specify output file name of energy/hardware counter profiling information
+
+
+V FREQUENCY_TO_BE_PRINTED int 0
+Just a number of frequency to be printed, nothing special to be done in JikesRVM
+
+
+V COUNTERS_FOR_SCALING String \"cache-misses,cache-references,dTLB-load-misses,iTLB-load-misses\"
+Vincent
+
+
+V CORRELATION_EVENTS String \"\"
+Vincent
+
+
+V CACHE_MISS_RATE String \"cache-misses,cache-references\"
+Vincent
+
+
+V BRANCH_MISS_RATE String \"branch-misses,branches\"
+Vincent
+
+
+V TLB_MISSES String \"dTLB-load-misses,iTLB-load-misses\"
+Vincent
+
+
+V PAGE_FAULTS String \"page-faults\"
+Vincent
+
+
+V CONTEXT_SWITCHES String \"context-switches\"
+Vincent
+
+
+V CPU_CYCLES String \"cpu-cycles\"
+Vincent
+
+
+V CPU_CLOCK String \"cpu-clock\"
+Vincent
