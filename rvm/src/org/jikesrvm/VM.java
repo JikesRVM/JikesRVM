@@ -36,6 +36,7 @@ import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 //Vincent
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.energy.DataPrinter;	
 import org.jikesrvm.energy.EnergyCheckUtils;	
 import org.jikesrvm.energy.ProfileMap;	
