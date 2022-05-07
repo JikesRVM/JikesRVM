@@ -18,7 +18,7 @@
  */
 
 		
-#define RVM_WITH_PERFEVENT
+// #define RVM_WITH_PERFEVENT
 
 #ifdef RVM_WITH_PERFEVENT
 #include <perfmon/pfmlib_perf_event.h>
