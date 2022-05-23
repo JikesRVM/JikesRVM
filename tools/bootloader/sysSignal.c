@@ -23,7 +23,9 @@
 // registers in the signal handler is not covered by the current (Nov 2015)
 // set of regression tests. We play it safe and use a larger size
 // for all platforms.
-#define CUSTOM_SIGNAL_STACK_SIZE (2 * SIGSTKSZ)
+//#define CUSTOM_SIGNAL_STACK_SIZE (2 * SIGSTKSZ)
+//Vincent:increase custom stack size to 4
+#define CUSTOM_SIGNAL_STACK_SIZE (4 * SIGSTKSZ)
 
 /**
  * Is the given address within the RVM address space?
