@@ -38,6 +38,7 @@ EXTERNAL int inRVMAddressSpace(Address addr)
   int which;
   /* get the boot record */
   Address *heapRanges = bootRecord->heapRanges;
+  printf(heapRanges);
   for (which = 0; which < MAXHEAPS; which++) {
     Address start = heapRanges[2 * which];
     Address end = heapRanges[2 * which + 1];
