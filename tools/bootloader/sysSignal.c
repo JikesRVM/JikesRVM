@@ -128,10 +128,13 @@ EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context)
   VERBOSE_SIGNALS_PRINTF("%s: hardwareTrapHandler: trap context:\n", Me);
   if (verboseSignalHandling) dumpContext(context);
 
+
+  int inst = inRVMAddressSpace(instructionPtr);
+  int thread = inRVMAddressSpace(threadPtr);
   /* die if the signal didn't originate from the RVM */
-  if (!inRVMAddressSpace(instructionPtr) || !inRVMAddressSpace(threadPtr)) {
-    ERROR_PRINTF("%s: unexpected hardware trap outside of RVM address space - %p %p\n",
-                 Me, (void*)instructionPtr, (void*)threadPtr);
+  if (!inst || !thread) {
+    ERROR_PRINTF("%s: unexpected hardware trap outside of RVM address space - %p %p\n inst: %d thread: %d",
+                 Me, (void*)instructionPtr, (void*)threadPtr, inst, thread);
     ERROR_PRINTF("fault address %p\n", (void *)trapInfo);
     dumpContext(context);
     dumpProcessAddressSpace();
