@@ -35,20 +35,6 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
-//Vincent
-import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.energy.DataPrinter;	
-import org.jikesrvm.energy.EnergyCheckUtils;	
-import org.jikesrvm.energy.ProfileMap;	
-import org.jikesrvm.energy.ProfileQueue;	
-import org.jikesrvm.energy.ProfileStack;	
-import org.jikesrvm.energy.Scaler;
-import org.jikesrvm.energy.LogQueue;	
-import org.jikesrvm.energy.Service;	
-import java.io.*;	
-import java.util.Arrays;	
-import java.util.HashSet;
-
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
@@ -90,42 +76,6 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public class VM extends Properties {
 
-  //Vincent
-  public static String KENAN_SAMPLES ="8";	
-  public static String KENAN_FREQ="2";	
-  public static long  VM_START=0;  	
-  public static long  VM_END=0;	
-  public static double start_energy=0;	
-  public static boolean start_profiling=false;	
-  public static void set_start_profile() {	
-	start_profiling=true;	
-  }	
-  //Very important Note: I intentionally used String here for KENAN_FREQ and KENAN_SAMPLES	
-  //parseInt at this stage will casuse a lot of unexpected troubled.	
-  public static void parseKenanArg(String value, String arg) {	
-	sysWriteln("[VM.parseKenanArg] Parsing Kenan Arguments ... Stay tuned!");	
-        String targ=arg.trim();	
-	sysWriteln(value);	
-	sysWriteln(targ);	
-        	
-	String arg_name  = targ.split("=")[0];	
-	String arg_value = targ.split("=")[1];	
-		
-	if(arg_name.startsWith("samples")) {	
-		KENAN_SAMPLES=arg_value;	
-	}	
-	if(arg_name.startsWith("frequency")) {	
-		KENAN_FREQ = arg_value;	
-	}	
-  }	
-  //Vincent E
-
-  public static void print_hello() {	
-      sysWriteln("Hello from JikesRVM");			
-  }	
-  public static long get_startup_ts() {	
-	return Service.start_ts;	
-  }  
   /**
    * For assertion checking things that should never happen.
    */
@@ -645,34 +595,8 @@ public class VM extends Properties {
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
 
-    //Vincent 
-    Scaler.initScaler();	
-	  //Scaler.initScaler();	
-	  EnergyCheckUtils.initJrapl();	
-    //TODO::Kenan::Khaled::LogQueue::log_queue	
-    //Link Create a System Call for LogQueue	
-	  sysCall.init_log_queue(500,3);
-
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
-      //Kenan: Initialize hardware counter/energy based profiling structures	
-	    //if(Controller.options.EVENTCOUNTER != null && Controller.options.EVENTCOUNTER.length() > 0){	
-		  if(Controller.options.ENABLE_COUNTER_PROFILING || Controller.options.ENABLE_ENERGY_PROFILING) {	
-			  VM.sysWrite("perf initialization");	
-			  sysCall.sysInitPerf();	
-			  //Scaler.initScaler();	
-			  //Scaler.initScaler();	
-			  //EnergyCheckUtils.initJrapl();	
-			  Scaler.openDVFSFiles();	
-		    //ProfileStack.InitStack(EnergyCheckUtils.socketNum);	
-			  ProfileMap.initProfileMap();	
-			  ProfileQueue.initSkippableMethod();	
-			  DataPrinter.initPrintStream();	
-			  LogQueue.initQueue(EnergyCheckUtils.socketNum);	
-		  }	
-		//TODO: add DVFS enable later	
-		  Scaler.openDVFSFiles();	
-	//      }
       Controller.boot();
     }
 
@@ -738,11 +662,6 @@ public class VM extends Properties {
     // Create main thread.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
     mainThread = new MainThread(applicationArguments, mainThreadGroup);
-
-    //Vincent
-    org.jikesrvm.energy.Service.init_service();	
-	  double[] energy = EnergyCheckUtils.getEnergyStats();	
-	  start_energy = energy[energy.length-1];
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
@@ -2585,9 +2504,6 @@ public class VM extends Properties {
   @NoInline
   @UninterruptibleNoWarn("We're never returning to the caller, so even though this code is preemptible it is safe to call from any context")
   public static void sysExit(int value) {
-
-    //Vincent 
-    final Thread mainThread = Thread.currentThread();
     handlePossibleRecursiveCallToSysExit();
 
     if (VM.countThreadTransitions) {
@@ -2602,9 +2518,6 @@ public class VM extends Properties {
       VM.sysWriteln("... END context of the call to VM.sysExit]");
     }
     if (runningVM) {
-//      VM.disableGC();	
-//      LogQueue.dumpLogQueue(Service.clsNameList, Service.methodNameList);	
-//      VM.enableGC();
       Callbacks.notifyExit(value);
       VM.shutdown(value);
     } else {
@@ -2613,21 +2526,6 @@ public class VM extends Properties {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  //Vincent
-  public static void end_iteration() {	
-	  if(Controller.options.ENABLE_ENERGY_PROFILING) {	
-	  	sysCall.end_iteration();	
-	  }	
-  }	
-  public static double read_energy() {	
-    double[] energy = EnergyCheckUtils.getEnergyStats();	
-    double energy_value= energy[energy.length-1];	
-    return energy_value;	
-  }	
-  public static int totalInvocationCount=0;	
-  public static Object invocationLock = new Object(); 
-
-
   /**
    * Shut down the virtual machine.
    * Should only be called if the VM is running.
@@ -2635,60 +2533,12 @@ public class VM extends Properties {
    */
   @Uninterruptible
   public static void shutdown(int value) {
-
-    //Vincent
-    //TODO::Kenan::Khaled::LogQueue::log_queue	
-    //sysCall.print_logs();	
-    VM.sysWriteln("Number of Total Method Invocations :");	
-    VM.sysWriteln("" + VM.totalInvocationCount);	
-    double end_energy = 0;	
-    double[] energy = EnergyCheckUtils.getEnergyStats();	
-    end_energy = energy[energy.length-1];	
-    double total_energy = end_energy - start_energy;	
-    //This file will be written by Dacapo ....	
-    //write_to_file("kenan_energy",total_energy);	
-    Scaler.closeDVFSFiles();
-
     handlePossibleRecursiveShutdown();
 
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-
-    //Vincent 
-    //LogQueue.dumpLogQueue(Service.clsNameList, Service.methodNameList);	
-/*	
-    for (int threadId = 0; threadId < LogQueue.hotMethodsProfLog[0].length; threadId++) {	
-	    for (int methodId = 0; methodId < LogQueue.hotMethodsProfLog[0][threadId].length; methodId++) {	
-		    for (int stackId = 0; stackId < LogQueue.hotMethodsProfLog[0][threadId][methodId].length; stackId++) {	
-			double[] eventVal = new double[LogQueue.hotMethodsProfLog.length - 1];	
-			for (int eventId = 0; eventId < LogQueue.hotMethodsProfLog.length - 1; eventId++) {	
-				eventVal[eventId] = LogQueue.hotMethodsProfLog[eventId][threadId][methodId][stackId];	
-			}	
-			double wallClockTime = LogQueue.hotMethodsProfLog[LogQueue.hotMethodsProfLog.length - 1][threadId][methodId][stackId];	
-			if (wallClockTime != 0) {	
-				Service.printProfile(eventVal, methodId, wallClockTime);	
-			}	
-		    }	
-	    }	
-    }	
-    	
-	    */	
-    //DataPrinter.filePrinter.println("Hit to sysExit!!!");
     sysCall.sysExit(value);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-
-  //Vincent 
-  public static void write_to_file(String file_name, double value) {	
-    try {	
-        FileWriter  fileWriter  = new FileWriter(file_name);	
-      PrintWriter filePrinter = new PrintWriter(fileWriter);	
-      filePrinter.printf("%f",value);	
-      filePrinter.close();	
-      fileWriter.close();	
-    } catch(Exception e) {	
-      e.printStackTrace();	
-    }	
-    }
 
   private static int inSysFail = 0;
 
@@ -2938,47 +2788,6 @@ public class VM extends Properties {
       myThread.setDisallowAllocationsByThisThread();
     }
   }
-
-  //Vincent 
-  /**	
-   * record method id and decrease its yield point enable count by 1 before the stack is operated	
-   * @author kenan	
-   * @return Compiled method name before yield point is disabled	
-   */	
-  public static RVMMethod preYPDisabled() {	
-		//Kenan:	
-		int disabledCMID = Magic.getCompiledMethodID(Magic.getCallerFramePointer(Magic.getFramePointer()));	
-		CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-		//Leave this operation until !yieldpoinEnabled in yieldpoint().	
-//		if(!isOutOfBoundary(disabledCMID) && !ProfileQueue.isShortButFreqMethod(disabledCMID)	
-//				&& ProfileQueue.hotMethodsByExeTime[disabledCMID]) {	
-//	
-//		}	
-		RVMThread myThread = RVMThread.getCurrentThread();	
-		RVMMethod method = CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-		myThread.preDisableYieldpoints(disabledCMID);	
-		return method;	
-  }	
-  /**	
-   * record method id and increase its yield point enable count by 1 after the stack is operated	
-   * @author kenan	
-   * @return Compiled method name before yield point is disabled	
-   */	
-  public static RVMMethod postYPEnabled() {	
-		//Kenan: record method id after the stack is operated by GC	
-		int disabledCMID = Magic.getCompiledMethodID(Magic.getCallerFramePointer(Magic.getFramePointer()));	
-		CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-		//Leave this operation until !yieldpoinEnabled in yieldpoint().	
-//		if(!isOutOfBoundary(disabledCMID) && !ProfileQueue.isShortButFreqMethod(disabledCMID)	
-//				&& ProfileQueue.hotMethodsByExeTime[disabledCMID]) {	
-//	
-//		}	
-		RVMThread myThread = RVMThread.getCurrentThread();	
-		RVMMethod method = CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-		myThread.postEnableYieldpoints(disabledCMID);	
-		return method;	
-  }	
-
 
   /**
    * enable GC; entry point when recursion is not OK.

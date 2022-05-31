@@ -278,10 +278,6 @@ EXTERNAL void sysPerfEventCreate(int id, const char *eventName);
 EXTERNAL void sysPerfEventEnable();
 EXTERNAL void sysPerfEventDisable();
 EXTERNAL void sysPerfEventRead(int id, long long *values);
-//Vincent
-EXTERNAL void sysInitPerf();
-EXTERNAL void sysCloseFd(int id);
-
 // sysSignal
 EXTERNAL int inRVMAddressSpace(Address addr);
 EXTERNAL void dumpProcessAddressSpace();

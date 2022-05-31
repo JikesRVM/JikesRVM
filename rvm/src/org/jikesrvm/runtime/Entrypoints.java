@@ -30,12 +30,6 @@ public class Entrypoints {
   //  2. the class containing the specified member didn't get compiled
   //
 
-  //Kenan: Entrypoints for hot method measurement
-	public static final NormalMethod startProfile = getMethod(org.jikesrvm.energy.Service.class, "startProfile", "(I)V");
-  public static final NormalMethod endProfile = getMethod(org.jikesrvm.energy.Service.class, "endProfile", "(I)V");
-  public static final NormalMethod startFreqOptimization = getMethod(org.jikesrvm.energy.Service.class, "startFreqOptimization", "(I)V");
-  public static final NormalMethod endFreqOptimization = getMethod(org.jikesrvm.energy.Service.class, "endFreqOptimization", "()V");
-
   public static final NormalMethod bootMethod = EntrypointHelper.getMethod(org.jikesrvm.VM.class, "boot", "()V");
 
   public static final RVMMethod java_lang_reflect_Method_invokeMethod =

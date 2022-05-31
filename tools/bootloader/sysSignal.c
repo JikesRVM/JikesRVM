@@ -23,9 +23,7 @@
 // registers in the signal handler is not covered by the current (Nov 2015)
 // set of regression tests. We play it safe and use a larger size
 // for all platforms.
-//#define CUSTOM_SIGNAL_STACK_SIZE (2 * SIGSTKSZ)
-//Vincent:increase custom stack size to 4
-#define CUSTOM_SIGNAL_STACK_SIZE (4 * SIGSTKSZ)
+#define CUSTOM_SIGNAL_STACK_SIZE (2 * SIGSTKSZ)
 
 /**
  * Is the given address within the RVM address space?
@@ -38,7 +36,6 @@ EXTERNAL int inRVMAddressSpace(Address addr)
   int which;
   /* get the boot record */
   Address *heapRanges = bootRecord->heapRanges;
-  printf(heapRanges);
   for (which = 0; which < MAXHEAPS; which++) {
     Address start = heapRanges[2 * which];
     Address end = heapRanges[2 * which + 1];

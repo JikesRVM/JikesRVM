@@ -22,12 +22,6 @@ import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-//Kenan
-import java.util.Random;	
-import org.jikesrvm.adaptive.controller.Controller;	
-import org.jikesrvm.energy.RuntimeScaler;	
-import org.jikesrvm.energy.*;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.OSRListener;
 import org.jikesrvm.adaptive.OnStackReplacementEvent;
@@ -154,59 +148,6 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 @NonMoving
 public final class RVMThread extends ThreadContext {
-
-  //Kenan	
-  public final static int STRIDE = 7;	
-  public static int SAMPLES = 32;	
-  public static int FREQ = 0;	
-  public final static int entrySize = 256;	
-  public static final int PROFILE_ENTRY_SIZE = 3;	
-  public int methodYPDisabledCount = 0;	
-  //Index for YPDisabledMethodID	
- 	
-  public static Object invocationLock = new Object(); 	
-  public static int totalInvocationCount=0; 	
-  public int invocationCount=0;	
-  public int YPNextIndex = 0;	
-	/*	
-	 * Energy/hardware counter measurement when yieldpoint of methods are disabled when yieldpoint() gets invoked.	
-	 * Record yieldpoint of methods that are disabled by compiled method stack based operations for each thread.	
-	 * Eg. disableGC() and etc.	
-	 */	
-  /**This array maps cmid to index*/	
-  public int[] YPDisabledMethodIndex = new int[entrySize + (entrySize >>> 2)];	
-  /**Index for each method*/	
-  public int[] YPDisabledMethodID = new int[entrySize];	
-  /**If it's 1, the yieldpoint is enabled, < 1 it's not. Just like yieldpointsEnabledCount*/	
-  public int[] YPDisabledMethods = new int[entrySize];	
-  /**Counter for yield point disabled by GC only*/	
-  public int YPDisabledCountByGC = 0;	
-  /**time slice expired times for energy/hardware counter profiling*/	
-  public int energyTimeSliceExpired = 0;	
-  /**Samples need to be taken in this timer interrupt for profiling*/	
-  public int samplesThisTimerInterrupt = SAMPLES;	
-  /**Invocation samples to be skipped*/	
-  public int skippedInvocations = STRIDE;	
-  /**Counter for method invocation*/	
-  public int invocationCounter = 0;	
-  /**DVFS is set for the method*/	
-  public boolean dvfsIsSet = false;	
-  /**time slice expired times for method-level DVFS */	
-  public int dvfsSliceExpired = 0;	
-  /**Store the governor before setting to be userspace when doing frequency optimization*/	
-  public String prevGov = "";	
-  /**Store the frequency before setting to be userspace when doing frequency optimization*/	
-  public int prevFreq = 0;	
-  /**Samples need to be taken in this timer interrupt for frequency optimization*/	
-  public int samplesPerTimerDvfs = SAMPLES;	
-  /**Invocation samples to be skipped for frequency optmization*/	
-  public int skippedInvDvfs = STRIDE;	
- /**Record the previous energy profiling information*/	
-  public double[] prevProfile = new double[PROFILE_ENTRY_SIZE];	
-  /**Random object for each thread*/	
-  //public Random rand = new Random();
-
-
   /*
    * debug and statistics
    */
@@ -2661,65 +2602,6 @@ public final class RVMThread extends ThreadContext {
     --yieldpointsEnabledCount;
   }
 
-  /*	
-   * Kenan: Methods handling energy/hardware counter profiling when yield point disabled	
-   */	
-  /**Increase yield point enabled count by 1 for each method before enableYieldpoints()*/	
-  public void postEnableYieldpoints(int cmid) {	
-	  int index = 0;	
-	  if(!isOutBoundary(YPDisabledMethodIndex, cmid)) {	
-		  index = YPDisabledMethodIndex[cmid];	
-		  ++YPDisabledMethods[index];	
-		  return;	
-	  }	
-	  growSize(YPDisabledMethodIndex, cmid);	
-	  YPDisabledMethodIndex[cmid] = YPNextIndex;	
-	  growSize(YPDisabledMethodID, YPNextIndex);	
-	  YPDisabledMethodID[YPNextIndex] = cmid;	
-	  growSize(YPDisabledMethods, YPNextIndex);	
-	  ++YPDisabledMethods[index];	
-	  YPNextIndex++;	
-  }	
-  /**Decrease yield point enabled count by 1 for each method before disableYieldpoints()*/	
-  public void preDisableYieldpoints(int cmid) {	
-	  int index = 0;	
-	  if(!isOutBoundary(YPDisabledMethodIndex, cmid)) {	
-		  index = YPDisabledMethodIndex[cmid];	
-		  --YPDisabledMethods[index];	
-		  return;	
-	  }	
-	  growSize(YPDisabledMethodIndex, cmid);	
-	  YPDisabledMethodIndex[cmid] = YPNextIndex;	
-	  growSize(YPDisabledMethodID, YPNextIndex);	
-	  YPDisabledMethodID[YPNextIndex] = cmid;	
-	  growSize(YPDisabledMethods, YPNextIndex);	
-	  --YPDisabledMethods[index];	
-	  YPNextIndex++;	
-  }	
-  /**	
-   * @param methodList	
-   * @param index	
-   * @return true if the index is out of array boundary	
-   */	
-  public boolean isOutBoundary(int[] methodList, int index) {	
-	  return methodList.length <= index;	
-  }	
-  /**	
-   * @param methodList array to be increased	
-   * @param index array index	
-   */	
-	public void growSize(int[] methodList, int index) {	
-		//Index of method ID may be way larger than the current array size.	
-		while(isOutBoundary(methodList, index)) {	
-			int[] newQueue = new int[Math.max(index + 1, (int) (methodList.length * 1.25))];	
-			System.arraycopy(methodList, 0, newQueue, 0, methodList.length);	
-			methodList = newQueue;	
-		}	
-	}	
-	/*	
-	 * Kenan: End	
-	 */
-
   /**
    * Fail if yieldpoints are disabled on this thread
    */
@@ -2848,9 +2730,6 @@ public final class RVMThread extends ThreadContext {
     return jniEnv != null && jniEnv.hasNativeStackFrame();
   }
 
-  //Vincent
-  public static Object thread_stats_synch = new Object();
-
   /*
    * Starting and ending threads
    */
@@ -2873,20 +2752,8 @@ public final class RVMThread extends ThreadContext {
           throw t;
         }
       }
-      //kmahmou1-kenan-todo: Call the initialization of perf thread level details	
-      Scaler.perfThreadInit();	
-      synchronized(thread_stats_synch) {	
-      	sysCall.register_thread_stat();	
-      }	
-      	
-      //VM.sysWriteln("Not able to run the invocationCounter");	
-      thread.run();	
-      //VM.sysWriteln("invocationCount:"+invocationCounter);	
-      sysCall.sysPerfEventDisable();	
-      Scaler.perfThreadClose();	
-    } catch (Throwable t) {	
-      	
-      Scaler.perfThreadClose();
+      thread.run();
+    } catch (Throwable t) {
       if (traceAcct) {
         VM.sysWriteln("Thread ",getThreadSlot()," exiting with exception.");
       }
@@ -4360,31 +4227,6 @@ public final class RVMThread extends ThreadContext {
 
     Throwable throwThis = null;
     t.monitor().lockNoHandshake();
-
-    //Kenan: Check if the current method of energy consumption needs to measured.	
-    t.checkBlock();	
-    
-    /*	
-     * kenan: After considering hot method by execution time, further filter hot methods for	
-     * dynamic scaling by considering hardware events. Eg. cache miss rate and TLB miss.	
-     */	
-//    for(int i = 0; i < t.YPDisabledMethods.length; i++) {	
-//		int id = t.YPDisabledMethodID[i];	
-//		VM.sysWriteln("YPDisabledMethodID: " + id);	
-//    }	
-//	if (ypTakenInCallerCMID != StackframeLayoutConstants.INVISIBLE_METHOD_ID	
-//			&& !ypTakenInCM.getMethod().getDeclaringClass()	
-//					.hasBridgeFromNativeAnnotation()) {	
-//		if(whereFrom == RVMThread.PROLOGUE)	
-//			VM.sysWriteln("taken event counter sample method prologue: " + ypTakenInCM.getMethod());	
-//		else if(whereFrom == RVMThread.EPILOGUE)	
-//			VM.sysWriteln("taken event counter sample method epilogue: " + ypTakenInCM.getMethod());	
-//	}	
-//      RuntimeMeasurements.takeEventCounterSample(whereFrom, yieldpointServiceMethodFP);	
-    //Kenan: If dynamic scaling is enabled	
-    if(Controller.options.ENABLE_SCALING_BY_COUNTERS) {	
-      RuntimeScaler.dynamicScale(whereFrom, yieldpointServiceMethodFP);	
-    }
 
     int takeYieldpointVal = t.takeYieldpoint;
     if (takeYieldpointVal != 0) {

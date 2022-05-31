@@ -145,11 +145,6 @@ public abstract class SysCall {
   public abstract void sysPerfEventDisable();
   @SysCallTemplate
   public abstract int sysPerfEventRead(int id, long[] values);
-  //Vincent
-  @SysCallTemplate
-  public abstract void sysCloseFd(int id);
-  @SysCallTemplate
-   public abstract int sysInitPerf();
 
   // files
   @SysCallTemplate
