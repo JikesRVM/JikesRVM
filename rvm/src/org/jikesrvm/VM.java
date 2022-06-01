@@ -93,38 +93,38 @@ public class VM extends Properties {
   //Vincent
   public static String KENAN_SAMPLES ="8";	
   public static String KENAN_FREQ="2";	
-  // public static long  VM_START=0;  	
-  // public static long  VM_END=0;	
-  // public static double start_energy=0;	
-  // public static boolean start_profiling=false;	
-  // public static void set_start_profile() {	
-  //   start_profiling=true;	
-  // }	
-  // //Very important Note: I intentionally used String here for KENAN_FREQ and KENAN_SAMPLES	
-  // //parseInt at this stage will casuse a lot of unexpected troubled.	
-  // public static void parseKenanArg(String value, String arg) {	
-  // sysWriteln("[VM.parseKenanArg] Parsing Kenan Arguments ... Stay tuned!");	
-  //       String targ=arg.trim();	
-  // sysWriteln(value);	
-  // sysWriteln(targ);	
+  public static long  VM_START=0;  	
+  public static long  VM_END=0;	
+  public static double start_energy=0;	
+  public static boolean start_profiling=false;	
+  public static void set_start_profile() {	
+    start_profiling=true;	
+  }	
+  //Very important Note: I intentionally used String here for KENAN_FREQ and KENAN_SAMPLES	
+  //parseInt at this stage will casuse a lot of unexpected troubled.	
+  public static void parseKenanArg(String value, String arg) {	
+  sysWriteln("[VM.parseKenanArg] Parsing Kenan Arguments ... Stay tuned!");	
+        String targ=arg.trim();	
+  sysWriteln(value);	
+  sysWriteln(targ);	
 
-  // String arg_name  = targ.split("=")[0];	
-  // String arg_value = targ.split("=")[1];	
+  String arg_name  = targ.split("=")[0];	
+  String arg_value = targ.split("=")[1];	
 
-  // if(arg_name.startsWith("samples")) {	
-  //   KENAN_SAMPLES=arg_value;	
-  // }	
-  // if(arg_name.startsWith("frequency")) {	
-  //   KENAN_FREQ = arg_value;	
-  // }	
-  // }	
+  if(arg_name.startsWith("samples")) {	
+    KENAN_SAMPLES=arg_value;	
+  }	
+  if(arg_name.startsWith("frequency")) {	
+    KENAN_FREQ = arg_value;	
+  }	
+  }	
 
-  // public static void print_hello() {	
-  //     sysWriteln("Hello from JikesRVM");			
-  // }	
-  // public static long get_startup_ts() {	
-  // return Service.start_ts;	
-  // }  
+  public static void print_hello() {	
+      sysWriteln("Hello from JikesRVM");			
+  }	
+  public static long get_startup_ts() {	
+  return Service.start_ts;	
+  }  
 
   /**
    * For assertion checking things that should never happen.
