@@ -165,7 +165,8 @@ public final class Instruction {
    * uniquely identifies the source position of the bytecode that
    * this instruction came from.
    */
-  private int bcIndex = UNKNOWN_BCI;
+  // Joonhwan, TODO: This exposes the physical address, and thus should not be declared public 
+  public int bcIndex = UNKNOWN_BCI;
 
   /**
    * A description of the tree of inlined methods that contains the bytecode
@@ -178,7 +179,8 @@ public final class Instruction {
    * @see InlineSequence
    * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
    */
-  private InlineSequence position;
+  // Joonhwan, TODO: This exposes the physical address, and thus should not be declared public
+  public InlineSequence position;
 
   /**
    * The operator for this instruction.<p>
