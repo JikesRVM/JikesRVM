@@ -500,5 +500,61 @@ public abstract class SysCall {
       int thirdInt, int fourthInt, int fifthInt, int sixthInt, int seventhInt,
       int eightInt);
 
+  /* Syscalls added 4/24 */
+  @SysCallTemplate
+  public abstract int ProfileInit();
+  @SysCallTemplate
+  public abstract int GetSocketNum();
+  @SysCallTemplate
+  public abstract void SetPowerLimit (int enable);
+  @SysCallTemplate
+  public abstract double[] GetPackagePowerSpec();
+  @SysCallTemplate
+  public abstract double[] GetDramPowerSpec();
+  @SysCallTemplate
+  public abstract void SetPackagePowerLimit(int socketId, int level, double custm_power);
+  @SysCallTemplate
+  public abstract void SetPackageTimeWindowLimit(int socketId, int level, double custm_time_window);
+  @SysCallTemplate
+  public abstract void SetDramTimeWindowLimit(int socketId, int level, double custm_time_window);
+  @SysCallTemplate
+  public abstract void SetDramPowerLimit(int socketId, int level, double custm_power);
+  @SysCallTemplate
+  public abstract void EnergyStatCheck(byte[] ener_info);
+  @SysCallTemplate
+  public abstract void ProfileDealloc();
+  @SysCallTemplate
+  public abstract int SetGovernor(byte[] name);
+  @SysCallTemplate
+  public abstract int GetGovernor(byte[] name);
+  @SysCallTemplate
+  public abstract int getCpuNum();
+  @SysCallTemplate
+  public abstract int getCurrentCpu();
+  @SysCallTemplate
+  public abstract int Scale(int name);
+  @SysCallTemplate
+  public abstract void FreqAvailable(int[] freq);
+  @SysCallTemplate
+  public abstract void openDVFSFiles();
+  @SysCallTemplate
+  public abstract int checkFrequency();
+  @SysCallTemplate
+  public abstract void closeDVFSFiles();
+  @SysCallTemplate
+  public abstract void init_log_queue(int pre_allocation, int num_attrs);
+  @SysCallTemplate
+  public abstract void register_thread_stat();
+  @SysCallTemplate
+  public abstract void print_logs();
+  @SysCallTemplate
+  public abstract void add_log_entry(double[] attrs,int cmdid,long timestamp,int freq);
+  @SysCallTemplate
+  public abstract int add_method_entry(byte[] m, byte[] c);
+
+  @SysCallTemplate
+    public abstract void end_iteration();	   
+  @SysCallTemplate
+    public abstract int quota_expired(int cmid); 
 }
 
