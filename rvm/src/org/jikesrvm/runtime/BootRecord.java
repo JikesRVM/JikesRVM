@@ -408,6 +408,10 @@ public class BootRecord {
   public Address sysPerfEventEnableIP;
   public Address sysPerfEventDisableIP;
   public Address sysPerfEventReadIP;
+  //Vincent
+  public Address sysInitPerfIP;
+  public Address sysCloseFdIP;
+
 
   //RAPL methods
   public Address ProfileInitIP;
