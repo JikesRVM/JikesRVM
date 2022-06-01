@@ -40,10 +40,12 @@ public class Scaler implements ScalerOptions {
 				//perfThreadInit();
 
 			}
-			//SysCall.sysCall.FreqAvailable(freqs);
+			//TODO: fix freqAvailable
+			SysCall.sysCall.FreqAvailable(freqs);
 			core = SysCall.sysCall.getCpuNum();
 			governor = new byte[core][20];
-//			SysCall.sysCall.sysStartCounters(cacheTLBEvents, cacheTLBEvents.length);
+
+			//SysCall.sysCall.sysStartCounters(cacheTLBEvents, cacheTLBEvents.length);
 			isInitScaler = true;
 		}
 	}
