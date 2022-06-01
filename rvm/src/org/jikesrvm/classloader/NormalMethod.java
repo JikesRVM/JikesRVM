@@ -40,6 +40,8 @@ public final class NormalMethod extends RVMMethod {
    * This information is used to estimate how big a method will be when
    * it is inlined.
    */
+  //Kenan: method ID for energy/event counter measurements
+	public int methodID = -1; 
   public static final int SIMPLE_OPERATION_COST = 1;
   public static final int LONG_OPERATION_COST = 2;
   public static final int ARRAY_LOAD_COST = 2;
