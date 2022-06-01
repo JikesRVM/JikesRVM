@@ -91,8 +91,8 @@ import org.vmmagic.unboxed.Word;
 public class VM extends Properties {
 
   //Vincent
-  // public static String KENAN_SAMPLES ="8";	
-  // public static String KENAN_FREQ="2";	
+  public static String KENAN_SAMPLES ="8";	
+  public static String KENAN_FREQ="2";	
   // public static long  VM_START=0;  	
   // public static long  VM_END=0;	
   // public static double start_energy=0;	
