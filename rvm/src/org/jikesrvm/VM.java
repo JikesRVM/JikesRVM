@@ -645,7 +645,7 @@ public class VM extends Properties {
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
     //Vincent 
-    Scaler.initScaler();	
+    //Scaler.initScaler();	
 	  //Scaler.initScaler();	
 	  //EnergyCheckUtils.initJrapl();	
     //TODO::Kenan::Khaled::LogQueue::log_queue	
