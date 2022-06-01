@@ -647,7 +647,7 @@ public class VM extends Properties {
     //Vincent 
     Scaler.initScaler();	
 	  //Scaler.initScaler();	
-	  EnergyCheckUtils.initJrapl();	
+	  //EnergyCheckUtils.initJrapl();	
     //TODO::Kenan::Khaled::LogQueue::log_queue	
     //Link Create a System Call for LogQueue	
 	  //sysCall.init_log_queue(500,3);
