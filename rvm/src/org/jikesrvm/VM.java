@@ -654,24 +654,24 @@ public class VM extends Properties {
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
-  //     //Kenan: Initialize hardware counter/energy based profiling structures	
-	//     //if(Controller.options.EVENTCOUNTER != null && Controller.options.EVENTCOUNTER.length() > 0){	
-	// 	  if(Controller.options.ENABLE_COUNTER_PROFILING || Controller.options.ENABLE_ENERGY_PROFILING) {	
-	// 		  VM.sysWrite("perf initialization");	
-	// 		  sysCall.sysInitPerf();	
-	// 		  //Scaler.initScaler();	
-	// 		  //Scaler.initScaler();	
-	// 		  //EnergyCheckUtils.initJrapl();	
-	// 		  Scaler.openDVFSFiles();	
-	// 	    //ProfileStack.InitStack(EnergyCheckUtils.socketNum);	
-	// 		  ProfileMap.initProfileMap();	
-	// 		  ProfileQueue.initSkippableMethod();	
-	// 		  DataPrinter.initPrintStream();	
-	// 		  LogQueue.initQueue(EnergyCheckUtils.socketNum);	
-	// 	  }	
-	// 	//TODO: add DVFS enable later	
-	// 	  Scaler.openDVFSFiles();	
-	// //      }
+      //Kenan: Initialize hardware counter/energy based profiling structures	
+	    //if(Controller.options.EVENTCOUNTER != null && Controller.options.EVENTCOUNTER.length() > 0){	
+		  if(Controller.options.ENABLE_COUNTER_PROFILING || Controller.options.ENABLE_ENERGY_PROFILING) {	
+			  VM.sysWrite("perf initialization");	
+			  sysCall.sysInitPerf();	
+			  //Scaler.initScaler();	
+			  //Scaler.initScaler();	
+			  //EnergyCheckUtils.initJrapl();	
+			  Scaler.openDVFSFiles();	
+		    //ProfileStack.InitStack(EnergyCheckUtils.socketNum);	
+			  ProfileMap.initProfileMap();	
+			  ProfileQueue.initSkippableMethod();	
+			  DataPrinter.initPrintStream();	
+			  LogQueue.initQueue(EnergyCheckUtils.socketNum);	
+		  }	
+		//TODO: add DVFS enable later	
+		  Scaler.openDVFSFiles();	
+	//      }
       Controller.boot();
     }
 
