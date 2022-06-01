@@ -2586,7 +2586,7 @@ public class VM extends Properties {
   public static void sysExit(int value) {
 
     //Vincent 
-    //final Thread mainThread = Thread.currentThread();
+    final Thread mainThread = Thread.currentThread();
     
     handlePossibleRecursiveCallToSysExit();
 
@@ -2614,18 +2614,18 @@ public class VM extends Properties {
   }
 
   //Vincent
-  // public static void end_iteration() {	
-  //   if(Controller.options.ENABLE_ENERGY_PROFILING) {	
-  //     sysCall.end_iteration();	
-  //   }	
-  // }	
-  // public static double read_energy() {	
-  //   double[] energy = EnergyCheckUtils.getEnergyStats();	
-  //   double energy_value= energy[energy.length-1];	
-  //   return energy_value;	
-  // }	
-  // public static int totalInvocationCount=0;	
-  // public static Object invocationLock = new Object(); 
+  public static void end_iteration() {	
+    if(Controller.options.ENABLE_ENERGY_PROFILING) {	
+      sysCall.end_iteration();	
+    }	
+  }	
+  public static double read_energy() {	
+    double[] energy = EnergyCheckUtils.getEnergyStats();	
+    double energy_value= energy[energy.length-1];	
+    return energy_value;	
+  }	
+  public static int totalInvocationCount=0;	
+  public static Object invocationLock = new Object(); 
 
   /**
    * Shut down the virtual machine.
@@ -2637,15 +2637,15 @@ public class VM extends Properties {
     //Vincent
     //TODO::Kenan::Khaled::LogQueue::log_queue	
     //sysCall.print_logs();	
-    // VM.sysWriteln("Number of Total Method Invocations :");	
-    // VM.sysWriteln("" + VM.totalInvocationCount);	
-    // double end_energy = 0;	
-    // double[] energy = EnergyCheckUtils.getEnergyStats();	
-    // end_energy = energy[energy.length-1];	
-    // double total_energy = end_energy - start_energy;	
-    // //This file will be written by Dacapo ....	
-    // //write_to_file("kenan_energy",total_energy);	
-    // Scaler.closeDVFSFiles();
+    VM.sysWriteln("Number of Total Method Invocations :");	
+    VM.sysWriteln("" + VM.totalInvocationCount);	
+    double end_energy = 0;	
+    double[] energy = EnergyCheckUtils.getEnergyStats();	
+    end_energy = energy[energy.length-1];	
+    double total_energy = end_energy - start_energy;	
+    //This file will be written by Dacapo ....	
+    //write_to_file("kenan_energy",total_energy);	
+    Scaler.closeDVFSFiles();
 
     handlePossibleRecursiveShutdown();
 
@@ -2677,17 +2677,17 @@ public class VM extends Properties {
   }
 
   // //Vincent
-  // public static void write_to_file(String file_name, double value) {	
-  //   try {	
-  //       FileWriter  fileWriter  = new FileWriter(file_name);	
-  //     PrintWriter filePrinter = new PrintWriter(fileWriter);	
-  //     filePrinter.printf("%f",value);	
-  //     filePrinter.close();	
-  //     fileWriter.close();	
-  //   } catch(Exception e) {	
-  //     e.printStackTrace();	
-  //   }	
-  // }
+  public static void write_to_file(String file_name, double value) {	
+    try {	
+        FileWriter  fileWriter  = new FileWriter(file_name);	
+      PrintWriter filePrinter = new PrintWriter(fileWriter);	
+      filePrinter.printf("%f",value);	
+      filePrinter.close();	
+      fileWriter.close();	
+    } catch(Exception e) {	
+      e.printStackTrace();	
+    }	
+  }
 
   private static int inSysFail = 0;
 
@@ -2944,39 +2944,39 @@ public class VM extends Properties {
    * @author kenan	
    * @return Compiled method name before yield point is disabled	
    */	
-//   public static RVMMethod preYPDisabled() {	
-// 		//Kenan:	
-// 		int disabledCMID = Magic.getCompiledMethodID(Magic.getCallerFramePointer(Magic.getFramePointer()));	
-// 		CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-// 		//Leave this operation until !yieldpoinEnabled in yieldpoint().	
-// //		if(!isOutOfBoundary(disabledCMID) && !ProfileQueue.isShortButFreqMethod(disabledCMID)	
-// //				&& ProfileQueue.hotMethodsByExeTime[disabledCMID]) {	
-// //	
-// //		}	
-// 		RVMThread myThread = RVMThread.getCurrentThread();	
-// 		RVMMethod method = CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-// 		myThread.preDisableYieldpoints(disabledCMID);	
-// 		return method;	
-//   }	
-//   /**	
-//    * record method id and increase its yield point enable count by 1 after the stack is operated	
-//    * @author kenan	
-//    * @return Compiled method name before yield point is disabled	
-//    */	
-//   public static RVMMethod postYPEnabled() {	
-// 		//Kenan: record method id after the stack is operated by GC	
-// 		int disabledCMID = Magic.getCompiledMethodID(Magic.getCallerFramePointer(Magic.getFramePointer()));	
-// 		CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-// 		//Leave this operation until !yieldpoinEnabled in yieldpoint().	
-// //		if(!isOutOfBoundary(disabledCMID) && !ProfileQueue.isShortButFreqMethod(disabledCMID)	
-// //				&& ProfileQueue.hotMethodsByExeTime[disabledCMID]) {	
-// //	
-// //		}	
-// 		RVMThread myThread = RVMThread.getCurrentThread();	
-// 		RVMMethod method = CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
-// 		myThread.postEnableYieldpoints(disabledCMID);	
-// 		return method;	
-//   }	
+  public static RVMMethod preYPDisabled() {	
+		//Kenan:	
+		int disabledCMID = Magic.getCompiledMethodID(Magic.getCallerFramePointer(Magic.getFramePointer()));	
+		CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
+		//Leave this operation until !yieldpoinEnabled in yieldpoint().	
+//		if(!isOutOfBoundary(disabledCMID) && !ProfileQueue.isShortButFreqMethod(disabledCMID)	
+//				&& ProfileQueue.hotMethodsByExeTime[disabledCMID]) {	
+//	
+//		}	
+		RVMThread myThread = RVMThread.getCurrentThread();	
+		RVMMethod method = CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
+		myThread.preDisableYieldpoints(disabledCMID);	
+		return method;	
+  }	
+  /**	
+   * record method id and increase its yield point enable count by 1 after the stack is operated	
+   * @author kenan	
+   * @return Compiled method name before yield point is disabled	
+   */	
+  public static RVMMethod postYPEnabled() {	
+		//Kenan: record method id after the stack is operated by GC	
+		int disabledCMID = Magic.getCompiledMethodID(Magic.getCallerFramePointer(Magic.getFramePointer()));	
+		CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
+		//Leave this operation until !yieldpoinEnabled in yieldpoint().	
+//		if(!isOutOfBoundary(disabledCMID) && !ProfileQueue.isShortButFreqMethod(disabledCMID)	
+//				&& ProfileQueue.hotMethodsByExeTime[disabledCMID]) {	
+//	
+//		}	
+		RVMThread myThread = RVMThread.getCurrentThread();	
+		RVMMethod method = CompiledMethods.getCompiledMethod(disabledCMID).getMethod();	
+		myThread.postEnableYieldpoints(disabledCMID);	
+		return method;	
+  }	
   
   /**
    * enable GC; entry point when recursion is not OK.
