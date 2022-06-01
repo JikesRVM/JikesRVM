@@ -25,6 +25,7 @@
 #endif
 
 #ifndef RVM_WITH_PERFEVENT
+  EXTERNAL void sysInitPerf() {}
   EXTERNAL void sysPerfEventInit(int events) {}
   EXTERNAL void sysPerfEventCreate(int id, const char *eventName) {}
   EXTERNAL void sysPerfEventEnable() {}
@@ -35,13 +36,35 @@
   static int *perf_event_fds;
   static struct perf_event_attr *perf_event_attrs;
 
+  //Vincent
+  int initialized = 0;
+  static __thread int len=0;
+
+  //Vincent
+  EXTERNAL void sysInitPerf() {	
+    	if(initialized==0) {
+    		int ret = pfm_initialize();
+    		if (ret != PFM_SUCCESS) {
+			errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
+
+    		} else {
+			initialized = 1;	
+    		}
+    	}
+
+  }
+
   EXTERNAL void sysPerfEventInit(int numEvents)
   {
     int i;
     TRACE_PRINTF("%s: sysPerfEventInit\n", Me);
-    int ret = pfm_initialize();
-    if (ret != PFM_SUCCESS) {
-      errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
+    if(initialized==0) {	
+	    int ret = pfm_initialize();	
+
+	    if (ret != PFM_SUCCESS) {	
+	      errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));	
+	    }	
+	    initialized = 1;	
     }
 
     perf_event_fds = (int*)checkCalloc(numEvents, sizeof(int));
@@ -93,6 +116,12 @@
         err(1, "error in prctl(PR_TASK_PERF_EVENTS_DISABLE)");
       }
     }
+  }
+
+  //Vincent
+  EXTERNAL void sysCloseFd(int id)
+  {
+	  close(perf_event_fds[id]);
   }
 
   EXTERNAL void sysPerfEventRead(int id, long long *values)
