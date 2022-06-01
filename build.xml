@@ -2195,6 +2195,7 @@ target.name=${target.name}
 target.arch=${target.arch}
 target.os=${target.os}
 target.address.size=${target.address.size}
+target.heap-layout=${target.heap-layout}
 target.bootimage.code.address=${target.bootimage.code.address}
 target.bootimage.data.address=${target.bootimage.data.address}
 target.bootimage.rmap.address=${target.bootimage.rmap.address}
