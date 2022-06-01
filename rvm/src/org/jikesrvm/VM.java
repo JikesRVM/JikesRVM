@@ -91,15 +91,15 @@ import org.vmmagic.unboxed.Word;
 public class VM extends Properties {
 
   //Vincent
-  public static String KENAN_SAMPLES ="8";	
-  public static String KENAN_FREQ="2";	
-  public static long  VM_START=0;  	
-  public static long  VM_END=0;	
-  public static double start_energy=0;	
-  public static boolean start_profiling=false;	
-  public static void set_start_profile() {	
-    start_profiling=true;	
-  }	
+  // public static String KENAN_SAMPLES ="8";	
+  // public static String KENAN_FREQ="2";	
+  // public static long  VM_START=0;  	
+  // public static long  VM_END=0;	
+  // public static double start_energy=0;	
+  // public static boolean start_profiling=false;	
+  // public static void set_start_profile() {	
+  //   start_profiling=true;	
+  // }	
   //Very important Note: I intentionally used String here for KENAN_FREQ and KENAN_SAMPLES	
   //parseInt at this stage will casuse a lot of unexpected troubled.	
   // public static void parseKenanArg(String value, String arg) {	
@@ -646,33 +646,33 @@ public class VM extends Properties {
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
     //Vincent 
-    Scaler.initScaler();	
-	  //Scaler.initScaler();	
-	  EnergyCheckUtils.initJrapl();	
-    //TODO::Kenan::Khaled::LogQueue::log_queue	
-    //Link Create a System Call for LogQueue	
-	  sysCall.init_log_queue(500,3);
+  //   Scaler.initScaler();	
+	//   //Scaler.initScaler();	
+	//   EnergyCheckUtils.initJrapl();	
+  //   //TODO::Kenan::Khaled::LogQueue::log_queue	
+  //   //Link Create a System Call for LogQueue	
+	//   sysCall.init_log_queue(500,3);
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
-      //Kenan: Initialize hardware counter/energy based profiling structures	
-	    //if(Controller.options.EVENTCOUNTER != null && Controller.options.EVENTCOUNTER.length() > 0){	
-		  if(Controller.options.ENABLE_COUNTER_PROFILING || Controller.options.ENABLE_ENERGY_PROFILING) {	
-			  VM.sysWrite("perf initialization");	
-			  sysCall.sysInitPerf();	
-			  //Scaler.initScaler();	
-			  //Scaler.initScaler();	
-			  //EnergyCheckUtils.initJrapl();	
-			  Scaler.openDVFSFiles();	
-		    //ProfileStack.InitStack(EnergyCheckUtils.socketNum);	
-			  ProfileMap.initProfileMap();	
-			  ProfileQueue.initSkippableMethod();	
-			  DataPrinter.initPrintStream();	
-			  LogQueue.initQueue(EnergyCheckUtils.socketNum);	
-		  }	
-		//TODO: add DVFS enable later	
-		  Scaler.openDVFSFiles();	
-	//      }
+  //     //Kenan: Initialize hardware counter/energy based profiling structures	
+	//     //if(Controller.options.EVENTCOUNTER != null && Controller.options.EVENTCOUNTER.length() > 0){	
+	// 	  if(Controller.options.ENABLE_COUNTER_PROFILING || Controller.options.ENABLE_ENERGY_PROFILING) {	
+	// 		  VM.sysWrite("perf initialization");	
+	// 		  sysCall.sysInitPerf();	
+	// 		  //Scaler.initScaler();	
+	// 		  //Scaler.initScaler();	
+	// 		  //EnergyCheckUtils.initJrapl();	
+	// 		  Scaler.openDVFSFiles();	
+	// 	    //ProfileStack.InitStack(EnergyCheckUtils.socketNum);	
+	// 		  ProfileMap.initProfileMap();	
+	// 		  ProfileQueue.initSkippableMethod();	
+	// 		  DataPrinter.initPrintStream();	
+	// 		  LogQueue.initQueue(EnergyCheckUtils.socketNum);	
+	// 	  }	
+	// 	//TODO: add DVFS enable later	
+	// 	  Scaler.openDVFSFiles();	
+	// //      }
       Controller.boot();
     }
 
