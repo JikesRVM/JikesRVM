@@ -100,8 +100,8 @@ public class VM extends Properties {
   public static void set_start_profile() {	
     start_profiling=true;	
   }	
-  Very important Note: I intentionally used String here for KENAN_FREQ and KENAN_SAMPLES	
-  parseInt at this stage will casuse a lot of unexpected troubled.	
+  //Very important Note: I intentionally used String here for KENAN_FREQ and KENAN_SAMPLES	
+  //parseInt at this stage will casuse a lot of unexpected troubled.	
   public static void parseKenanArg(String value, String arg) {	
   sysWriteln("[VM.parseKenanArg] Parsing Kenan Arguments ... Stay tuned!");	
         String targ=arg.trim();	
@@ -118,7 +118,7 @@ public class VM extends Properties {
     KENAN_FREQ = arg_value;	
   }	
   }	
-  Vincent E
+  //Vincent E
 
   public static void print_hello() {	
       sysWriteln("Hello from JikesRVM");			
