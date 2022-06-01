@@ -740,9 +740,9 @@ public class VM extends Properties {
     mainThread = new MainThread(applicationArguments, mainThreadGroup);
 
     //Vincent
-    org.jikesrvm.energy.Service.init_service();	
-    double[] energy = EnergyCheckUtils.getEnergyStats();	
-    start_energy = energy[energy.length-1];
+    // org.jikesrvm.energy.Service.init_service();	
+    // double[] energy = EnergyCheckUtils.getEnergyStats();	
+    // start_energy = energy[energy.length-1];
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
