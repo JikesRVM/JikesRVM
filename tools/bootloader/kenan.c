@@ -611,32 +611,32 @@ EXTERNAL int checkFrequency() {
 }
 
 EXTERNAL void FreqAvailable(int *freq){
-// 	const char *filename = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies";
-//     int i;
+	const char *filename = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies";
+    int i;
 
-// 	FILE *f;
-//     int rc;
-//     size_t data_length, data_written;
+	FILE *f;
+    int rc;
+    size_t data_length, data_written;
 
-// 		f = fopen(filename, "r");
-// 		if (f == NULL) {
-// 			//LOGI("Failed to open %s: %s", filename, strerror(errno));
-// 		}
+		f = fopen(filename, "r");
+		if (f == NULL) {
+			//LOGI("Failed to open %s: %s", filename, strerror(errno));
+		}
 
-// //	int freq[20];
-// 	int string;
-// 	int count = 0;
-// 	int temp = 100;
+//	int freq[20];
+	int string;
+	int count = 0;
+	int temp = 100;
 
-// 	while (fscanf (f, "%d", &string) != EOF){
-// 			freq[count] = string;
-// 			count++;
+	while (fscanf (f, "%d", &string) != EOF){
+			freq[count] = string;
+			count++;
 
-// 	}
-//     rc = fclose(f);
-//     if (rc != 0) {
-//         //LOGI("Failed to close %s: %s", filename, strerror(rc));
-//     }
+	}
+    rc = fclose(f);
+    if (rc != 0) {
+        //LOGI("Failed to close %s: %s", filename, strerror(rc));
+    }
 
 
     return;
