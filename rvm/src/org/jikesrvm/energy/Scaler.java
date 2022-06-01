@@ -35,14 +35,20 @@ public class Scaler implements ScalerOptions {
 	public static void initScaler() {
 		if(!isInitScaler) {
 			int core;
+			System.out.println("1");
 			if(Controller.options.ENABLE_COUNTER_PROFILING) {
+				System.out.println("6");
 				perfEventInit();
 				//perfThreadInit();
 
 			}
+			System.out.println("2");
 			SysCall.sysCall.FreqAvailable(freqs);
+			System.out.println("3");
 			core = SysCall.sysCall.getCpuNum();
+			System.out.println("4");
 			governor = new byte[core][20];
+			System.out.println("5");
 //			SysCall.sysCall.sysStartCounters(cacheTLBEvents, cacheTLBEvents.length);
 			isInitScaler = true;
 		}
