@@ -650,7 +650,7 @@ public class VM extends Properties {
 	  EnergyCheckUtils.initJrapl();	
     //TODO::Kenan::Khaled::LogQueue::log_queue	
     //Link Create a System Call for LogQueue	
-	  sysCall.init_log_queue(500,3);
+	  //sysCall.init_log_queue(500,3);
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
