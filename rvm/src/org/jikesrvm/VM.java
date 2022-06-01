@@ -123,7 +123,7 @@ public class VM extends Properties {
       sysWriteln("Hello from JikesRVM");			
   }	
   public static long get_startup_ts() {	
-  return Service.start_ts;	
+    return Service.start_ts;	
   }  
 
   /**
@@ -645,12 +645,12 @@ public class VM extends Properties {
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
     //Vincent 
-  //   Scaler.initScaler();	
-	//   //Scaler.initScaler();	
-	//   EnergyCheckUtils.initJrapl();	
-  //   //TODO::Kenan::Khaled::LogQueue::log_queue	
-  //   //Link Create a System Call for LogQueue	
-	//   sysCall.init_log_queue(500,3);
+    Scaler.initScaler();	
+	  //Scaler.initScaler();	
+	  EnergyCheckUtils.initJrapl();	
+    //TODO::Kenan::Khaled::LogQueue::log_queue	
+    //Link Create a System Call for LogQueue	
+	  sysCall.init_log_queue(500,3);
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
