@@ -528,6 +528,7 @@ EXTERNAL void openDVFSFiles() {
 		if (scale_file[i] == NULL) {
 			//LOGI("Failed to open %s: %s", filename, strerror(errno));
 			printf("Failed to open %s\n", filename[i]);
+			printf("scale_errno: %s\n",  strerror(errno));
 //			return 1;
 		}
 
@@ -537,6 +538,7 @@ EXTERNAL void openDVFSFiles() {
 		if (gov_file[i] == NULL) {
 			//LOGI("Failed to open %s: %s", filename, strerror(errno));
 			printf("Failed to open %s", filename[i]);
+			printf("gov_errno: %s\n",  strerror(errno));
 //			return 1;
 		}
 
