@@ -6,6 +6,8 @@
 #include <unistd.h>   /* For open(), creat() */
 #include "energy.c"
 
+#include <errno.h>
+
 
 
 #define IVYBRIDGE            0x3AU
@@ -528,7 +530,8 @@ EXTERNAL void openDVFSFiles() {
 		if (scale_file[i] == NULL) {
 			//LOGI("Failed to open %s: %s", filename, strerror(errno));
 			printf("Failed to open %s\n", filename[i]);
-			printf("scale_errno: %s\n",  strerror(errno));
+			int errnum = errno;
+			printf("Error opening file: %s\n", strerror( errnum ));
 //			return 1;
 		}
 
@@ -537,8 +540,9 @@ EXTERNAL void openDVFSFiles() {
 		gov_file[i] = fopen(filename[i], "r+");
 		if (gov_file[i] == NULL) {
 			//LOGI("Failed to open %s: %s", filename, strerror(errno));
-			printf("Failed to open %s", filename[i]);
-			printf("gov_errno: %s\n",  strerror(errno));
+			printf("Failed to open %s \n", filename[i]);
+			int errnum = errno;
+			printf("Error opening file: %s\n", strerror( errnum ));
 //			return 1;
 		}
 
