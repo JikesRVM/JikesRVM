@@ -41,7 +41,7 @@ public class Scaler implements ScalerOptions {
 
 			}
 			//TODO: fix freqAvailable
-			SysCall.sysCall.FreqAvailable(freqs);
+			//SysCall.sysCall.FreqAvailable(freqs);
 			core = SysCall.sysCall.getCpuNum();
 			governor = new byte[core][20];
 
