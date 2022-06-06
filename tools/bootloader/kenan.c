@@ -525,7 +525,7 @@ EXTERNAL void openDVFSFiles() {
 		//printf("open DVFS files: core id is: %d\n", i);
 		/*Open the Scaling files*/
 		sprintf(filename[i], "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_setspeed", i);
-		scale_file[i] = fopen(filename[i], "r+");
+		scale_file[i] = fopen(filename[i], "r");
 //		printf("kenan: open the scaling file: %d!!!!!!\n", i);
 		if (scale_file[i] == NULL) {
 			//LOGI("Failed to open %s: %s", filename, strerror(errno));
@@ -537,7 +537,7 @@ EXTERNAL void openDVFSFiles() {
 
 		/*Open the governor files*/
 		sprintf(filename[i], "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_governor", i);
-		gov_file[i] = fopen(filename[i], "r+");
+		gov_file[i] = fopen(filename[i], "r");
 		if (gov_file[i] == NULL) {
 			//LOGI("Failed to open %s: %s", filename, strerror(errno));
 			printf("Failed to open %s \n", filename[i]);
