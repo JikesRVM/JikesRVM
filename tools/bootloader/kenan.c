@@ -553,30 +553,30 @@ EXTERNAL void openDVFSFiles() {
 
 //Kenan: tempararily add
 EXTERNAL void closeDVFSFiles() {
-	int i;
-	int rc;
-	char filename[num_core][60];
-	for (i = 0; i < num_core; i++) {
+// 	int i;
+// 	int rc;
+// 	char filename[num_core][60];
+// 	for (i = 0; i < num_core; i++) {
 
-		/*Close scaler files*/
-		sprintf(filename[i], "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_setspeed", i);
-		rc= fclose(scale_file[i]);
-		if (rc != 0) {
-			printf("Failed to close %s\n", filename[i]);
-//			return 1;
-		}
-		/*Close governor files*/
-		sprintf(filename[i], "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_governor", i);
-		rc = fclose(gov_file[i]);
-		if (rc != 0) {
-			//LOGI("Failed to close %s: %s", filename, strerror(rc));
-			printf("Failed to close %s", gov_file[i]);
-	//		return 1;
-		}
-	}
+// 		/*Close scaler files*/
+// 		sprintf(filename[i], "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_setspeed", i);
+// 		rc= fclose(scale_file[i]);
+// 		if (rc != 0) {
+// 			printf("Failed to close %s\n", filename[i]);
+// //			return 1;
+// 		}
+// 		/*Close governor files*/
+// 		sprintf(filename[i], "/sys/devices/system/cpu/cpu%d/cpufreq/scaling_governor", i);
+// 		rc = fclose(gov_file[i]);
+// 		if (rc != 0) {
+// 			//LOGI("Failed to close %s: %s", filename, strerror(rc));
+// 			printf("Failed to close %s", gov_file[i]);
+// 	//		return 1;
+// 		}
+// 	}
 
-	free(scale_file);
-	free(gov_file);
+// 	free(scale_file);
+// 	free(gov_file);
 
 }
 
