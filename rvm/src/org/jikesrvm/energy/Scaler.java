@@ -45,7 +45,7 @@ public class Scaler implements ScalerOptions {
 			core = SysCall.sysCall.getCpuNum();
 			governor = new byte[core][20];
 
-			//SysCall.sysCall.sysStartCounters(cacheTLBEvents, cacheTLBEvents.length);
+//			SysCall.sysCall.sysStartCounters(cacheTLBEvents, cacheTLBEvents.length);
 			isInitScaler = true;
 		}
 	}
