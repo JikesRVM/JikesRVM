@@ -39,7 +39,9 @@ public class EnergyCheckUtils {
 	@NoOptCompile
 	public static void initJrapl() {
 		if(!isJraplInit) {
+			VM.sysWriteln("calling profile init ");
 			wraparoundValue = SysCall.sysCall.ProfileInit();
+			VM.sysWriteln("profile init");
 			isJraplInit = true;
 		}
 	}
