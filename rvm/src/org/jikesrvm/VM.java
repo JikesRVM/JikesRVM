@@ -2643,9 +2643,9 @@ public class VM extends Properties {
     double[] energy = EnergyCheckUtils.getEnergyStats();	
     end_energy = energy[energy.length-1];	
     double total_energy = end_energy - start_energy;	
-    //This file will be written by Dacapo ....	
+    //This file will be written by Dacapo ....
     //write_to_file("kenan_energy",total_energy);	
-    //Scaler.closeDVFSFiles();
+    Scaler.closeDVFSFiles();
 
     handlePossibleRecursiveShutdown();
 
