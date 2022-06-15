@@ -491,7 +491,7 @@ EXTERNAL void ProfileDealloc() {
 /*Change governor*/
 EXTERNAL int SetGovernor(const char* name) {
 	int core_id = getCurrentCpu();
-	return check_writ_gov(gov_file[core_id], name, core_id);
+	return check_write_gov(gov_file[core_id], name, core_id);
 }
 
 EXTERNAL GetGovernor(char* name) {
