@@ -629,7 +629,7 @@ EXTERNAL void FreqAvailable(int *freq){
 		//LOGI("Failed to open %s: %s", filename, strerror(errno));
 	}
 
-	int freq[20];
+	//int freq[20];
 	int string;
 	int count = 0;
 	int temp = 100;
