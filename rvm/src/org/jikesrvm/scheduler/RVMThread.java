@@ -154,7 +154,6 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 @NonMoving
 public final class RVMThread extends ThreadContext {
-
   //Kenan	
   public final static int STRIDE = 7;	
   public static int SAMPLES = 32;	
@@ -163,7 +162,7 @@ public final class RVMThread extends ThreadContext {
   public static final int PROFILE_ENTRY_SIZE = 3;	
   public int methodYPDisabledCount = 0;	
   //Index for YPDisabledMethodID	
- 	
+
   public static Object invocationLock = new Object(); 	
   public static int totalInvocationCount=0; 	
   public int invocationCount=0;	
@@ -205,7 +204,6 @@ public final class RVMThread extends ThreadContext {
   public double[] prevProfile = new double[PROFILE_ENTRY_SIZE];	
   /**Random object for each thread*/	
   //public Random rand = new Random();
-
 
   /*
    * debug and statistics
@@ -2873,20 +2871,8 @@ public final class RVMThread extends ThreadContext {
           throw t;
         }
       }
-      //kmahmou1-kenan-todo: Call the initialization of perf thread level details	
-      Scaler.perfThreadInit();	
-      synchronized(thread_stats_synch) {	
-      	sysCall.register_thread_stat();	
-      }	
-      	
-      //VM.sysWriteln("Not able to run the invocationCounter");	
-      thread.run();	
-      //VM.sysWriteln("invocationCount:"+invocationCounter);	
-      sysCall.sysPerfEventDisable();	
-      Scaler.perfThreadClose();	
-    } catch (Throwable t) {	
-      	
-      Scaler.perfThreadClose();
+      thread.run();
+    } catch (Throwable t) {
       if (traceAcct) {
         VM.sysWriteln("Thread ",getThreadSlot()," exiting with exception.");
       }
@@ -4360,10 +4346,10 @@ public final class RVMThread extends ThreadContext {
 
     Throwable throwThis = null;
     t.monitor().lockNoHandshake();
-
+    
     //Kenan: Check if the current method of energy consumption needs to measured.	
     t.checkBlock();	
-    
+
     /*	
      * kenan: After considering hot method by execution time, further filter hot methods for	
      * dynamic scaling by considering hardware events. Eg. cache miss rate and TLB miss.	
@@ -4385,7 +4371,7 @@ public final class RVMThread extends ThreadContext {
     if(Controller.options.ENABLE_SCALING_BY_COUNTERS) {	
       RuntimeScaler.dynamicScale(whereFrom, yieldpointServiceMethodFP);	
     }
-
+    
     int takeYieldpointVal = t.takeYieldpoint;
     if (takeYieldpointVal != 0) {
       t.takeYieldpoint = 0;

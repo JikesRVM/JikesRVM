@@ -2050,17 +2050,13 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/sysVarArgs.c"
                        objfile="${build.base}/${target.obj-prefix}sysVarArgs${target.obj-ext}"
                        cargs="${rvm.c.args}"/>
-    <CompileCtoObj cfile="${bl.dir}/kenan.c"
-		                          objfile="${build.base}/${target.obj-prefix}kenan${target.obj-ext}"
-					  cargs="${rvm.c.args}"/>
-    <CompileCtoObj cfile="${bl.dir}/log_queue.c"
-		                          objfile="${build.base}/${target.obj-prefix}log_queue${target.obj-ext}"
-					  cargs="${rvm.c.args}"/>
-    <CompileCtoObj cfile="${bl.dir}/msr.c" 	 objfile="${build.base}/${target.obj-prefix}msr${target.obj-ext}" 		cargs="${rvm.c.args}" />	
+    <CompileCtoObj cfile="${bl.dir}/kenan.c" objfile="${build.base}/${target.obj-prefix}kenan${target.obj-ext}" cargs="${rvm.c.args}"/>
+    <CompileCtoObj cfile="${bl.dir}/log_queue.c" objfile="${build.base}/${target.obj-prefix}log_queue${target.obj-ext}" cargs="${rvm.c.args}"/>
+    <CompileCtoObj cfile="${bl.dir}/msr.c" 	 objfile="${build.base}/${target.obj-prefix}msr${target.obj-ext}" 		cargs="${rvm.c.args}" />
     <CompileCtoObj cfile="${bl.dir}/dvfs.c" 	 objfile="${build.base}/${target.obj-prefix}dvfs${target.obj-ext}" 		cargs="${rvm.c.args}" />
+    
     <CreateLibrary outdir="${build.base}" dllname="jvm" srcdir="${bl.dir}">
       <ObjectFiles>
-      	<arg value="${build.base}/${target.obj-prefix}log_queue${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}jvm${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysAlignmentCheck${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysConsole${target.obj-ext}"/>
@@ -2080,6 +2076,7 @@ const char *rvm_target_configuration = "${target.file}";
         <arg value="${build.base}/${target.obj-prefix}sysTime${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysVarArgs${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}kenan${target.obj-ext}"/>	
+        <arg value="${build.base}/${target.obj-prefix}log_queue${target.obj-ext}"/>	
         <arg value="${build.base}/${target.obj-prefix}msr${target.obj-ext}"/>	
         <arg value="${build.base}/${target.obj-prefix}dvfs${target.obj-ext}"/>
       </ObjectFiles>
@@ -2106,7 +2103,7 @@ const char *rvm_target_configuration = "${target.file}";
         <arg value="${build.base}/${target.obj-prefix}sysThread${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysThread_${target.arch}${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysTime${target.obj-ext}"/>
-        <arg value="${build.base}/${target.obj-prefix}sysVarArgs${target.obj-ext}"/>
+        <arg value="${build.base}/${target.obj-prefix}sysVarArgs${target.obj-ext}"/>       	
         <arg value="${build.base}/${target.obj-prefix}kenan${target.obj-ext}"/>	
         <arg value="${build.base}/${target.obj-prefix}log_queue${target.obj-ext}"/>	
         <arg value="${build.base}/${target.obj-prefix}msr${target.obj-ext}"/>	
@@ -2285,6 +2282,7 @@ target.name=${target.name}
 target.arch=${target.arch}
 target.os=${target.os}
 target.address.size=${target.address.size}
+target.heap-layout=${target.heap-layout}
 target.bootimage.code.address=${target.bootimage.code.address}
 target.bootimage.data.address=${target.bootimage.data.address}
 target.bootimage.rmap.address=${target.bootimage.rmap.address}

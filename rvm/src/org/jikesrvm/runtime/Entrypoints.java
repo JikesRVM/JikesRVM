@@ -29,7 +29,6 @@ public class Entrypoints {
   //  1. you misspelled the class name, member name, or member signature
   //  2. the class containing the specified member didn't get compiled
   //
-
   //Kenan: Entrypoints for hot method measurement
 	public static final NormalMethod startProfile = getMethod(org.jikesrvm.energy.Service.class, "startProfile", "(I)V");
   public static final NormalMethod endProfile = getMethod(org.jikesrvm.energy.Service.class, "endProfile", "(I)V");

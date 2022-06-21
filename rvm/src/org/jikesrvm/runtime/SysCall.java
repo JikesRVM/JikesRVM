@@ -149,7 +149,7 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysCloseFd(int id);
   @SysCallTemplate
-   public abstract int sysInitPerf();
+  public abstract int sysInitPerf();
 
   // files
   @SysCallTemplate
@@ -505,7 +505,7 @@ public abstract class SysCall {
       int thirdInt, int fourthInt, int fifthInt, int sixthInt, int seventhInt,
       int eightInt);
 
-  /* Vincent::Syscalls added 4/24 */
+  /* Syscalls added 4/24 */
   @SysCallTemplate
   public abstract int ProfileInit();
   @SysCallTemplate
@@ -556,11 +556,10 @@ public abstract class SysCall {
   public abstract void add_log_entry(double[] attrs,int cmdid,long timestamp,int freq);
   @SysCallTemplate
   public abstract int add_method_entry(byte[] m, byte[] c);
-  
+
   @SysCallTemplate
     public abstract void end_iteration();	   
   @SysCallTemplate
     public abstract int quota_expired(int cmid); 
-
 }
 

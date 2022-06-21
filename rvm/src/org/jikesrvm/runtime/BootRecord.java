@@ -403,13 +403,15 @@ public class BootRecord {
   public Address sysArgumentPassingSeveralFloatsAndSeveralIntsIP;
 
   // perf event support
-  public Address sysInitPerfIP;
   public Address sysPerfEventInitIP;
   public Address sysPerfEventCreateIP;
   public Address sysPerfEventEnableIP;
   public Address sysPerfEventDisableIP;
-  public Address sysCloseFdIP;
   public Address sysPerfEventReadIP;
+  //Vincent
+  public Address sysInitPerfIP;
+  public Address sysCloseFdIP;
+
 
   //RAPL methods
   public Address ProfileInitIP;
@@ -432,7 +434,7 @@ public class BootRecord {
   public Address checkFrequencyIP;
   public Address openDVFSFilesIP;
   public Address closeDVFSFilesIP;
-    
+
   //Log Queue Methods
   public Address init_log_queueIP;
   public Address print_logsIP;
@@ -441,5 +443,4 @@ public class BootRecord {
   public Address add_method_entryIP;
   public Address end_iterationIP;
   public Address quota_expiredIP;
-
 }

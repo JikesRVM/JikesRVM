@@ -17,9 +17,6 @@
  * Performance counter support using the linux perf event system.
  */
 
-		
-// #define RVM_WITH_PERFEVENT
-
 #ifdef RVM_WITH_PERFEVENT
 #include <perfmon/pfmlib_perf_event.h>
 #include <err.h>
@@ -50,7 +47,7 @@
     		int ret = pfm_initialize();
     		if (ret != PFM_SUCCESS) {
 			errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));
-							           
+
     		} else {
 			initialized = 1;	
     		}
@@ -64,7 +61,7 @@
     TRACE_PRINTF("%s: sysPerfEventInit\n", Me);
     if(initialized==0) {	
 	    int ret = pfm_initialize();	
-	    	
+
 	    if (ret != PFM_SUCCESS) {	
 	      errx(1, "error in pfm_initialize: %s", pfm_strerror(ret));	
 	    }	
@@ -121,6 +118,7 @@
       }
     }
   }
+
   //Vincent
   EXTERNAL void sysCloseFd(int id)
   {
@@ -139,5 +137,4 @@
       errx(1, "read of perf event did not return 3 64-bit values");
     }
   }
-
 #endif

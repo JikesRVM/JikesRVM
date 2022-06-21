@@ -98,34 +98,34 @@ public class VM extends Properties {
   public static double start_energy=0;	
   public static boolean start_profiling=false;	
   public static void set_start_profile() {	
-	start_profiling=true;	
+    start_profiling=true;	
   }	
   //Very important Note: I intentionally used String here for KENAN_FREQ and KENAN_SAMPLES	
   //parseInt at this stage will casuse a lot of unexpected troubled.	
   public static void parseKenanArg(String value, String arg) {	
-	sysWriteln("[VM.parseKenanArg] Parsing Kenan Arguments ... Stay tuned!");	
+  sysWriteln("[VM.parseKenanArg] Parsing Kenan Arguments ... Stay tuned!");	
         String targ=arg.trim();	
-	sysWriteln(value);	
-	sysWriteln(targ);	
-        	
-	String arg_name  = targ.split("=")[0];	
-	String arg_value = targ.split("=")[1];	
-		
-	if(arg_name.startsWith("samples")) {	
-		KENAN_SAMPLES=arg_value;	
-	}	
-	if(arg_name.startsWith("frequency")) {	
-		KENAN_FREQ = arg_value;	
-	}	
+  sysWriteln(value);	
+  sysWriteln(targ);	
+
+  String arg_name  = targ.split("=")[0];	
+  String arg_value = targ.split("=")[1];	
+
+  if(arg_name.startsWith("samples")) {	
+    KENAN_SAMPLES=arg_value;	
   }	
-  //Vincent E
+  if(arg_name.startsWith("frequency")) {	
+    KENAN_FREQ = arg_value;	
+  }	
+  }	
 
   public static void print_hello() {	
       sysWriteln("Hello from JikesRVM");			
   }	
   public static long get_startup_ts() {	
-	return Service.start_ts;	
+    return Service.start_ts;	
   }  
+
   /**
    * For assertion checking things that should never happen.
    */
@@ -644,7 +644,6 @@ public class VM extends Properties {
     }
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWriteln("[VM booted]");
-
     //Vincent 
     Scaler.initScaler();	
 	  //Scaler.initScaler();	
@@ -741,8 +740,8 @@ public class VM extends Properties {
 
     //Vincent
     org.jikesrvm.energy.Service.init_service();	
-	  double[] energy = EnergyCheckUtils.getEnergyStats();	
-	  start_energy = energy[energy.length-1];
+    double[] energy = EnergyCheckUtils.getEnergyStats();	
+    start_energy = energy[energy.length-1];
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
@@ -2588,6 +2587,7 @@ public class VM extends Properties {
 
     //Vincent 
     final Thread mainThread = Thread.currentThread();
+    
     handlePossibleRecursiveCallToSysExit();
 
     if (VM.countThreadTransitions) {
@@ -2602,7 +2602,7 @@ public class VM extends Properties {
       VM.sysWriteln("... END context of the call to VM.sysExit]");
     }
     if (runningVM) {
-//      VM.disableGC();	
+      //      VM.disableGC();	
 //      LogQueue.dumpLogQueue(Service.clsNameList, Service.methodNameList);	
 //      VM.enableGC();
       Callbacks.notifyExit(value);
@@ -2615,9 +2615,9 @@ public class VM extends Properties {
 
   //Vincent
   public static void end_iteration() {	
-	  if(Controller.options.ENABLE_ENERGY_PROFILING) {	
-	  	sysCall.end_iteration();	
-	  }	
+    if(Controller.options.ENABLE_ENERGY_PROFILING) {	
+      sysCall.end_iteration();	
+    }	
   }	
   public static double read_energy() {	
     double[] energy = EnergyCheckUtils.getEnergyStats();	
@@ -2627,7 +2627,6 @@ public class VM extends Properties {
   public static int totalInvocationCount=0;	
   public static Object invocationLock = new Object(); 
 
-
   /**
    * Shut down the virtual machine.
    * Should only be called if the VM is running.
@@ -2635,7 +2634,6 @@ public class VM extends Properties {
    */
   @Uninterruptible
   public static void shutdown(int value) {
-
     //Vincent
     //TODO::Kenan::Khaled::LogQueue::log_queue	
     //sysCall.print_logs();	
@@ -2645,7 +2643,7 @@ public class VM extends Properties {
     double[] energy = EnergyCheckUtils.getEnergyStats();	
     end_energy = energy[energy.length-1];	
     double total_energy = end_energy - start_energy;	
-    //This file will be written by Dacapo ....	
+    //This file will be written by Dacapo ....
     //write_to_file("kenan_energy",total_energy);	
     Scaler.closeDVFSFiles();
 
@@ -2673,11 +2671,12 @@ public class VM extends Properties {
     	
 	    */	
     //DataPrinter.filePrinter.println("Hit to sysExit!!!");
+
     sysCall.sysExit(value);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  //Vincent 
+  // //Vincent
   public static void write_to_file(String file_name, double value) {	
     try {	
         FileWriter  fileWriter  = new FileWriter(file_name);	
@@ -2688,7 +2687,7 @@ public class VM extends Properties {
     } catch(Exception e) {	
       e.printStackTrace();	
     }	
-    }
+  }
 
   private static int inSysFail = 0;
 
@@ -2978,8 +2977,7 @@ public class VM extends Properties {
 		myThread.postEnableYieldpoints(disabledCMID);	
 		return method;	
   }	
-
-
+  
   /**
    * enable GC; entry point when recursion is not OK.
    */

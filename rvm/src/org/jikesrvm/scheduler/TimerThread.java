@@ -39,6 +39,7 @@ public class TimerThread extends SystemThread {
   private static final int verbose = 0;
   //Kenan: TODO should have a function to get max frequency at the path of '/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq'	
   private static final float maxFreq = 2201000.0f;
+
   public TimerThread() {
     super("TimerThread");
   }
@@ -65,7 +66,7 @@ public class TimerThread extends SystemThread {
             if (candidate != null && candidate.shouldBeSampled()) {
               candidate.timeSliceExpired++;
               candidate.takeYieldpoint = 1;
-              
+
               //Vincent
               candidate.energyTimeSliceExpired++;	
 	            candidate.dvfsSliceExpired++;
