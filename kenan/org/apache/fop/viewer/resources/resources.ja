@@ -1,0 +1,26 @@
+File=ファイル
+Print=印刷
+Exit=終了
+View=表示
+First page=開始ページ
+Previous page=前ページ
+Next page=次ページ
+Last page=最終ページ
+Go to Page=ページ指定
+Zoom=ズーム
+Default zoom=デフォルトのズーム
+Help=ヘルプ
+Index=索引
+Introduction=紹介
+About=バージョン情報
+
+Page=ページ
+of=/
+
+Init parser=XMLパーサ初期化中
+Init mappings=マッピング初期化中
+Build FO tree=FOツリー構築中
+Layout FO tree=FOツリーレイアウト中
+Render=レンダリング中
+Show=完了
+Close=閉じる

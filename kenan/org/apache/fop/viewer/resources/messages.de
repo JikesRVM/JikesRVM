@@ -1,0 +1,78 @@
+###############################################################################
+#
+#  In dieser Datei werden im Abschnitt "Messages" Meldungen auf deutsch 
+#  definiert. 
+#  Zu beachten: Beim Definieren einer neuen neuen Meldung, diese soweit möglich 
+#  in allen Sprachen anlegen. 
+#
+#
+#
+#  MELDUNG DEFINIEREN
+#  ==================
+#  
+#  Eine Meldung hat eine eindeutige textuelle ID. Diese steht links vom Gleichheitszeichen.
+#  Zu jeder Meldung wird angegeben:
+#    - iconType (Typen siehe unten)
+#    - buttonType  (Typen siehe unten)
+#    - Meldungstext mit evtl. Platzhaltern für Parameter.
+#
+#  Ein Parameterplatzhalter ist ein dreifaches kaumänisches "und". Siehe Beispielmeldung 
+#  "No_Records_found". 
+#  
+#  Die Angaben erfolgen in einer Zeile, jeweils durch einen Doppelpunkt getrennt.
+#
+#  Format:
+#  <MESSAGE_ID>=<iconType>:<buttonType>:<Meldungstext>
+#
+#  Zulässige Werte für:
+#    iconType:
+#        INFO
+#        WARNING
+#        ERROR
+#        QUESTION
+#
+#    buttonType:
+#        STYLE_Y      ("yes" Button)
+#        STYLE_Y_N    ("yes" and "no" Buttons) 
+#        STYLE_Y_N_C  ("yes", "no" and "cancel" Buttons)  
+#
+#
+#  Beispiel mit einem String-Array:
+#  ================================
+#    Messagedefinition:
+#      No_Records_found=WARNING:STYLE_Y:Die Tabelle &&& enthält keinen Eintrag. Erwartet mind. &&&. Weitermachen?
+#    Aufruf: 
+#      answer = UserMessage.show("No_Records_found", new String[] {"Mitarbeiter", "" + minNumber}, aShowFrame);
+#      if (answer == UserMessage.NO)
+#        return;   
+#
+#  Beispiel mit einer Exception:
+#  =============================
+#    Messagedefinition:
+#      UNEXPECTED_EXCEPTION=ERROR:STYLE_Y:Wow! An exception!
+#
+#    Aufruf:
+#      try {
+#        String str = null;
+#        int index = str.indexOf("abc"); 
+#      } catch (Exception ex) {
+#        UserMessage.show("UNEXPECTED_EXCEPTION", ex);  
+#      } 
+#
+#
+#
+#
+#################################################################################################
+
+
+# Titles
+Info=Info
+Warning=Warnung
+Question=Frage
+Error=Fehler
+
+# Messages
+TRANSLATION_SOURCE_NOT_FOUND=WARNING:STYLE_Y:Die Übersetzungsdatei &&& ist nicht gefunden.
+UNKNOWN_EXCEPTION=ERROR:STYLE_Y:Unbekannter Fehler
+UNHANDLED_EXCEPTION=ERROR:STYLE_Y:Interner Fehler
+

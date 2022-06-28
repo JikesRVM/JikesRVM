@@ -1,0 +1,31 @@
+benchmark luindex
+  class dacapo.luindex.LuindexHarness;
+
+size small args "luindex/william/poetry" 
+  output stdout  digest 0xebb11b9e1c56c6ef5620b890cca24ec773301388,
+         stderr  digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709,
+	 "index/deletable" bytes 4,
+	 "index/segments"  bytes 27;
+
+size default args "luindex/william","luindex/kjv"
+  output stdout  digest 0xc90792fce1594b4b9ea1b01d593aefe801e6e58b,
+         stderr      digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709,
+	 "index/deletable" bytes 4,
+	 "index/segments"  bytes 29;
+
+size large args "luindex/william","luindex/kjv"
+  output stdout  digest 0xc90792fce1594b4b9ea1b01d593aefe801e6e58b,
+         stderr  digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709,
+	 "index/deletable" bytes 4,
+	 "index/segments"  bytes 29;
+
+description
+  short		"A text indexing tool",
+  long		"Indexes a set of documents, the works of Shakespeare and the King James Bible",
+  copyright	"Copyright (C) The Apache Software Foundation",
+  author	"Lucene Project Management Committee",
+  license	"Apache Public License",
+  url       "http://lucene.apache.org/",
+  version	"1.9.1",
+  threads	"Single threaded",
+  repeats	"Single iteration indexes two multi-file documents";

@@ -13,6 +13,17 @@ samples="32"
 frequency="2"
 expected=$iters
 
+if [ "$ptype" == "old" ];
+then
+	dacapoJar="dacapo-2006-10-MR2.jar"
+	callbackClass="kenan.OIterationCallBack"
+	expected=$((iters))
+else
+
+	callbackClass="kenan.IterationCallBack"
+	dacapoJar="dacapo-9.12-bach.jar"
+fi	
+
 echo "Number of expected lines in iteration_times is $expected"
 
 bench="$pbench"

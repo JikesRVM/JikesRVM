@@ -1,0 +1,28 @@
+benchmark xalan
+  class dacapo.xalan.XalanHarness;
+
+size small args "10"
+  output
+    stdout digest 0xd31deba48b76595f822b43217afefd6fec3aefb9,
+    stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size default args "100"
+  output
+    stdout digest 0xd31deba48b76595f822b43217afefd6fec3aefb9,
+    stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size large args "1000"
+  output
+    stdout digest 0xd31deba48b76595f822b43217afefd6fec3aefb9,
+    stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+description
+  short		"An XSLT processor for transforming XML documents",
+  long		"Xalan repeatedly transforms a set of XML documents",
+  copyright	"Copyright (C) 1999-2003 The Apache Software Foundation",
+  author	"Apache Software Foundation",
+  license	"Apache Software License",
+  url		"http://xml.apache.org/xalan-j/",
+  version	"2.4.1",
+  threads	"8 threads, processing a work-queue",
+  repeats	"100 iterations, each transforms one copy of each of the input files";

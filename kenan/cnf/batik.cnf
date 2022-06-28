@@ -1,0 +1,23 @@
+benchmark batik
+  class dacapo.batik.BatikHarness;
+
+size small args "-scriptSecurityOff","batik/mapWaadt.svg"
+  output stdout digest 0xa8f2208c90a7e2223ff376e873fd7ddb0ece3db7,
+    	 stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size default args "-scriptSecurityOff","batik/mapWaadt.svg","batik/mapSpain.svg","batik/sydney.svg"
+  output stdout digest 0xc0ab3d5a06a755bdf7f758f1c656acbbc5aafc74,
+    	 stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size large args "-scriptSecurityOff","batik/mapWaadt.svg","batik/mapSpain.svg","batik/sydney.svg",
+                "batik/asf-logo.svg","batik/moonPhases.svg","batik/batik3D.svg",
+		"batik/strokeFont.svg"
+  output stdout digest 0x7b9a5d41084750e997c9899ef6ad3fa7a9c6d267,
+    	 stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+description
+  short	"An Scalable Vector Graphics (SVG) toolkit",
+  long	"batik renders a number of svg files",
+  copyright	"Copyright (C) 2000 The Apache Software Foundation",
+  url        "http://xml.apache.org/batik/",
+  version	"1.5.1";

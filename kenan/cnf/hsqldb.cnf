@@ -1,0 +1,44 @@
+benchmark hsqldb 
+  class dacapo.hsqldb.HsqldbHarness;
+
+size small args "-driver","org.hsqldb.jdbcDriver",
+                "-url","jdbc:hsqldb:mem:hsqldb",
+		"-user","sa","-init",
+		"-clients","10",
+		"-tpc", "5",
+		"-tps","4","-v"
+  output 
+         stdout digest 0x76017508de1dd5dfef96fdba5061d264a3ce053b,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size default args "-driver","org.hsqldb.jdbcDriver",
+                  "-url","jdbc:hsqldb:mem:hsqldb",
+		  "-user","sa","-init",
+		  "-clients","20",
+		  "-tpc","40",
+		  "-tps","64"
+  output 
+         stdout digest 0x68f2be9306913c92688b6b34f8454b6311de9310,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size large args "-driver","org.hsqldb.jdbcDriver",
+                "-url","jdbc:hsqldb:mem:hsqldb",
+		"-user","sa","-init",
+		"-clients","100",
+		"-tpc","50",
+		"-tps","128"
+  output 
+         stdout digest 0xd9e4aa9493ef4da225e4636964416bfab23d204a,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+
+description
+  short		"An SQL relational database engine written in Java",
+  long		"HSQLDB executes a JDBC-like in-memory benchmark, executing a number of transactions against a model of a banking application",
+  copyright	"Copyright (c) 2001-2002, The HSQL Development Group",
+  author	"The HSQLDB Development Group",
+  license	"The HSQLDB license.",
+  url		"http://hsqldb.sourceforge.net",
+  version	"1.8.0.4",
+  threads	"20 client threads",
+  repeats	"40 transactions per client";

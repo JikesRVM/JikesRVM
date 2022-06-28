@@ -1,0 +1,13 @@
+benchmark ps
+  class dacapo.ps.PsHarness;
+
+size small   args  "ps/snowflakes.ps";
+size default args  "ps/dragon2.ps";
+size large   args  "ps/fibonacci20.ps";
+size huge    args  "ps/bifur.ps";
+
+description
+  short	"A postscript interpreter",
+  long	"A postscript file is read and interpreted",
+  copyright	"Copyright (c) 2003 Michael Usner, Tuan Bui, Kade Elkins",
+  version	"";

@@ -1,0 +1,35 @@
+########################################################################
+# Copyright (c) 2003, 2005 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials 
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+# 
+# Contributors:
+#     IBM Corporation - initial API and implementation
+########################################################################
+
+#OS Aliases                             Description
+
+AIX                                      # IBM
+DigitalUnix                              # Compaq
+FreeBSD                                  # Free BSD
+HPUX                                     # Hewlett Packard
+IRIX                                     # Sillicon Graphics
+Linux                                    # Open source
+MacOS                                    # Apple
+NetBSD                                   # Open source
+Netware                                  # Novell
+OpenBSD                                  # Open source
+OS2 OS/2                                 # IBM
+QNX procnto                              # QNX Neutrino 2.1
+Solaris                                  # Sun
+SunOS                                    # Sun
+VxWorks                                  # WindRiver Systems
+Windows95 "Windows 95" Win95 Win32       # Microsoft
+Windows98 "Windows 98" Win98 Win32       # Microsoft
+WindowsNT "Windows NT" WinNT Win32       # Microsoft
+WindowsCE "Windows CE" WinCE             # Microsoft
+Windows2000 "Windows 2000" Win2000 Win32 # Microsoft
+WindowsXP "Windows XP" WinXP Win32       # Microsoft
+Windows2003 "Windows 2003" Win2003 Win32 # Microsoft

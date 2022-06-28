@@ -1,0 +1,26 @@
+benchmark eclipse
+  class dacapo.eclipse.EclipseHarness;
+
+size small   args "-level", "0", "-ast"
+  output stdout digest 0x46c53f7395877fc376fed4ced7500aa1ac76acdb,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size default args "-level", "0"
+  output stdout digest 0xaa95d655898cb9228f2a3fd3cdc5e150cebb94ae,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size large   args "-level", "1"
+  output stdout digest 0x3ccf21842a9962460ac4f7351108b50174b408e1,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+description
+  short 	"An integrated development environment",
+  long  	"Run a series of eclipse jdt (non-gui) performance tests",
+  copyright	"Eclipse Foundation",
+  author	"Eclipse Foundation",
+  license	"Eclipse Public License",
+  url 		"http://www.eclipse.org/",
+  version	"3.1.2",
+  threads	"Workload is single threaded, but Eclipse uses multiple threads internally",
+  repeats	"Single iteration, performs multiple distinct Eclipse tasks";
+

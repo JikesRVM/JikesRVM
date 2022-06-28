@@ -1,0 +1,13 @@
+File=Fichier
+Print=Imprimer
+Exit=Quitter
+View=Affichage
+First page=Première page
+Previous page=Page précédente
+Next page=Page suivante
+Last page=Dernière page
+Help=Aide
+Default zoom=Zoom par défaut
+Introduction=Introduction
+About=A propos
+

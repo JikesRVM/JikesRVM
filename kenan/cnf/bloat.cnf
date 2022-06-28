@@ -1,0 +1,45 @@
+benchmark bloat
+  class dacapo.bloat.BloatHarness;
+
+size small args "-only", "EDU.purdue.cs.bloat.trans", "-pre", "-dce", "-diva", "-prop", "-stack-alloc", "-peel-loops", "all",
+  "-f",
+  	      "EDU.purdue.cs.bloat.trans.ValueNumbering",
+          "optimizedcode"
+  output 
+    stdout digest 0x5fb37c0ffc128deb595abd3d69b79f6380875cc9,
+    stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size default args "-only", "EDU.purdue.cs.bloat.trans", "-pre", "-dce", "-diva", "-prop", "-stack-alloc", "-peel-loops", "all",
+  "-f",
+		  "EDU.purdue.cs.bloat.trans.CompactArrayInitializer",
+		  "optimizedcode"
+  output  
+    stdout digest 0xfb2a1a7b07ee13b1bd0756c6fc7c4d23b536c3e7,
+    stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size large args "-only", "EDU.purdue.cs.bloat.trans", "-pre", "-dce", "-diva", "-prop", "-stack-alloc", "-peel-loops", "all",
+  "-f",
+		  "EDU.purdue.cs.bloat.trans.CompactArrayInitializer", "EDU.purdue.cs.bloat.trans.SSAPRE",
+		  "optimizedcode"
+  output 
+    stdout digest 0x4313caf5abdf6e4da3167f5b4dacb53d85854511,
+    stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size huge args "-only", "EDU.purdue.cs.bloat.trans", "-pre", "-dce", "-diva", "-prop", "-stack-alloc", "-peel-loops", "all",
+  "-f",
+		  "EDU.purdue.cs.bloat.trans.CompactArrayInitializer", "EDU.purdue.cs.bloat.trans.StackPRE", "EDU.purdue.cs.bloat.trans.SSAPRE",
+		  "optimizedcode"
+  output 
+    stdout digest 0xccf514f2612016fdf8afb1d35b66116feaa56eab,
+    stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+description
+  short		"A Bytecode-level optimization and analysis tool for Java",
+  long		"BLOAT analyzes and optimizes some of its own class files",
+  copyright	"Copyright (c) 1997-2001 Purdue Research Foundation of Purdue University",
+  author	"Nathaniel Nystrom and David Whitlock",
+  license   "BSD-style",
+  url    	"http://www.cs.purdue.edu/s3/projects/bloat/",
+  version	"1.0",
+  threads	"Single threaded",
+  repeats	"Single iteration, transitively optimizes classes referenced by a single root class";

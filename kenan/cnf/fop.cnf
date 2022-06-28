@@ -1,0 +1,29 @@
+benchmark fop
+  class dacapo.fop.FopHarness;
+
+/*
+ * 'small' uses debug mode ("-d"), which puts current stats in the output,
+ * so we don't use stdout to validate small.
+ */
+size small args "-q", "fop/readme.fo", "-pdf", "readme.pdf"
+  output stdout digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size default args "-q", "fop/test.fo", "-ps", "test.ps"
+  output stdout digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+size large args "-q", "fop/test.fo", "-ps", "test.ps"
+  output stdout digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709,
+         stderr digest 0xda39a3ee5e6b4b0d3255bfef95601890afd80709;
+
+description
+  short		"An output-independant print formatter",
+  long		"fop takes an XSL-FO file, parses it and formats it, generating an encrypted pdf file",
+  copyright	"Copyright (C) 1999-2003 The Apache Software Foundation",
+  author 	"Apache Software Foundation",
+  license	"Apache Public License",
+  url       "http://xml.apache.org/fop/",
+  version	"0.20.5",
+  threads	"Single threaded",
+  repeats	"Single iteration, renders a single XSL-FO file";
