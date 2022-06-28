@@ -14,7 +14,6 @@ then
 	callbackClass="kenan.OIterationCallBack"
 	expected=$((iters))
 else
-
 	callbackClass="kenan.IterationCallBack"
 	dacapoJar="dacapo-9.12-bach.jar"
 fi	
