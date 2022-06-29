@@ -83,7 +83,8 @@ public class CommandLineArgs {
     BOOTCLASSPATH_P_ARG,
     BOOTCLASSPATH_A_ARG,
     BOOTSTRAP_CLASSES_ARG,
-    AVAILABLE_PROCESSORS_ARG
+    AVAILABLE_PROCESSORS_ARG,
+    KENAN_ARG
   }
 
   /** Represent a single command line prefix */
@@ -212,10 +213,9 @@ public class CommandLineArgs {
                                             new Prefix("-X:vm:help$", PrefixType.HELP_ARG),
                                             new Prefix("-X:vm$", PrefixType.HELP_ARG),
                                             new Prefix("-X:vm:", PrefixType.ARG),
-
+                                            new Prefix("-X:kenan:", PrefixType.KENAN_ARG),
                                             /* Silently ignored */
                                             new Prefix("-Xverify", PrefixType.VERIFY_ARG),
-
                                             app_prefix};
 
   static {
@@ -691,6 +691,10 @@ public class CommandLineArgs {
             VM.sysWriteln("Unrecognized command line argument ", p.value, arg);
             VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
+          break;
+
+        case KENAN_ARG: //"-X:kenan"
+          VM.parseKenanArg(p.value,arg);
           break;
       }
     }
