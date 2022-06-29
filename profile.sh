@@ -1,14 +1,17 @@
 #!/bin/bash
+
+## takes two parameters ($1) the benchmark and number of iters ($2)
+
 DEBUG=false
 freqOpt=8
 # name of the benchmark
 pbench=$1
 # version of dacapo
-ptype=$2
+ptype=new
 # # of iterations
-iters="$3"
-# set by khaled
-samples="32"
+iters="$2"
+# set by khaled ran 8 for sunflow 32 for all the rest
+samples="8"
 # set by khaled
 frequency="2"
 expected=$iters
@@ -55,7 +58,6 @@ runJikesProfile() {
 
 # main body of scripts
 sudo java energy.Scaler 1 ondemand
-#  
 runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} ${timeSlice[2]} Energy -t 8 
 
 itercount=$(wc -l iteration_times)
