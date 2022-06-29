@@ -58,7 +58,9 @@ runJikesProfile() {
 
 # main body of scripts
 sudo java energy.Scaler 1 ondemand
-runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} ${timeSlice[2]} Energy -t 8 
+#runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} ${timeSlice[2]} Energy -t 8 
+runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} 4 Energy -t 8 
+
 
 itercount=$(wc -l iteration_times)
 itercount=$(echo $itercount | cut -d' ' -f 1)
