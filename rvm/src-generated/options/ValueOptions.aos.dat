@@ -139,7 +139,7 @@ V DVFS_CLS_MTH String \"\"
 What is the name of the DVFS method (including class name)
 
 
-V EVENTCOUNTER String \"\"
+V EVENT_COUNTER String \"\"
 Which event counter do we need to profile? Events are based on command perf list
 
 
