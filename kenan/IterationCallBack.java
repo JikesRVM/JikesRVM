@@ -25,7 +25,9 @@ public static double read_jikesrvm_energy() {
 			Class cls = Class.forName("org.jikesrvm.VM");
 			System.out.println("Reading Energy Value At Iteration Delimiter");
 			Method m = cls.getDeclaredMethod("read_energy", null);
-			//ev = (Double) m.invoke(null, null);
+			ev = (Double) m.invoke(null, null);
+
+	System.out.println("4");
 		} catch(Exception exc) {
 			 exc.printStackTrace();
 		}
@@ -56,8 +58,13 @@ public void stop(boolean w) {
 
 public void start(String benchmark) {
 	super.start(benchmark);
+	System.out.println("1");
 	START_ITER_TS[CURRENT_ITERATION-1] = System.currentTimeMillis();
+
+	System.out.println("2");
 	START_ITER_EN[CURRENT_ITERATION-1] = read_jikesrvm_energy();
+
+	System.out.println("3");
 
 }
 
