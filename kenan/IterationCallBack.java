@@ -25,7 +25,7 @@ public static double read_jikesrvm_energy() {
 			Class cls = Class.forName("org.jikesrvm.VM");
 			System.out.println("Reading Energy Value At Iteration Delimiter");
 			Method m = cls.getDeclaredMethod("read_energy", null);
-			ev = (Double) m.invoke(null, null);
+			//ev = (Double) m.invoke(null, null);
 		} catch(Exception exc) {
 			 exc.printStackTrace();
 		}

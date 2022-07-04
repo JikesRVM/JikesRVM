@@ -68,7 +68,7 @@ ENABLE_COUNTER_PROFILING -1 false
 should event counter profiling enabled
 
 ENABLE_ENERGY_PROFILING -1 false
-should energy counter profiling enabled
+should energy profiling enabled
 
 ENABLE_SCALING_BY_COUNTERS -1 false
 Should event counter based profiling and dynamic scaling be enabled in AOS?
