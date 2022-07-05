@@ -134,6 +134,7 @@ public class Scaler implements ScalerOptions {
 
 		if(Controller.options.ENABLE_COUNTER_PRINTER) {
 			
+			VM.sysWrite("scaler 137");
 			perfCounters = Controller.options.ENABLE_COUNTER_PROFILING ? perfCounters : 0;
 			energyCounters = Controller.options.ENABLE_ENERGY_PROFILING ? EnergyCheckUtils.ENERGY_ENTRY_SIZE : 0;
 			

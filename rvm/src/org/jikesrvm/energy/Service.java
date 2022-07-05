@@ -75,6 +75,7 @@ public class Service implements ProfilingTypes, ScalerOptions {
 			//VM.sysWriteln("thread.prevProfile: " + thread.prevProfile[0] + " profile point: " + ServiceConstants.STARTPROFILE);
 
 			if (thread.prevProfile[0] == 0.0 || profilePoint == ServiceConstants.STARTPROFILE) {
+				VM.sysWrite("service 78");
 				// If this thread is profiled at the first time, record the profile value.
 				// No matter if the it's the startProfile or endProfile.
 				if (Controller.options.ENABLE_COUNTER_PROFILING) {
@@ -85,7 +86,7 @@ public class Service implements ProfilingTypes, ScalerOptions {
 					}
 				}
 				if (Controller.options.ENABLE_ENERGY_PROFILING) {
-
+					VM.sysWrite("service 89");
 					double[] energy = EnergyCheckUtils.getEnergyStats();
 
 					for (int i = 0; i < EnergyCheckUtils.ENERGY_ENTRY_SIZE; i++) {
@@ -112,7 +113,7 @@ public class Service implements ProfilingTypes, ScalerOptions {
 				}
 
 				if (Controller.options.ENABLE_ENERGY_PROFILING) {
-					
+					VM.sysWrite("service 116");
 					double[] energy = EnergyCheckUtils.getEnergyStats();
 					
 					for (int i = 0; i < EnergyCheckUtils.ENERGY_ENTRY_SIZE; i++) {
