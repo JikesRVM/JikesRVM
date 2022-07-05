@@ -21,8 +21,6 @@ private static final int FIRE_AFTER = 5;
 
 public static double read_jikesrvm_energy() {
 		double ev=0.0;
-
-	System.out.println("read_jikesrvm_energy");
 		try {
 			Class cls = Class.forName("org.jikesrvm.VM");
 			System.out.println("Reading Energy Value At Iteration Delimiter");
@@ -32,6 +30,8 @@ public static double read_jikesrvm_energy() {
 		} catch(Exception exc) {
 			 exc.printStackTrace();
 		}
+
+		System.out.println(ev);
 		return ev;
 }
 
@@ -45,7 +45,7 @@ public void stop(boolean w) {
 	STOP_ITER_EN[CURRENT_ITERATION-1] = read_jikesrvm_energy();
 
 	CURRENT_ITERATION++;
-	System.out.println("Iteration Stopping");
+
 	//if(CURRENT_ITERATION==5) {
 		try {
 			Class cls = Class.forName("org.jikesrvm.VM");
@@ -61,7 +61,6 @@ public void stop(boolean w) {
 
 
 public void start(String benchmark) {
-	System.out.println("start");
 
 	super.start(benchmark);
 
@@ -78,7 +77,6 @@ public IterationCallBack(CommandLineArgs args) {
 }
 
 public void complete(String benchmark, boolean valid) {
-	System.out.println("complete");
 
 
 	long execution_time=0;
