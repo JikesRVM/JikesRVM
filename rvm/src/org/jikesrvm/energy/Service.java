@@ -134,7 +134,7 @@ public class Service implements ProfilingTypes, ScalerOptions {
 						SysCall.sysCall.add_log_entry(profileAttrs,cmid,0,freq);
 					}
 					VM.sysWrite("service 136");
-
+ 
 				}
 			} 
 		  }
