@@ -196,10 +196,13 @@ int add_method_entry(char* method_name, char* cls) {
 	extern void add_log_entry(double* attrs,  int cmdid,long long timestamp,int freq) {
 	    
 	    printf("[add_log_entry] .... \n");
-	    printf("Current Log Num %d \n",current->log_num);
+		printf("1 .... \n");
+	    //printf("Current Log Num %d \n",current->log_num);
 	    printf("\n [adding log_entry] %d \n", current_iteration);
+		printf("2 .... \n");
 	   //samples[cmdid]++; 
 	   if(stats->log_num == -1) {
+		printf("3 .... \n");
 		current = stats;
 		current->log_num=0;
 		thread_stats *nu = allocate_thread_stats();
@@ -209,12 +212,14 @@ int add_method_entry(char* method_name, char* cls) {
 	    }
 
 	    if(current->log_num==METHOD_ENTRY_PREALLOC) {
+		printf("4 .... \n");
 		current->next=allocate_thread_stats();
 	    	current = current->next;
 	    }
-	   
+	   printf("5 .... \n");
 	    //printf("add_log_entry: alocated"); 
 	   assign_log_entry(attrs,cmdid,timestamp,freq);
+	   printf("6 .... \n");
 	   //printf("add_log_entry: assigned %d ", current->log_num);
 }
 
