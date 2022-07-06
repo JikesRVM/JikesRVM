@@ -2616,9 +2616,7 @@ public class VM extends Properties {
   //Vincent
   public static void end_iteration() {	
     if(Controller.options.ENABLE_ENERGY_PROFILING) {	
-      VM.sysWrite("pre end_iteration");	
       sysCall.end_iteration();	
-      VM.sysWrite("post end_iteration");	
     }	
   }	
   public static double read_energy() {	

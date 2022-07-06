@@ -226,6 +226,7 @@ public class Service implements ProfilingTypes {
 						  counterIndex++;
 					  }  else if(Controller.options.ENABLE_ENERGY_PROFILING) {
 						  //Insert Energy consumptions of dram/uncore gpu, cpu and package.
+						  VM.sysWrite("serviceArrayStack 229");
 						  for(int j = 0; j < EnergyCheckUtils.ENERGY_ENTRY_SIZE; j++) {
 							  eventEnerValues[i] = energy[enerIndex] - ProfileStack.pop(i, threadId, cmid);
 							  i++;
@@ -276,6 +277,7 @@ public class Service implements ProfilingTypes {
 						  cacheMissRateByTime = eventEnerValues[0] / totalWallClockTime;
 						  tlbMisses = eventEnerValues[2] + eventEnerValues[3];
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 280");
 							  DataPrinter.printALl(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 									  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, cacheMissRate, cacheMissRateByTime, tlbMisses);
 						  } 
@@ -285,6 +287,7 @@ public class Service implements ProfilingTypes {
 						  cacheMissRateByTime = eventEnerValues[0] / totalWallClockTime;
 						  
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 290");
 							  DataPrinter.printProfInfoTwo(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 									  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, cacheMissRate, cacheMissRateByTime);
 						  } else {
@@ -298,6 +301,7 @@ public class Service implements ProfilingTypes {
 						  branchMissRateByTime = eventEnerValues[0] / totalWallClockTime;
 						  
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 304");
 							  DataPrinter.printProfInfoTwo(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 								  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, branchMissRate, branchMissRateByTime);
 						  } else {
@@ -309,6 +313,7 @@ public class Service implements ProfilingTypes {
 						  tlbMissByTime = tlbMisses / totalWallClockTime;
 						  
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 315");
 							  DataPrinter.printProfInfoTwo(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 									  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, tlbMisses, tlbMissByTime);
 						  } else {
@@ -319,6 +324,7 @@ public class Service implements ProfilingTypes {
 						  contextSwitchByTime = eventEnerValues[0] / totalWallClockTime;
 						  
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 327");
 							  DataPrinter.printProfInfoOne(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 									  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, contextSwitchByTime);
 						  } else {
@@ -329,6 +335,7 @@ public class Service implements ProfilingTypes {
 						  pageFaultByTime = eventEnerValues[0] / totalWallClockTime;
 						  
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 338");
 							  DataPrinter.printProfInfoOne(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 									  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, pageFaultByTime);
 						  } else {
@@ -339,6 +346,7 @@ public class Service implements ProfilingTypes {
 						  cpuCycleByTime = eventEnerValues[0] / totalWallClockTime;
 						  
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 349");
 							  DataPrinter.printProfInfoOne(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 									  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, cpuCycleByTime);
 						  } else {
@@ -349,6 +357,7 @@ public class Service implements ProfilingTypes {
 						  cpuClockByTime = eventEnerValues[0] / totalWallClockTime;
 						  
 						  if(Controller.options.ENABLE_ENERGY_PROFILING) {
+							VM.sysWrite("serviceArrayStack 360");
 							  DataPrinter.printProfInfoOne(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 									  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues, cpuClockByTime);
 						  } else {
@@ -357,7 +366,8 @@ public class Service implements ProfilingTypes {
 						  }
 					  }
 				  } else if(!Controller.options.ENABLE_COUNTER_PROFILING && Controller.options.ENABLE_ENERGY_PROFILING) {
-					  //Only time and energy measurement
+					VM.sysWrite("serviceArrayStack 369");  
+					//Only time and energy measurement
 					  DataPrinter.printEnerInfo(cmid, clsNameList[cmid] + "." + methodNameList[cmid], totalWallClockTime, 
 							  Controller.options.FREQUENCY_TO_BE_PRINTED, eventEnerValues);
 				  }
