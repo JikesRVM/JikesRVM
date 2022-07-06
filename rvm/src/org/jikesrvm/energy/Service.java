@@ -75,7 +75,6 @@ public class Service implements ProfilingTypes, ScalerOptions {
 			//VM.sysWriteln("thread.prevProfile: " + thread.prevProfile[0] + " profile point: " + ServiceConstants.STARTPROFILE);
 
 			if (thread.prevProfile[0] == 0.0 || profilePoint == ServiceConstants.STARTPROFILE) {
-				VM.sysWrite("service 78");
 				// If this thread is profiled at the first time, record the profile value.
 				// No matter if the it's the startProfile or endProfile.
 				if (Controller.options.ENABLE_COUNTER_PROFILING) {
@@ -86,8 +85,7 @@ public class Service implements ProfilingTypes, ScalerOptions {
 					}
 				}
 				if (Controller.options.ENABLE_ENERGY_PROFILING) {
-					VM.sysWrite("service 89");
-					double[] energy = EnergyCheckUtils.getEnergyStats();
+						double[] energy = EnergyCheckUtils.getEnergyStats();
 
 					for (int i = 0; i < EnergyCheckUtils.ENERGY_ENTRY_SIZE; i++) {
 						thread.prevProfile[eventId] = energy[i];
@@ -113,27 +111,28 @@ public class Service implements ProfilingTypes, ScalerOptions {
 				}
 
 				if (Controller.options.ENABLE_ENERGY_PROFILING) {
-					VM.sysWrite("service 116");
+	
 					double[] energy = EnergyCheckUtils.getEnergyStats();
-					VM.sysWrite("service 118");
+	
 					for (int i = 0; i < EnergyCheckUtils.ENERGY_ENTRY_SIZE; i++) {
 						profileAttrs[eventId] = calculateEnergy(energy[i], thread.prevProfile[eventId]);
 						thread.prevProfile[eventId] = energy[i];
 						eventId++;
 					}
-					VM.sysWrite("service 124");
+	
 					//VM.sysWriteln("profile info: " + profileAttrs[2]);
 
 					int ll = profileAttrs.length;
 					boolean discard_sample = profileAttrs[ll-1]<=0;
-					VM.sysWrite("service 129");
+	
 					int freq = (int) Controller.options.FREQUENCY_TO_BE_PRINTED;
 					if(!discard_sample) {
-						VM.sysWrite("service 132");
-
+		
+						VM.sysWriteln("service add_log_entry syscall");
 						SysCall.sysCall.add_log_entry(profileAttrs,cmid,0,freq);
+						VM.sysWriteln("service add_log_entry syscall end");
 					}
-					VM.sysWrite("service 136");
+	
  
 				}
 			} 

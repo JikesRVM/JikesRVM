@@ -195,9 +195,9 @@ int add_method_entry(char* method_name, char* cls) {
 	//This method needs to be called from Jikes
 	extern void add_log_entry(double* attrs,  int cmdid,long long timestamp,int freq) {
 	    
-	    //printf("[add_log_entry] .... \n");
-	    //printf("Current Log Num %d \n",current->log_num);
-	    //printf("\n [adding log_entry] %d \n", current_iteration);
+	    printf("[add_log_entry] .... \n");
+	    printf("Current Log Num %d \n",current->log_num);
+	    printf("\n [adding log_entry] %d \n", current_iteration);
 	   //samples[cmdid]++; 
 	   if(stats->log_num == -1) {
 		current = stats;
