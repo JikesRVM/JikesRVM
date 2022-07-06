@@ -136,7 +136,7 @@ public class Service implements ProfilingTypes, ScalerOptions {
 					VM.sysWrite("service 136");
 
 				}
-			}
+			} 
 		  }
 
 		  public static double calculateEnergy(double end, double start) {
