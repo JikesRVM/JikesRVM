@@ -2871,8 +2871,20 @@ public final class RVMThread extends ThreadContext {
           throw t;
         }
       }
-      thread.run();
+      //kmahmou1-kenan-todo: Call the initialization of perf thread level details	
+      Scaler.perfThreadInit();	
+      synchronized(thread_stats_synch) {	
+      	sysCall.register_thread_stat();	
+      }	
+      	
+      //VM.sysWriteln("Not able to run the invocationCounter");	
+      thread.run();	
+      //VM.sysWriteln("invocationCount:"+invocationCounter);	
+      sysCall.sysPerfEventDisable();	
+      Scaler.perfThreadClose();
     } catch (Throwable t) {
+
+      Scaler.perfThreadClose();
       if (traceAcct) {
         VM.sysWriteln("Thread ",getThreadSlot()," exiting with exception.");
       }
