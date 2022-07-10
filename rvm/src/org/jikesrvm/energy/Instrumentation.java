@@ -149,7 +149,6 @@ public class Instrumentation {
 			int scaleFreq=freq;
 
 			if (Controller.options.ENABLE_ENERGY_PROFILING) {
-				VM.sysWrite("isntrumentation 152");
 				// If no method can be matched, just insert start profile and end profile method then.
 				startProfInst.position = ir.firstInstructionInCodeOrder().position;
 				startProfInst.bcIndex = RUNTIME_SERVICES_BCI;
@@ -175,7 +174,6 @@ public class Instrumentation {
 						// ers.inline(endProfInst, ir);
 					}
 				}
-				VM.sysWrite("instrumentation end 152");
 			} else {
 
 				for (int i = 0; i < candidateDvfsMth.length; i++) {
