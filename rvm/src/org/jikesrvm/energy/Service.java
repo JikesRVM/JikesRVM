@@ -128,9 +128,7 @@ public class Service implements ProfilingTypes, ScalerOptions {
 					int freq = (int) Controller.options.FREQUENCY_TO_BE_PRINTED;
 					if(!discard_sample) {
 		
-						VM.sysWriteln("service add_log_entry syscall");
 						SysCall.sysCall.add_log_entry(profileAttrs,cmid,0,freq);
-						VM.sysWriteln("service add_log_entry syscall end");
 					}
 	
  
