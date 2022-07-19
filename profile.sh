@@ -62,16 +62,72 @@ runJikesProfile() {
 }
 
 
-# main body of scripts
-sudo java energy.Scaler 1 ondemand
-#runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} ${timeSlice[2]} Energy -t 8 
-runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} 4 Energy -t 8 
+# # main body of scripts
+# sudo java energy.Scaler 1 ondemand
+# #runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} ${timeSlice[2]} Energy -t 8 
+# runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} 4 Energy -t 8 
 
 
-itercount=$(wc -l iteration_times)
-itercount=$(echo $itercount | cut -d' ' -f 1)
+# itercount=$(wc -l iteration_times)
+# itercount=$(echo $itercount | cut -d' ' -f 1)
 
-sudo mv iteration_times counter_based_sampling_iteration_times_$i
-sudo mv kenan.csv counter_based_sampling_kenan.${i}.csv
-sudo mv kenan_energy_$i
-sudo mv execution_time execution_time_${i}.csv
+# sudo mv iteration_times counter_based_sampling_iteration_times_$i
+# sudo mv kenan.csv counter_based_sampling_kenan.${i}.csv
+# #sudo mv kenan_energy_$i
+# sudo mv execution_time execution_time_${i}.csv
+
+
+timeSlice=$((${timeSlice}))		
+#
+for((i=1;i<=12;i++))
+do
+        kkfreq="$i"
+       	if [ "$samples" = "0" ]
+       	then
+       		samples="1"
+       	fi
+       
+
+       repeat="true"	
+       while [ "$repeat" = "true" ]
+       do
+		
+	        killall java
+	        echo "Frequency $i, Samples $samples, SampleFreq $frequency"
+       		sudo java energy.Scaler $i userspace
+       		runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} 4 Energy -t 4 
+       		sudo mv kenan.csv counter_based_sampling_kenan.${i}.csv
+       		sudo mv iteration_times counter_based_sampling_iteration_times_$i
+		sudo mv kenan_energy kenan_energy_$i
+		sudo mv execution_time execution_time_$i
+		echo "Iter count: $itercount, expected: $expected"
+		itercount=$(wc -l counter_based_sampling_iteration_times_$i)
+		itercount=$(echo $itercount | cut -d' ' -f 1)
+		if [ "$itercount" = "$expected" ]
+		then
+		    repeat="false"
+		else
+		    
+			##The else should not be needed anymore
+			repeat="false"
+			mem=$(grep malloc freq_$i)
+			if [ "$mem" = "" ]
+			then
+				echo "No Malloc"
+			else
+				samples=$((samples/2))			
+			fi
+			rm -r scratch
+			if [ "$samples" = "0" ]
+			then
+				repeat="false"
+			fi
+			
+			killall JikesRVM
+			killall java
+		fi
+	done
+
+done
+##	
+sleep 10 
