@@ -9,11 +9,11 @@ pbench=$1
 # version of dacapo
 ptype=new
 # # of iterations
-iters="$2"
+iters="$3"
 # set by khaled ran 8 for sunflow 32 for all the rest
-samples="8"
+samples="$4"
 # set by khaled
-frequency="2"
+frequency="$5"
 expected=$iters
 
 if [ "$ptype" == "old" ];
@@ -129,5 +129,24 @@ do
 	done
 
 done
+
 ##	
-sleep 10 
+expname=$6
+benchname=$1
+benchdir="kenan_${benchname}"
+echo "$benchdir"
+
+#bash rapl_on_demand.sh $1 $2 $3 $4 $5
+if [ -d $benchdir ]
+then
+	rm -r $benchdir
+fi
+
+mkdir $benchdir
+mv counter_based* $benchdir/
+mv freq_* $benchdir/
+mv kenan_energy* $benchdir
+mv execution_time* $benchdir
+bash graph_experiments.sh $benchdir
+cp -r $benchdir $expname/
+rm -r scratch
