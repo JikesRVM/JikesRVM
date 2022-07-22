@@ -58,9 +58,9 @@ dataFrame = pd.DataFrame()
 experiment="kenan_sampling"
 
 frequency_iteration_times = []
-frequency_values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+frequency_values = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 def read_iteration_times():
-	for frequency in range(0,13):
+	for frequency in range(1,13):
 		iteration_file = open("%s/counter_based_sampling_iteration_times_%d" %(dir,frequency))
 		lines = iteration_file.readlines()
 		iteration_times = []
