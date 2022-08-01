@@ -230,10 +230,10 @@ extern void print_logs() {
             for(log_indx=0;log_indx < thread_stat->log_num;log_indx++) {
                 //fprintf(log_file,"%d,",thread_stat->frequencies[log_indx]);
 		//printf("\n current_iteration %d \n", current_iteration);
-        	fprintf(log_file,"%d,",current_iteration);
-		fprintf(log_file,"%d,",thread_stat->timestamps[log_indx]);
+				fprintf(log_file,"%d,",current_iteration);
+				fprintf(log_file,"%d,",thread_stat->timestamps[log_indx]);
                 print_method_name(thread_stat->cmdids[log_indx]);
-		fprintf(log_file,"%d,",thread_stat->tid);
+				fprintf(log_file,"%d,",thread_stat->tid);
                 fprintf(log_file,"%d,", thread_stat->cmdids[log_indx]);
                 int profile_indx = log_indx*num_profile_attrs;
                 for(int profile_attr = 0; profile_attr < num_profile_attrs; profile_attr++) {
@@ -241,7 +241,7 @@ extern void print_logs() {
                     fprintf(log_file,"%f,",thread_stat->profile_attrs[profile_attr_indx]);
                 }
                 fprintf(log_file,"%s","\n");
-		fflush(log_file);
+				fflush(log_file);
             }
             thread_stat = thread_stat->next;
         }
