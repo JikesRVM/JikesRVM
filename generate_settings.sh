@@ -12,7 +12,7 @@ iters=$(echo $iters | cut -d' ' -f 1)
 spath="$dir/${bench}_settings"
 ##Read method names
 rm $spath
-input="$bench/top5.csv"
+input="$dir$bench/top5.csv"
 type="old"
 
 array=(sunflow lusearch luindex avrora)
