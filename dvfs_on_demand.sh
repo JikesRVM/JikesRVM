@@ -42,7 +42,7 @@ runJikesProfile() {
 kkfreq="$ifreq"
 timeSlice=$((${timeSlice}))		
 sudo java energy.Scaler 1 ondemand
-runJikesProfile 4 ${freq[$kkfreq]} ${events[0]},${events[1]} ${timeSlice[2]} Energy -t 8 
+runJikesProfile 4 ${freq[$kkfreq]} ${events[0]},${events[1]} 4 Energy -t 8 
 
 cp kenan_energy "kenan_energy_${bench}_${ifreq}_${mname}"
 cp execution_time "execution_time_${bench}_${ifreq}_${mname}"
