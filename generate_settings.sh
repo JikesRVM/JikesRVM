@@ -7,7 +7,7 @@ then
 	mkdir $dir
 fi
 
-iters=$(wc -l $bench/counter_based_sampling_iteration_times_0)
+iters=$(wc -l $bench/counter_based_sampling_iteration_times_1)
 iters=$(echo $iters | cut -d' ' -f 1)
 spath="$dir/${bench}_settings"
 ##Read method names
