@@ -140,6 +140,7 @@ mv counter_based* $benchdir/
 mv freq_* $benchdir/
 mv kenan_energy* $benchdir
 mv execution_time* $benchdir
+#TODO rename this to be extract_top_5.sh
 bash graph_experiment.sh $benchdir
 cp -r $benchdir $expname/
 rm -r scratch

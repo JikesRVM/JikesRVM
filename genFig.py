@@ -356,10 +356,11 @@ Get top n methods in terms of aggregated energy consumption for each frequency
 Return a series of top n methodIDs
 """
 def pickTopMethodsAbs(df, n, criterion):
-	df = df[df["iteration"]>=5]
-	value = df.groupby(['MethodName'])[criterion].sum()
-	methodDf = value.nlargest(n).reset_index()
-	methodDf.to_csv("%s_top.csv" %(criterion))
+    df = df[df["Frequency"]==0]
+    df = df[df["iteration"]>=5]
+    value = df.groupby(['MethodName'])[criterion].sum()
+    methodDf = value.nlargest(n).reset_index()
+    methodDf.to_csv("%s_top.csv" %(criterion))
 
 
 #Process the commands

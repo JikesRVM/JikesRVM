@@ -15,6 +15,6 @@ mv counter_based* $benchdir/
 mv freq_* $benchdir/
 mv kenan_energy* $benchdir
 mv execution_time* $benchdir
-bash graph_experiments.sh $benchdir
+bash graph_experiment.sh $benchdir
 cp -r $benchdir $expname/
 rm -r scratch
