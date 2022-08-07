@@ -6,8 +6,11 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
+ 
+make: *** No rule to make target `all'.  Stop.
 
-# Make data base, printed on Thu Aug  4 16:33:57 2022
+
+# Make data base, printed on Sat Aug  6 22:26:07 2022
 
 # Variables
 
@@ -48,11 +51,11 @@ ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.872mp0uhLb/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.ITTyF7YBfG/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
-DISPLAY = /private/tmp/com.apple.launchd.LrnKF1pvXQ/org.xquartz:0
+DISPLAY = /private/tmp/com.apple.launchd.8lAD9wqLQa/org.xquartz:0
 # environment
 PWD = /Users/spoonjoon/Desktop/Research/JikesRVM
 # environment
@@ -64,11 +67,11 @@ HOME = /Users/spoonjoon
 # default
 MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/spoonjoon/Library/Application Support/Code/CachedData/3b889b090b5ad5793f524b5d1d39fda662b96a2a
+VSCODE_CODE_CACHE_PATH = /Users/spoonjoon/Library/Application Support/Code/CachedData/da76f93349a72022ca4670c1b84860304616aaa2
 # environment
 LOGNAME = spoonjoon
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 NVM_CD_FLAGS = -q
 # environment
@@ -104,7 +107,7 @@ TMPDIR = /var/folders/nv/1xw7tnbn0dn26qyzwr8gcd3m0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/spoonjoon/Library/Application Support/Code/1.69.2-main.sock
+VSCODE_IPC_HOOK = /Users/spoonjoon/Library/Application Support/Code/1.70.0-main.sock
 # environment
 MallocNanoZone = 0
 # makefile
@@ -142,7 +145,7 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 11325
+VSCODE_PID = 2216
 # variable set hash-table stats:
 # Load=66/1024=6%, Rehash=0, Collisions=1/86=1%
 
@@ -152,9 +155,9 @@ VSCODE_PID = 11325
 
 # Directories
 
-# . (device 16777234, inode 32311602): 50 files, no impossibilities.
+# . (device 16777231, inode 32311602): 47 files, no impossibilities.
 
-# 50 files, no impossibilities in 1 directories.
+# 47 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -226,8 +229,6 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Thu Aug  4 16:33:57 2022
+# Finished Make data base on Sat Aug  6 22:26:07 2022
 
  
-make: *** No rule to make target `all'.  Stop.
-
