@@ -6,11 +6,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
- 
-make: *** No rule to make target `all'.  Stop.
 
-
-# Make data base, printed on Sat Aug  6 22:26:07 2022
+# Make data base, printed on Mon Aug 15 15:03:17 2022
 
 # Variables
 
@@ -67,7 +64,7 @@ HOME = /Users/spoonjoon
 # default
 MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/spoonjoon/Library/Application Support/Code/CachedData/da76f93349a72022ca4670c1b84860304616aaa2
+VSCODE_CODE_CACHE_PATH = /Users/spoonjoon/Library/Application Support/Code/CachedData/6d9b74a70ca9c7733b29f0456fd8195364076dda
 # environment
 LOGNAME = spoonjoon
 # environment
@@ -107,7 +104,7 @@ TMPDIR = /var/folders/nv/1xw7tnbn0dn26qyzwr8gcd3m0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/spoonjoon/Library/Application Support/Code/1.70.0-main.sock
+VSCODE_IPC_HOOK = /Users/spoonjoon/Library/Application Support/Code/1.70.1-main.sock
 # environment
 MallocNanoZone = 0
 # makefile
@@ -119,7 +116,7 @@ MFLAGS = -Rrqp
 # environment
 NVM_DIR = /Users/spoonjoon/.nvm
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.45017486.45017492
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.48396950.48396956
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # automatic
@@ -145,7 +142,7 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 2216
+VSCODE_PID = 23645
 # variable set hash-table stats:
 # Load=66/1024=6%, Rehash=0, Collisions=1/86=1%
 
@@ -229,6 +226,8 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Sat Aug  6 22:26:07 2022
+# Finished Make data base on Mon Aug 15 15:03:17 2022
 
  
+make: *** No rule to make target `all'.  Stop.
+
