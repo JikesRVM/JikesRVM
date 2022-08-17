@@ -7,7 +7,7 @@ then
 	mkdir $dir
 fi
 #get Number of iterations from reading number of new lines
-iters=$(wc -l $dir/$bench/counter_based_sampling_iteration_times_1)
+iters=$(wc -l $dir/$bench/counter_based_sampling_iteration_times_0)
 iters=$(echo $iters | cut -d' ' -f 1)
 spath="$dir/${bench}_settings"
 ##Read method names
