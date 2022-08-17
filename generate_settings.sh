@@ -18,7 +18,7 @@ type="old"
 array=(sunflow lusearch luindex avrora)
 for i in "${array[@]}"
 do
-	if [ "$bench" = "$i" ];
+	if [ "$bench" = "kenan_$i" ];
 	then
 		type="new"
 	fi
