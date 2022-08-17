@@ -11,7 +11,6 @@ then
 fi
 
 array=(sunflow avrora jython fop antlr bloat luindex pmd)
-array=(antlr)
 for i in "${array[@]}"
 do
 	bash optimize_bench_top.sh $i $name $settings $sn
