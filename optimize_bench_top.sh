@@ -15,7 +15,8 @@ mkdir $benchname
 echo "Optimizing bench $benchname"
 p=$(cat "${settings_path}/kenan_${benchname}_settings")
 echo $p
-mname=$(echo $p | cut -d';' -f 4)
+mname=$(cat "${settings_path}/kenan_${benchname}_settings" | cut -d';' -f 4)
+echo $mname
 which=$(echo $p | cut -d';' -f 2)
 iters=$(echo $p | cut -d';' -f 3)
 echo "bash dvfs_on_demand.sh $benchname $which $iters $i $mname $sn"
@@ -29,5 +30,3 @@ mv iteration_times $benchmark/
 mv iteration_energy $benchmark/
 
 cp -r $benchname $expname
-m
-
