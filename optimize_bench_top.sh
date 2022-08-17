@@ -13,7 +13,7 @@ fi
 mkdir $benchname
 
 echo "Optimizing bench $benchname"
-p=$(cat "${settings_path}/${benchname}_settings")
+p=$(cat "${settings_path}/kenan_${benchname}_settings")
 echo $p
 mname=$(echo $p | cut -d';' -f 4)
 which=$(echo $p | cut -d';' -f 2)

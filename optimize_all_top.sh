@@ -1,4 +1,6 @@
+#name of experiment
 name=$1
+#path of settings dir containing top 5 methods
 settings=$2
 sn=$3
 array=()
