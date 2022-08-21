@@ -90,6 +90,7 @@ public class Instrumentation {
 		if(method_len==-1) {		
 			method_len = names.length;
 		}
+		VM.sysWriteln("Method Names"+ names);
 		return names;
 	}
 
