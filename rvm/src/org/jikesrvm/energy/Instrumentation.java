@@ -90,7 +90,7 @@ public class Instrumentation {
 		if(method_len==-1) {		
 			method_len = names.length;
 		}
-		VM.sysWriteln("METHODDDDDDDD Names"+ names);
+		VM.sysWriteln("METHODDDDDDDD Names"+ dvfsNames);
 		return names;
 	}
 
