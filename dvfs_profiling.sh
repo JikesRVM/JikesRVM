@@ -26,7 +26,7 @@ do
 		bash dvfs_on_demand.sh $benchname $which $iters $i $mname $ssn $frq
 	done
 
-done < "${settings_path}/${benchname}_settings"
+done < "${settings_path}/kenan_${benchname}_settings"
 
 mv execution_time* $benchname/
 mv kenan_energy* $benchname/
