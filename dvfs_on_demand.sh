@@ -1,4 +1,5 @@
 #!/bin/bash
+# Script is called during the second profiling stage 
 DEBUG=false
 freqOpt=8
 pbench=$1

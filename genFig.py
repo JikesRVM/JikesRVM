@@ -19,7 +19,7 @@ top_df_path=""
 
 
 
-#Path for output fileƒ
+#Path for output file
 filePath = ''
 #Column needs to be sorted/plot
 col = ''
