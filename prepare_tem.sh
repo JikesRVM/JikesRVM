@@ -39,7 +39,7 @@ echo $header > $bestetmcsv
 echo $header > $bestenergycsv
 echo $header > $besttimecsv
 
-benchsettings="${settings}/kenan_${bench}_settings"
+benchsettings="${settings}/kenan_l${bench}_settings"
 echo "Reading $bench Settings : $benchsettings"
 while IFS= read -r line
 do
@@ -76,6 +76,8 @@ for i in {2..12}
    eng=$(head -1 "$eng")
    time="$exp/$bench/execution_time_${bench}_${i}_${filepart}"
    time=$(head -1 "$time")
+
+   echo "energy: $eng, bestenergy: $bestenergy"
 
    bestengr="scale=10;$eng / $bestenergy"
    bestengr=$(bc -l <<< $bestengr)

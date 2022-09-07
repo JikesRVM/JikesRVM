@@ -1,8 +1,9 @@
 exp=$1
 settings_dir=$2
 baseline_dir=$3
-array=(antlr sunflow luindex pmd avrora jython fop bloat)
-
+# array=(antlr sunflow luindex pmd avrora jython fop bloat)
+# avrora and bloat have inconsistant data
+array=(antlr sunflow luindex pmd jython fop)
 for i in "${array[@]}"
 do
 	echo "bash prepare_tem.sh $i $exp"
