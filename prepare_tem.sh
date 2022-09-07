@@ -39,7 +39,7 @@ echo $header > $bestetmcsv
 echo $header > $bestenergycsv
 echo $header > $besttimecsv
 
-benchsettings="${settings}/${bench}_settings"
+benchsettings="${settings}/kenan_${bench}_settings"
 echo "Reading $bench Settings : $benchsettings"
 while IFS= read -r line
 do
