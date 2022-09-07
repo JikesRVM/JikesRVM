@@ -62,5 +62,5 @@ done
 
 sudo mv iteration_times counter_based_sampling_iteration_times_$i
 sudo mv kenan.csv counter_based_sampling_kenan.${i}.csv
-sudo mv kenan_energy kenan_energy_$i
+sudo mv kenan_energy kenan_energy_$i 
 sudo mv execution_time execution_time_${i}.csv
