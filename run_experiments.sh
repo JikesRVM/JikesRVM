@@ -5,7 +5,7 @@ echo "$benchdir"
 
 
 #joon  
-#this runs the benchmark for each of the 12 available frequencies on Eevee
+#rapl.sh runs the benchmark for each of the 12 available frequencies on Eevee
 #isnt used for any of the profiling stage data was added for experimental purposes
 #bash rapl.sh $1 $2 $3 $4 $5
 
