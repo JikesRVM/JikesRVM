@@ -16,9 +16,9 @@ mkdir $benchname
 
 while read p; 
 do
-	mname=$(echo $p | cut -d';' -f 4)
-	which=$(echo $p | cut -d';' -f 2)
-	iters=$(echo $p | cut -d';' -f 3)
+	mname=$(echo $p | cut -d',' -f 4)
+	which=$(echo $p | cut -d',' -f 2)
+	iters=$(echo $p | cut -d',' -f 3)
 	
 	for ((i=1;i<=12;i++)); 
 	do 

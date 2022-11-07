@@ -1,7 +1,6 @@
 #!/bin/bash
 # Script is called during the second profiling stage 
-DEBUG=false
-freqOpt=8
+
 pbench=$1
 ptype=$2
 iters="$3"
@@ -10,6 +9,7 @@ expected=$iters
 mname=$5
 ssn=$6
 samplefreq=$7
+
 if [ "$ptype" == "old" ];
 then
 	dacapoJar="dacapo-2006-10-MR2.jar"
@@ -36,7 +36,11 @@ runJikesProfile() {
 
 kkfreq="$ifreq"
 timeSlice=$((${timeSlice}))		
+
+# Set the cpu governor to be ondemand
 sudo java energy.Scaler 1 ondemand
+
+# Run the experiment
 runJikesProfile 4 ${freq[$kkfreq]} ${events[0]},${events[1]} 4 Energy -t 8 
 
 cp kenan_energy "kenan_energy_${bench}_${ifreq}_${mname}"

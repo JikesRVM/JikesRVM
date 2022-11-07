@@ -1,5 +1,6 @@
 dir=$1
 bench=$2
+iters=$3
 
 echo $dir
 if [ ! -d $dir ];

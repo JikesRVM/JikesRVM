@@ -1,5 +1,5 @@
-expname=$6
 benchname=$1
+expname=$6
 benchdir="kenan_${benchname}"
 echo "$benchdir"
 

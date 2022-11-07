@@ -1011,7 +1011,23 @@ def bar_top_ondemand(dataFrame):
 	dfg.to_csv("%s/method_count.csv" %(dir))
 	regroupByMethods(dataFrame_topn)
 
-
+def extract_top5(dataFrame):
+	global filePath
+	global numGroup
+	global frequencies
+	global threshNum
+	global totalFreq
+	global attr
+	# Formatting
+	#pickTopMethodsAbs(dataFrame, TOPN, col)
+	df = dataFrame
+	#Frequency zero is for ondemand profiling
+	df = df[df["Frequency"]==0]
+	df = df[df["iteration"]>=5]
+	df["MethodName"]=df["MethodName"].str.replace("$$$$$",".",regex=False)
+	value = df.groupby(['MethodName'])['Package'].sum()
+	methodDf = value.nlargest(n).reset_index()
+	methodDf.to_csv("%s_top.csv" %('Package'))
 
 def main(argv):
 	global filePath
@@ -1026,9 +1042,8 @@ def main(argv):
 		export_top(dataFrame)
 	elif figType == 'topn_bar':
 		bar_top_ondemand(dataFrame)
-
-
-
+	elif figType == 'extract_top5':
+		extract_top5(dataFrame)
 
 if __name__ == '__main__':
 	main(sys.argv[1:])

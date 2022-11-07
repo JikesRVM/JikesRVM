@@ -1,3 +1,5 @@
+#profile stage 1 
+
 expname=$1
 iters=$2
 if [ -d $expname ]

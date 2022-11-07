@@ -1,4 +1,9 @@
+#!/bin/bash
+
+# Experiment name
+# I named the baseline experiments baseline_20iterations in order to not be confused with the Vincent experiments
 expname=$1
+# number of iterations per fre
 iters=$2
 
 mkdir $expname

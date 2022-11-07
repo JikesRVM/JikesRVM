@@ -3,7 +3,7 @@
 #name is the name of the experiment
 #settings is the path of the settings directory holding the top 5 methods from the profiling stage
 #ssn refers to sample number
-#frq is 2? //TODO define what the kenan_frequency option does
+#frq is 2?  //TODO define what the kenan_frequency option does
 
 name=$1
 settings=$2
