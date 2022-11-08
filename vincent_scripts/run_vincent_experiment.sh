@@ -106,7 +106,12 @@ for benchmark in ${benchmarks[@]}; do \
     mv $benchmark $output_dir 
 done
 
-# TODO Calculate Ratios 
+# Calculate energy, time, edp difference with experiment and baseline experiment
+# Outputs a ratios directory that will be used to draw the heatmaps
+for benchmark in ${benchmarks[@]}; do \
+    bash calculate_ratios.sh $benchmark $experiment_dir "${experiment_dir}/settings" $baseline_dir
+done
+
 # Generate heatmaps and calculate optimizationnn
 # Outputs three heatmaps into 
 infos=("etm_best" "time_best" "energy_best")

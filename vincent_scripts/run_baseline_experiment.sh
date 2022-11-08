@@ -3,7 +3,7 @@
 # Experiment name
 # I named the baseline experiments baseline_20iterations in order to not be confused with the Vincent experiments
 expname=$1
-# number of iterations per fre
+# number of iterations per frequency
 iters=$2
 
 mkdir $expname

@@ -37,6 +37,10 @@ runJikesProfile() {
 kkfreq=0
 i=0
 timeSlice=$((${timeSlice}))		
+if [ -f kenan.csv ];
+then
+	rm kenan.csv
+fi
 
 #set governor to ondemand
 sudo java energy.Scaler 1 ondemand
@@ -50,10 +54,7 @@ do
 	echo "iterations: $itercount, Expected: $iters" 
 done
 
-if [ -f kenan.csv ];
-then
-	rm kenan.csv
-fi
+
 # TODO rename file to be less confusing
 mv iteration_times counter_based_sampling_iteration_times_$i
 mv kenan.csv counter_based_sampling_kenan.${i}.csv
