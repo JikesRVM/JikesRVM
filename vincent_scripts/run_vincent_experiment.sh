@@ -112,29 +112,9 @@ for benchmark in ${benchmarks[@]}; do \
     bash calculate_ratios.sh $benchmark $experiment_dir "${experiment_dir}/settings" $baseline_dir
 done
 
-# Generate heatmaps and calculate optimizationnn
-# Outputs three heatmaps into 
-infos=("etm_best" "time_best" "energy_best")
 
-for info in "${infos[@]}"
-do
-	echo "Initializing Heat for $info"
-	echo "bench,M,F,value" > "${info}_heat.csv"
-done
-
-for i in "${array[@]}"
-do
-	for info in "${infos[@]}"
-	do
-		python3 prepare_heat.py -path "$experiment_dir/ratios/${i}_${info}.csv" -bench $i -measure "EDP VS Ondemand" -group "$1" >> "${info}_heat.csv"
-	done
-done
-
+# Generate heatmaps
+# Outputs three heatmaps under a new subdirectory called heatmaps
 mkdir "$experiment_dir/heatmaps"
-
-for info in "${infos[@]}"
-do
-	#echo "bench,M,F,value" > "${info}_heat.csv"
-	python3 heat.py -info $info -exp_dir $experiment_dir
-done
+python3 data_processing.py --function profiling_generate_settings --experiment_dir $experiment_dir  --iterations $iterations
 
