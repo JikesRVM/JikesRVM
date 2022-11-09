@@ -13,14 +13,14 @@ import matplotlib.font_manager as fm
 import seaborn as sns;
 import matplotlib.colors as colors
 
-
+# benchmarks=["sunflow","avrora","pmd","jython","antlr","bloat","fop","luindex"]
+benchmarks = ["luindex"]   
 """
 This function takes in the experiment directory for the first stage of profiling  
 outputs a settings file for each benchmark to be consumed in the next step of profiling
 """
 def profiling_generate_settings(experiment_dir, iterations):
     # Benchmarks to process
-    benchmarks=["sunflow","avrora","pmd","jython","antlr","bloat","fop","luindex"]
    
     for bench in benchmarks:
         # Read raw data and add header
@@ -63,7 +63,7 @@ outputs three heatmaps in a subdirectory called heatmaps in the experiment folde
 """
 def generate_heatmaps(exp_dir):
     cmap = colors.LinearSegmentedColormap.from_list("n",["#00FF00","#110000", "#D3D3D3"])
-    benchlist=["sunflow", "avrora","pmd","fop","antlr","luindex", "bloat", "jython"]
+    # benchlist=["sunflow", "avrora","pmd","fop","antlr","luindex", "bloat", "jython"]
     heat_type=["etm_best", "time_best" ,"energy_best"]
 
     sns.set(font_scale=1)
@@ -72,7 +72,7 @@ def generate_heatmaps(exp_dir):
         i=0
         fig,axs = plt.subplots(4, 2,figsize=(16,16))
         axs=axs.flatten()
-        for bench in benchlist:
+        for bench in benchmarks:
                 energy_df=pd.read_csv("{}/ratios/{}_{}.csv".format(exp_dir,bench, htype))
 
                 data = {'Method': np.repeat(range(1,6), 11),
@@ -108,7 +108,7 @@ def read_file(p):
 
 def calculate_baseline_min(exp_dir):
     # lst=["avrora","pmd","antlr","bloat","fop","luindex"];
-    lst=["luindex"]
+    lst=benchmarks
     for bench in lst:
         min_t = 10000000000;
         min_e = 10000000000;
