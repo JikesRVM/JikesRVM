@@ -46,7 +46,8 @@ fi
 sudo java energy.Scaler 1 ondemand
 
 itercount="0"
-while [ "$itercount"!="$iters" ]
+
+while [ $itercount -ne $iters ]
 do
 	runJikesProfile 4 ${freq[$i]} ${events[0]},${events[1]} 4 Energy -t 8 
 	itercount=$(wc -l iteration_times)
