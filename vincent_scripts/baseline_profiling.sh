@@ -22,7 +22,7 @@ size="default"
 
 freq=('0' '2201000' '2200000' '2100000' '2000000' '1900000' '1800000' '1700000' '1600000' '1500000' '1400000' '1300000' '1200000')
 events=('cache-misses' 'cache-references' 'cpu-cycles' 'branches' 'branch-misses' 'cpu-clock' 'page-faults' 'context-switches' 'cpu-migrations');
-timeSlice=('0' '8.0' '4.0' '2.0' '1.0' '0.5' '0.25' '0.125')
+timeSlice=('0' '8.0' '4' '2.0' '1.0' '0.5' '0.25' '0.125')
 
 kkfreq="0"
 #cache-misses,cache-references
