@@ -158,7 +158,7 @@ def main():
     args =  parser.parse_args()
     
     if args.function == 'profiling_generate_settings':
-        profiling_generate_settings(args.experiment_dir)
+        profiling_generate_settings(args.experiment_dir, args.iterations)
         print(args.experiment_dir) 
     elif args.function == 'generate_heatmaps':
         generate_heatmaps(args.experiment_dir)
