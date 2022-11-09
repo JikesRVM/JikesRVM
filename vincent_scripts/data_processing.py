@@ -13,8 +13,8 @@ import matplotlib.font_manager as fm
 import seaborn as sns;
 import matplotlib.colors as colors
 
-# benchmarks=["sunflow","avrora","pmd","jython","antlr","bloat","fop","luindex"]
-benchmarks = ["luindex"]   
+benchmarks=["sunflow","avrora","pmd","jython","antlr","bloat","fop","luindex"]
+# benchmarks = ["luindex"]   
 """
 This function takes in the experiment directory for the first stage of profiling  
 outputs a settings file for each benchmark to be consumed in the next step of profiling

@@ -12,8 +12,8 @@ baseline_dir=$4
 frequency=2
 
 # Dacapo Benchmarks
-# benchmarks=(luindex sunflow avrora fop jython antlr bloat pmd)
-benchmarks=(luindex)
+benchmarks=(luindex sunflow avrora fop jython antlr bloat pmd)
+# benchmarks=(luindex)
 
 # generate experiment directories settings directory(top 5 methods will be stored in this settings directory)
 mkdir $experiment_dir
@@ -119,3 +119,6 @@ done
 mkdir "$experiment_dir/heatmaps"
 python3 vincent_scripts/data_processing.py --function generate_heatmaps --experiment_dir $experiment_dir  --iterations $iterations
 
+#Cleanup
+rm *.csv
+rm doubleSampleWindow_1ms*
