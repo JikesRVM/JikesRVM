@@ -108,7 +108,7 @@ def read_file(p):
 
 def calculate_baseline_min(exp_dir):
     # lst=["avrora","pmd","antlr","bloat","fop","luindex"];
-    lst=["sunflow"]
+    lst=["luindex"]
     for bench in lst:
         min_t = 10000000000;
         min_e = 10000000000;
@@ -163,7 +163,7 @@ def main():
     elif args.function == 'generate_heatmaps':
         generate_heatmaps(args.experiment_dir)
     elif args.function == 'calculate_min':
-        generate_heatmaps(args.experiment_dir)
+        calculate_baseline_min(args.experiment_dir)
     
     
     
