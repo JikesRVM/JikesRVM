@@ -138,13 +138,13 @@ def calculate_baseline_min(exp_dir):
             else:
                 print("%s freq %d needs a rerun" % (bench, i))
 
-        write_file("%s/%s_best_t" %((exp_dir,bench),min_t))
-        write_file("%s/%s_best_e" % ((exp_dir,bench),min_e))
-        write_file("%s/%s_best_edp" % ((exp_dir,bench), min_edp))
+        write_file("%s/%s_best_t" %(exp_dir,bench),min_t)
+        write_file("%s/%s_best_e" % (exp_dir,bench),min_e)
+        write_file("%s/%s_best_edp" % (exp_dir,bench), min_edp)
 
-        write_file("%s/%s_best_t_f" %((exp_dir,bench),besttf))
-        write_file("%s/%s_best_e_f" % ((exp_dir,bench),bestef))
-        write_file("%s/%s_best_edp_f" % ((exp_dir,bench), bestedpf))
+        write_file("%s/%s_best_t_f" %(exp_dir,bench),besttf)
+        write_file("%s/%s_best_e_f" % (exp_dir,bench),bestef)
+        write_file("%s/%s_best_edp_f" % (exp_dir,bench), bestedpf)
 
 
 def main():
