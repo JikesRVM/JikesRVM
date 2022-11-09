@@ -122,3 +122,4 @@ python3 vincent_scripts/data_processing.py --function generate_heatmaps --experi
 #Cleanup
 rm *.csv
 rm doubleSampleWindow_1ms*
+rm -r scratch
