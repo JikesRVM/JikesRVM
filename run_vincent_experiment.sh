@@ -12,7 +12,8 @@ baseline_dir=$4
 frequency=2
 
 # Dacapo Benchmarks
-benchmarks=(luindex sunflow avrora fop jython antlr bloat pmd)
+# benchmarks=(luindex sunflow avrora fop jython antlr bloat pmd)
+benchmarks=(luindex)
 
 # generate experiment directories settings directory(top 5 methods will be stored in this settings directory)
 mkdir $experiment_dir
@@ -25,7 +26,7 @@ for bench in ${benchmarks[@]}; do \
         jython | antlr | bloat | fop | pmd)
             echo -n "running profiling for: $bench" $'\n'
             # call profiling script
-            bash method_profiling.sh $bench old $iterations $samples $frequency
+            bash vincent_scripts/method_profiling.sh $bench old $iterations $samples $frequency
             # make the benchmark directory and move all the data into the experiment dir
             benchdir=$bench
             if [ -d $benchdir ]
@@ -42,7 +43,7 @@ for bench in ${benchmarks[@]}; do \
         # These run on the newer dacapo jar (dacapo-9.12-bach.jar)
         sunflow | luindex | avrora)
             echo -n "running profiling for: $bench" $'\n'
-            bash method_profiling.sh $bench new $iterations $samples $frequency
+            bash vincent_scripts/method_profiling.sh $bench new $iterations $samples $frequency
             # make the benchmark directory and move all the data into the experiment dir
             benchdir=$bench
             if [ -d $benchdir ]
@@ -66,7 +67,7 @@ done
 # Extract Top 5 Energy Consuming Methods & generate the settings directory
 echo "Extracting Top 5 Energy Consuming Methods" $'\n'
 for bench in ${benchmarks[@]}; do \
-    bash generate_settings.sh $experiment_dir $iterations
+    python3 vincent_scripts/data_processing.py --function profiling_generate_settings --experiment_dir $experiment_dir  --iterations $iterations
 done  
 
 # DVFS Top 5 methods for all available frequencies 
@@ -84,7 +85,7 @@ for benchmark in ${benchmarks[@]}; do \
         do 
             echo "Starting dvfs profiling for $mname frequency $i"
             # echo "bash dvfs_on_demand.sh $benchname $dacapo_version $iters $i $mname $ssn"
-            bash dvfs_profiling.sh $benchmark $dacapo_version $iterations $i $method_name $samples $frequency
+            bash vincent_scripts/dvfs_profiling.sh $benchmark $dacapo_version $iterations $i $method_name $samples $frequency
         done
     done < "${experiment_dir}/settings/${benchmark}_settings"
 
@@ -109,12 +110,12 @@ done
 # Calculate energy, time, edp difference with experiment and baseline experiment
 # Outputs a ratios directory that will be used to draw the heatmaps
 for benchmark in ${benchmarks[@]}; do \
-    bash calculate_ratios.sh $benchmark $experiment_dir "${experiment_dir}/settings" $baseline_dir
+    bash vincent_scripts/calculate_ratios.sh $benchmark $experiment_dir "${experiment_dir}/settings" $baseline_dir
 done
 
 
 # Generate heatmaps
 # Outputs three heatmaps under a new subdirectory called heatmaps
 mkdir "$experiment_dir/heatmaps"
-python3 data_processing.py --function profiling_generate_settings --experiment_dir $experiment_dir  --iterations $iterations
+python3 vincent_scripts/data_processing.py --function generate_heatmaps --experiment_dir $experiment_dir  --iterations $iterations
 

@@ -8,7 +8,7 @@ iters=$2
 
 mkdir $expname
 
-sudo bash run_benchmark_baseline.sh sunflow new 10   $expname
+sudo bash run_benchmark_baseline.sh sunflow new $iters   $expname
 sudo bash run_benchmark_baseline.sh jython old $iters $expname
 sudo bash run_benchmark_baseline.sh pmd old $iters  $expname
 sudo bash run_benchmark_baseline.sh fop old $iters $expname
